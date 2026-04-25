@@ -143,7 +143,7 @@ function AppSidebar({ items, role }: { items: typeof STUDENT_ITEMS; role: Role }
           </div>
           {!collapsed && (
             <div className="min-w-0">
-              <p className="font-bold leading-none">Masarat</p>
+              <p className="font-bold leading-none">Rihla</p>
               <p className="text-xs text-muted-foreground mt-0.5" dir="rtl">مسارات</p>
             </div>
           )}

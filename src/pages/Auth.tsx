@@ -122,7 +122,7 @@ export default function Auth() {
       <div className="relative hidden lg:flex flex-col justify-between p-12 text-primary-foreground bg-gradient-hero overflow-hidden">
         <div className="relative z-10">
           <div className="flex items-baseline gap-3">
-            <h1 className="text-3xl font-bold tracking-tight">Masarat</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Rihla</h1>
             <span className="text-xl opacity-80" dir="rtl">مسارات</span>
           </div>
         </div>
@@ -135,7 +135,7 @@ export default function Auth() {
           </p>
         </div>
         <div className="relative z-10 text-sm opacity-70">
-          © {new Date().getFullYear()} Masarat — Career readiness platform
+          © {new Date().getFullYear()} Rihla — Career readiness platform
         </div>
         {/* Decorative gradient orbs */}
         <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-accent/30 blur-3xl" />
@@ -146,7 +146,7 @@ export default function Auth() {
       <div className="flex items-center justify-center p-6 sm:p-12">
         <Card className="w-full max-w-md p-8 shadow-elevated">
           <div className="lg:hidden mb-6 flex items-baseline gap-2">
-            <h1 className="text-2xl font-bold">Masarat</h1>
+            <h1 className="text-2xl font-bold">Rihla</h1>
             <span className="text-base text-muted-foreground" dir="rtl">مسارات</span>
           </div>
 

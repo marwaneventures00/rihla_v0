@@ -62,4 +62,4 @@ export type PathwayResult = {
   actionPlan: string[];
 };
 
-export const STORAGE_KEY = 'masarat:onboarding';
+export const STORAGE_KEY = 'rihla:onboarding';
