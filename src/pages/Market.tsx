@@ -1,11 +1,12 @@
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ChevronDown, ChevronUp, Search, ArrowUpRight } from "lucide-react";
-import { SECTORS, ROLES, EMPLOYERS, type Outlook } from "@/lib/marketData";
+import { ChevronDown, ChevronUp, Search, ArrowUpRight, ArrowRight, TrendingUp, Users, GraduationCap } from "lucide-react";
+import { SECTORS, ROLES, EMPLOYERS, getRoleDetail, type Outlook } from "@/lib/marketData";
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid } from "recharts";
 import { cn } from "@/lib/utils";
 
@@ -79,6 +80,7 @@ function RolesTab() {
       <div className="space-y-2">
         {filtered.map((r) => {
           const isOpen = open === r.title;
+          const detail = getRoleDetail(r);
           return (
             <Card key={r.title} className="overflow-hidden">
               <button onClick={() => setOpen(isOpen ? null : r.title)} className="w-full p-4 flex items-center gap-4 text-left hover:bg-secondary/40 transition-colors">
@@ -98,14 +100,75 @@ function RolesTab() {
                 </div>
                 {isOpen ? <ChevronUp className="w-4 h-4 shrink-0" /> : <ChevronDown className="w-4 h-4 shrink-0" />}
               </button>
-              {isOpen && (
-                <div className="px-4 pb-4 pt-1 border-t border-border bg-secondary/20">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2">Key skills</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {r.skills.map((s) => <span key={s} className="text-xs px-2 py-1 rounded-md bg-card border border-border">{s}</span>)}
+              <div
+                className={cn(
+                  "grid transition-all duration-300 ease-out",
+                  isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                )}
+              >
+                <div className="overflow-hidden">
+                  <div className="px-5 pb-5 pt-1 border-t border-border bg-secondary/20 space-y-5">
+                    <section>
+                      <h4 className="text-xs uppercase tracking-wide text-muted-foreground mb-1.5">Role overview</h4>
+                      <p className="text-sm leading-relaxed">{detail.overview}</p>
+                    </section>
+
+                    <section>
+                      <h4 className="text-xs uppercase tracking-wide text-muted-foreground mb-2">Required skills</h4>
+                      <div className="flex flex-wrap gap-1.5">
+                        {detail.fullSkills.map((s) => (
+                          <span key={s} className="text-xs px-2 py-1 rounded-md bg-card border border-border">{s}</span>
+                        ))}
+                      </div>
+                    </section>
+
+                    <section>
+                      <h4 className="text-xs uppercase tracking-wide text-muted-foreground mb-2">Career trajectory</h4>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {detail.trajectory.map((step, i) => (
+                          <div key={step.year} className="flex items-center gap-2">
+                            <div className="px-3 py-2 rounded-md bg-card border border-border">
+                              <p className="text-[11px] font-semibold text-accent">{step.year}</p>
+                              <p className="text-sm font-medium">{step.title}</p>
+                            </div>
+                            {i < detail.trajectory.length - 1 && <ArrowRight className="w-4 h-4 text-muted-foreground" />}
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+
+                    <section>
+                      <h4 className="text-xs uppercase tracking-wide text-muted-foreground mb-2">Top employers in Morocco</h4>
+                      <div className="grid sm:grid-cols-3 gap-2">
+                        {detail.topEmployers.map((e) => (
+                          <div key={e.name} className="px-3 py-2 rounded-md bg-card border border-border">
+                            <p className="text-sm font-semibold leading-tight">{e.name}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">{e.sector}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+
+                    <section>
+                      <h4 className="text-xs uppercase tracking-wide text-muted-foreground mb-2">How to get there</h4>
+                      <ul className="space-y-1.5">
+                        {detail.howToGetThere.map((step, i) => (
+                          <li key={i} className="text-sm flex gap-2">
+                            <span className="flex-shrink-0 w-5 h-5 rounded-full bg-accent-soft text-accent text-xs font-semibold flex items-center justify-center">{i + 1}</span>
+                            <span className="leading-relaxed">{step}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </section>
+
+                    <div className="pt-1">
+                      <Button asChild size="sm" className="bg-accent hover:bg-accent/90 text-accent-foreground">
+                        <Link to="/pathways">View related pathways <ArrowRight className="w-3.5 h-3.5 ml-1" /></Link>
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              )}
+              </div>
             </Card>
           );
         })}
@@ -156,58 +219,127 @@ function TrendsTab() {
     { month: "Apr", pct: 27 }, { month: "May", pct: 29 }, { month: "Jun", pct: 31 },
   ];
 
+  const sectorDemand = [
+    { sector: "Tech & Digital", score: 87 },
+    { sector: "Consulting", score: 82 },
+    { sector: "Finance & Banking", score: 74 },
+    { sector: "Logistics", score: 71 },
+    { sector: "Healthcare", score: 68 },
+    { sector: "Energy & Industry", score: 65 },
+    { sector: "Agribusiness", score: 58 },
+    { sector: "Public Sector", score: 52 },
+    { sector: "Marketing & Media", score: 49 },
+    { sector: "Real Estate", score: 41 },
+  ];
+
+  const snapshot = [
+    { icon: Users, value: "38.4%", label: "Youth unemployment rate", source: "HCP Q3 2025" },
+    { icon: GraduationCap, value: "34%", label: "Cite education-job mismatch as top barrier", source: "Afrobarometer 2025" },
+    { icon: TrendingUp, value: "1 in 3", label: "New graduates find a job within 6 months", source: "World Bank" },
+  ];
+
   return (
-    <div className="grid lg:grid-cols-3 gap-5">
-      <Card className="p-6">
-        <Badge className="bg-accent-soft text-accent border-0 mb-3">Tech & Digital</Badge>
-        <h3 className="font-bold mb-1">Tech sector hiring up 24% YoY in Casablanca</h3>
-        <p className="text-sm text-muted-foreground mb-4">Quarterly job openings tracked across major tech employers.</p>
-        <div className="h-40">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={techData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="quarter" fontSize={11} tick={{ fill: "hsl(var(--muted-foreground))" }} />
-              <YAxis fontSize={11} tick={{ fill: "hsl(var(--muted-foreground))" }} />
-              <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
-              <Line type="monotone" dataKey="openings" stroke="hsl(var(--accent))" strokeWidth={2} dot={{ fill: "hsl(var(--accent))" }} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      </Card>
+    <div className="space-y-6">
+      <div className="grid lg:grid-cols-3 gap-5">
+        <Card className="p-6">
+          <Badge className="bg-accent-soft text-accent border-0 mb-3">Tech & Digital</Badge>
+          <h3 className="font-bold mb-1">Tech sector hiring up 24% YoY in Casablanca</h3>
+          <p className="text-sm text-muted-foreground mb-4">Quarterly job openings tracked across major tech employers.</p>
+          <div className="h-40">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={techData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="quarter" fontSize={11} tick={{ fill: "hsl(var(--muted-foreground))" }} />
+                <YAxis fontSize={11} tick={{ fill: "hsl(var(--muted-foreground))" }} />
+                <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
+                <Line type="monotone" dataKey="openings" stroke="hsl(var(--accent))" strokeWidth={2} dot={{ fill: "hsl(var(--accent))" }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <Badge className="bg-accent-soft text-accent border-0 mb-3">Consulting</Badge>
+          <h3 className="font-bold mb-1">Consulting firms recruit non-business profiles</h3>
+          <p className="text-sm text-muted-foreground mb-4">Background distribution of analyst-level hires this year.</p>
+          <div className="h-40">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={consultingData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="profile" fontSize={11} tick={{ fill: "hsl(var(--muted-foreground))" }} />
+                <YAxis fontSize={11} tick={{ fill: "hsl(var(--muted-foreground))" }} />
+                <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
+                <Bar dataKey="pct" fill="hsl(var(--accent))" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <Badge className="bg-accent-soft text-accent border-0 mb-3">Workplace</Badge>
+          <h3 className="font-bold mb-1">Remote work adoption keeps climbing</h3>
+          <p className="text-sm text-muted-foreground mb-4">% of new postings offering hybrid or remote arrangements.</p>
+          <div className="h-40">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={remoteData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="month" fontSize={11} tick={{ fill: "hsl(var(--muted-foreground))" }} />
+                <YAxis fontSize={11} tick={{ fill: "hsl(var(--muted-foreground))" }} />
+                <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
+                <Line type="monotone" dataKey="pct" stroke="hsl(var(--accent))" strokeWidth={2} dot={{ fill: "hsl(var(--accent))" }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </Card>
+      </div>
 
       <Card className="p-6">
-        <Badge className="bg-accent-soft text-accent border-0 mb-3">Consulting</Badge>
-        <h3 className="font-bold mb-1">Consulting firms recruit non-business profiles</h3>
-        <p className="text-sm text-muted-foreground mb-4">Background distribution of analyst-level hires this year.</p>
-        <div className="h-40">
+        <div className="mb-4">
+          <h3 className="font-bold text-lg mb-1">Sector demand index</h3>
+          <p className="text-sm text-muted-foreground">Composite hiring demand score (0–100) across Morocco's main graduate-employing sectors.</p>
+        </div>
+        <div className="h-[420px]">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={consultingData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="profile" fontSize={11} tick={{ fill: "hsl(var(--muted-foreground))" }} />
-              <YAxis fontSize={11} tick={{ fill: "hsl(var(--muted-foreground))" }} />
-              <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
-              <Bar dataKey="pct" fill="hsl(var(--accent))" radius={[6, 6, 0, 0]} />
+            <BarChart data={sectorDemand} layout="vertical" margin={{ left: 20, right: 30 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
+              <XAxis type="number" domain={[0, 100]} fontSize={11} tick={{ fill: "hsl(var(--muted-foreground))" }} />
+              <YAxis type="category" dataKey="sector" fontSize={12} width={140} tick={{ fill: "hsl(var(--foreground))" }} />
+              <Tooltip
+                contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }}
+                formatter={(v: number) => [`${v} / 100`, "Demand score"]}
+              />
+              <Bar dataKey="score" fill="#C8102E" radius={[0, 6, 6, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
-      </Card>
 
-      <Card className="p-6">
-        <Badge className="bg-accent-soft text-accent border-0 mb-3">Workplace</Badge>
-        <h3 className="font-bold mb-1">Remote work adoption keeps climbing</h3>
-        <p className="text-sm text-muted-foreground mb-4">% of new postings offering hybrid or remote arrangements.</p>
-        <div className="h-40">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={remoteData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="month" fontSize={11} tick={{ fill: "hsl(var(--muted-foreground))" }} />
-              <YAxis fontSize={11} tick={{ fill: "hsl(var(--muted-foreground))" }} />
-              <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
-              <Line type="monotone" dataKey="pct" stroke="hsl(var(--accent))" strokeWidth={2} dot={{ fill: "hsl(var(--accent))" }} />
-            </LineChart>
-          </ResponsiveContainer>
+        <div
+          className="mt-6 rounded-md p-4 border-l-4"
+          style={{ backgroundColor: "#F5E6E8", borderLeftColor: "#C8102E" }}
+        >
+          <p className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: "#C8102E" }}>Key insight</p>
+          <p className="text-sm leading-relaxed text-foreground">
+            Tech &amp; Digital and Consulting are the two fastest-growing sectors for graduate hiring in Morocco. Students with cross-disciplinary profiles (engineering + finance, tech + business) are seeing 40% higher interview rates.
+          </p>
         </div>
       </Card>
+
+      <div>
+        <h3 className="font-bold text-lg mb-1">Graduate employment snapshot</h3>
+        <p className="text-sm text-muted-foreground mb-4">Why this platform exists — the structural gap between graduates and the job market.</p>
+        <div className="grid sm:grid-cols-3 gap-4">
+          {snapshot.map((s) => (
+            <Card key={s.label} className="p-5">
+              <div className="w-10 h-10 rounded-lg bg-accent-soft flex items-center justify-center mb-3">
+                <s.icon className="w-5 h-5 text-accent" />
+              </div>
+              <p className="text-3xl font-bold leading-none mb-1.5" style={{ color: "#C8102E" }}>{s.value}</p>
+              <p className="text-sm font-medium leading-snug mb-2">{s.label}</p>
+              <p className="text-xs text-muted-foreground">Source: {s.source}</p>
+            </Card>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
