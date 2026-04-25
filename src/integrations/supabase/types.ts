@@ -14,16 +14,212 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      action_plan_items: {
+        Row: {
+          action_text: string
+          completed: boolean
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          action_text: string
+          completed?: boolean
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          action_text?: string
+          completed?: boolean
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      onboarding_responses: {
+        Row: {
+          ambition_level: number | null
+          created_at: string
+          geography: string | null
+          id: string
+          personality_scores: Json
+          preferred_sectors: string[]
+          user_id: string
+          work_environment: string | null
+        }
+        Insert: {
+          ambition_level?: number | null
+          created_at?: string
+          geography?: string | null
+          id?: string
+          personality_scores?: Json
+          preferred_sectors?: string[]
+          user_id: string
+          work_environment?: string | null
+        }
+        Update: {
+          ambition_level?: number | null
+          created_at?: string
+          geography?: string | null
+          id?: string
+          personality_scores?: Json
+          preferred_sectors?: string[]
+          user_id?: string
+          work_environment?: string | null
+        }
+        Relationships: []
+      }
+      pathway_results: {
+        Row: {
+          created_at: string
+          id: string
+          result_json: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          result_json: Json
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          result_json?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          field_of_study: string | null
+          full_name: string | null
+          id: string
+          institution_name: string | null
+          institution_type: string | null
+          onboarding_completed: boolean
+          study_level: string | null
+          university_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          field_of_study?: string | null
+          full_name?: string | null
+          id?: string
+          institution_name?: string | null
+          institution_type?: string | null
+          onboarding_completed?: boolean
+          study_level?: string | null
+          university_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          field_of_study?: string | null
+          full_name?: string | null
+          id?: string
+          institution_name?: string | null
+          institution_type?: string | null
+          onboarding_completed?: boolean
+          study_level?: string | null
+          university_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_university_id_fkey"
+            columns: ["university_id"]
+            isOneToOne: false
+            referencedRelation: "universities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      universities: {
+        Row: {
+          access_code: string
+          admin_email: string | null
+          created_at: string
+          id: string
+          license_active: boolean
+          name: string
+          student_count: number
+        }
+        Insert: {
+          access_code: string
+          admin_email?: string | null
+          created_at?: string
+          id?: string
+          license_active?: boolean
+          name: string
+          student_count?: number
+        }
+        Update: {
+          access_code?: string
+          admin_email?: string | null
+          created_at?: string
+          id?: string
+          license_active?: boolean
+          name?: string
+          student_count?: number
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          university_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          university_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          university_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_university_id_fkey"
+            columns: ["university_id"]
+            isOneToOne: false
+            referencedRelation: "universities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_university: { Args: { _user_id: string }; Returns: string }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "student" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +346,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["student", "admin"],
+    },
   },
 } as const
