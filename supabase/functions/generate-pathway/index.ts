@@ -65,8 +65,8 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
-    if (!ANTHROPIC_API_KEY) throw new Error('ANTHROPIC_API_KEY not configured');
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY not configured');
 
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
     const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? Deno.env.get('SUPABASE_PUBLISHABLE_KEY')!;
@@ -91,33 +91,42 @@ Deno.serve(async (req) => {
 
     const payload: OnboardingPayload = await req.json();
 
-    const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
+    const aiRes = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'x-api-key': ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 2000,
-        system: SYSTEM_PROMPT,
-        messages: [{ role: 'user', content: buildUserPrompt(payload) }],
+        model: 'google/gemini-2.5-flash',
+        messages: [
+          { role: 'system', content: SYSTEM_PROMPT },
+          { role: 'user', content: buildUserPrompt(payload) },
+        ],
+        response_format: { type: 'json_object' },
       }),
     });
 
-    if (!claudeRes.ok) {
-      const errText = await claudeRes.text();
-      console.error('Claude API error:', claudeRes.status, errText);
-      return new Response(JSON.stringify({ error: `Claude API failed: ${claudeRes.status}`, details: errText }), {
+    if (!aiRes.ok) {
+      const errText = await aiRes.text();
+      console.error('AI Gateway error:', aiRes.status, errText);
+      if (aiRes.status === 429) {
+        return new Response(JSON.stringify({ error: 'Rate limit exceeded. Please try again shortly.' }), {
+          status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      if (aiRes.status === 402) {
+        return new Response(JSON.stringify({ error: 'AI credits exhausted. Please add credits in Settings.' }), {
+          status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      return new Response(JSON.stringify({ error: `AI Gateway failed: ${aiRes.status}`, details: errText }), {
         status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const claudeData = await claudeRes.json();
-    const text = claudeData?.content?.[0]?.text ?? '';
-
-    // Strip code fences just in case the model wraps JSON.
+    const aiData = await aiRes.json();
+    const text = aiData?.choices?.[0]?.message?.content ?? '';
     const cleaned = text.trim().replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();
 
     let result: unknown;
@@ -130,14 +139,12 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Persist
     const { error: insertErr } = await supabase
       .from('pathway_results')
       .insert({ user_id: userData.user.id, result_json: result });
 
     if (insertErr) console.error('Insert error:', insertErr);
 
-    // Persist action plan items
     const actions = (result as any)?.actionPlan ?? [];
     if (Array.isArray(actions) && actions.length > 0) {
       await supabase.from('action_plan_items').insert(
@@ -145,7 +152,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Mark onboarding completed
     await supabase
       .from('profiles')
       .update({ onboarding_completed: true })
