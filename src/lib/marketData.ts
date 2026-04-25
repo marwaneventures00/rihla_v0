@@ -108,3 +108,159 @@ export const EMPLOYERS: Employer[] = [
   { name: "EY Maroc", sector: "Consulting", size: "Large", hiring: true },
   { name: "ONCF (Railways)", sector: "Public Sector", size: "Group", hiring: false },
 ];
+
+export type RoleDetail = {
+  overview: string;
+  fullSkills: string[];
+  trajectory: { year: string; title: string }[];
+  topEmployers: { name: string; sector: string }[];
+  howToGetThere: string[];
+};
+
+const SECTOR_EMPLOYERS: Record<string, { name: string; sector: string }[]> = {
+  "Finance & Banking": [
+    { name: "Attijariwafa Bank", sector: "Banking" },
+    { name: "BMCE Bank of Africa", sector: "Banking" },
+    { name: "CIH Bank", sector: "Banking" },
+  ],
+  "Consulting": [
+    { name: "McKinsey Casablanca", sector: "Strategy" },
+    { name: "Deloitte Maroc", sector: "Advisory" },
+    { name: "PwC Maroc", sector: "Advisory" },
+  ],
+  "Tech & Digital": [
+    { name: "HPS Worldwide", sector: "Fintech" },
+    { name: "Maroc Telecom", sector: "Telecom" },
+    { name: "Inwi", sector: "Telecom" },
+  ],
+  "Energy & Industry": [
+    { name: "OCP Group", sector: "Mining & Chemicals" },
+    { name: "Renault Tanger", sector: "Automotive" },
+    { name: "Stellantis Kenitra", sector: "Automotive" },
+  ],
+  "Public Sector": [
+    { name: "CDG (Caisse de Dépôt)", sector: "Public finance" },
+    { name: "Bank Al-Maghrib", sector: "Central bank" },
+    { name: "ONCF", sector: "Public transport" },
+  ],
+  "Healthcare": [
+    { name: "Akdital", sector: "Private clinics" },
+    { name: "Cooper Pharma", sector: "Pharma" },
+    { name: "Sothema", sector: "Pharma" },
+  ],
+  "Agribusiness": [
+    { name: "Cosumar", sector: "Food processing" },
+    { name: "Label Vie", sector: "Retail / agro" },
+    { name: "Les Domaines Agricoles", sector: "Agro-export" },
+  ],
+  "Logistics": [
+    { name: "Marsa Maroc", sector: "Port operations" },
+    { name: "Royal Air Maroc Cargo", sector: "Air freight" },
+    { name: "DHL Morocco", sector: "Express logistics" },
+  ],
+  "Marketing & Media": [
+    { name: "Mosaik", sector: "Agency" },
+    { name: "Havas Morocco", sector: "Agency" },
+    { name: "2M / SNRT", sector: "Media" },
+  ],
+  "Entrepreneurship": [
+    { name: "212Founders", sector: "Accelerator" },
+    { name: "UM6P Ventures", sector: "VC" },
+    { name: "Outlierz Ventures", sector: "VC" },
+  ],
+  "Real Estate & Construction": [
+    { name: "Addoha", sector: "Real estate" },
+    { name: "Alliances", sector: "Real estate" },
+    { name: "TGCC", sector: "Construction" },
+  ],
+  "Tourism & Hospitality": [
+    { name: "Accor Maroc", sector: "Hotels" },
+    { name: "Four Seasons Marrakech", sector: "Luxury hotels" },
+    { name: "Royal Mansour", sector: "Luxury hotels" },
+  ],
+};
+
+const ROLE_OVERRIDES: Record<string, Partial<RoleDetail>> = {
+  "Data Analyst": {
+    overview: "Data Analysts at Moroccan banks, telecoms and e-commerce players turn raw transactional data into dashboards and recommendations. Day-to-day work mixes SQL queries, Power BI dashboards and meetings with business stakeholders to align on KPIs.",
+    fullSkills: ["SQL", "Python (pandas)", "Power BI / Tableau", "Statistics", "Business storytelling", "Stakeholder communication"],
+    trajectory: [
+      { year: "Year 1", title: "Junior Data Analyst" },
+      { year: "Year 3", title: "Senior Data Analyst / BI Lead" },
+      { year: "Year 5", title: "Analytics Manager / Head of BI" },
+    ],
+    howToGetThere: [
+      "Complete a SQL + Python certification on Coursera or DataCamp before graduation",
+      "Build 2 portfolio dashboards on real Moroccan datasets (HCP, Bank Al-Maghrib open data)",
+      "Apply for analyst internships at Attijariwafa Bank, OCP or Jumia during L3 / M1",
+    ],
+  },
+  "Management Consultant": {
+    overview: "Management Consultants in Casablanca solve strategic problems for North & West African clients — banks, telcos, ministries. Days alternate between client interviews, Excel modelling, and synthesizing findings into PowerPoint decks for C-level audiences.",
+    fullSkills: ["Structured problem-solving", "Excel modelling", "PowerPoint storytelling", "Client interviews", "French + English fluency", "Industry research"],
+    trajectory: [
+      { year: "Year 1", title: "Business Analyst" },
+      { year: "Year 3", title: "Consultant" },
+      { year: "Year 5", title: "Engagement Manager" },
+    ],
+    howToGetThere: [
+      "Practice 20+ case studies (Case in Point, Victor Cheng) before recruiting season",
+      "Join a case club at your school (HEM, ENCG, EMI, ESCA) and lead at least one project",
+      "Apply early to McKinsey, BCG, Roland Berger, Deloitte S&O summer internships",
+    ],
+  },
+  "Software Engineer": {
+    overview: "Software Engineers in Morocco build products for fintechs (HPS, Cash Plus), telcos and a fast-growing offshoring market serving European clients. Most work in agile squads using JavaScript/TypeScript, Java or Python and ship features weekly.",
+    fullSkills: ["JavaScript / TypeScript", "Git & code review", "REST APIs", "Unit testing", "Agile / Scrum", "Problem decomposition"],
+    trajectory: [
+      { year: "Year 1", title: "Junior Software Engineer" },
+      { year: "Year 3", title: "Software Engineer" },
+      { year: "Year 5", title: "Senior Engineer / Tech Lead" },
+    ],
+    howToGetThere: [
+      "Ship 3 personal projects on GitHub (full-stack web app, API, mobile app)",
+      "Contribute to one open-source project to demonstrate code review skills",
+      "Apply to internships at HPS, Capgemini Maroc, Sopra Steria or local startups via 212Founders",
+    ],
+  },
+  "Investment Banking Analyst": {
+    overview: "IB Analysts in Casablanca (BMCE Capital, Attijari Finances, CFG Bank) build financial models, run valuations and prepare pitch books for M&A and capital-markets deals across Morocco and francophone Africa. Long hours but unmatched early-career exposure.",
+    fullSkills: ["DCF & comparable valuation", "Excel modelling", "PowerPoint pitch books", "Accounting (IFRS)", "M&A research", "Resilience under pressure"],
+    trajectory: [
+      { year: "Year 1", title: "Analyst" },
+      { year: "Year 3", title: "Senior Analyst / Associate" },
+      { year: "Year 5", title: "Vice President" },
+    ],
+    howToGetThere: [
+      "Complete CFA Level 1 or a financial modelling certification (Wall Street Prep, BIWS)",
+      "Network with alumni from ISCAE, EMI, ENCG already working in IB",
+      "Apply to summer analyst programs at BMCE Capital, Attijari Finances, CFG Bank in Year M1",
+    ],
+  },
+};
+
+export function getRoleDetail(role: Role): RoleDetail {
+  const override = ROLE_OVERRIDES[role.title] || {};
+  const sectorEmployers = SECTOR_EMPLOYERS[role.sector] || SECTOR_EMPLOYERS["Tech & Digital"];
+  return {
+    overview: override.overview ||
+      `${role.title} roles in ${role.sector} are in steady demand across Morocco, particularly in Casablanca, Rabat and Tangier. Day-to-day work combines core technical execution with cross-functional collaboration on real client or operational problems.`,
+    fullSkills: override.fullSkills || [
+      ...role.skills,
+      "French + English fluency",
+      "Stakeholder communication",
+      "Problem-solving",
+    ].slice(0, 6),
+    trajectory: override.trajectory || [
+      { year: "Year 1", title: `Junior ${role.title}` },
+      { year: "Year 3", title: role.title },
+      { year: "Year 5", title: `Senior ${role.title} / Manager` },
+    ],
+    topEmployers: sectorEmployers,
+    howToGetThere: override.howToGetThere || [
+      `Build foundational skills in ${role.skills[0]} via an online certification (Coursera, OpenClassrooms)`,
+      `Secure a relevant internship in ${role.sector} during L3 or M1 — target the leading Moroccan employers in the sector`,
+      `Join a student association or build a portfolio project that demonstrates initiative and applied skills`,
+    ],
+  };
+}
