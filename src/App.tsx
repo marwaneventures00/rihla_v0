@@ -8,6 +8,10 @@ import NotFound from "./pages/NotFound.tsx";
 import Auth from "./pages/Auth.tsx";
 import Onboarding from "./pages/Onboarding.tsx";
 import Pathways from "./pages/Pathways.tsx";
+import Market from "./pages/Market.tsx";
+import Profile from "./pages/Profile.tsx";
+import AdminDashboard from "./pages/AdminDashboard.tsx";
+import AppLayout from "./components/AppLayout.tsx";
 
 const queryClient = new QueryClient();
 
@@ -21,7 +25,21 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/onboarding" element={<Onboarding />} />
-          <Route path="/pathways" element={<Pathways />} />
+
+          {/* Student app */}
+          <Route element={<AppLayout requireRole="student" />}>
+            <Route path="/pathways" element={<Pathways />} />
+            <Route path="/market" element={<Market />} />
+            <Route path="/profile" element={<Profile />} />
+          </Route>
+
+          {/* Admin app */}
+          <Route element={<AppLayout requireRole="admin" />}>
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/students" element={<AdminDashboard />} />
+            <Route path="/admin/analytics" element={<AdminDashboard />} />
+          </Route>
+
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

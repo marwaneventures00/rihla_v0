@@ -13,12 +13,14 @@ const Index = () => {
         navigate("/auth", { replace: true });
         return;
       }
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("onboarding_completed")
-        .eq("user_id", data.session.user.id)
-        .maybeSingle();
-      navigate(profile?.onboarding_completed ? "/pathways" : "/onboarding", { replace: true });
+      const uid = data.session.user.id;
+      const [{ data: profile }, { data: roles }] = await Promise.all([
+        supabase.from("profiles").select("onboarding_completed").eq("user_id", uid).maybeSingle(),
+        supabase.from("user_roles").select("role").eq("user_id", uid),
+      ]);
+      const isAdmin = roles?.some((r) => r.role === "admin");
+      if (isAdmin) navigate("/admin", { replace: true });
+      else navigate(profile?.onboarding_completed ? "/pathways" : "/onboarding", { replace: true });
     })();
   }, [navigate]);
 
