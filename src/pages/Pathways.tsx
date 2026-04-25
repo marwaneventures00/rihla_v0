@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, LogOut, MapPin, TrendingUp, Users, ArrowRight } from "lucide-react";
-import { toast } from "sonner";
+import { Loader2, MapPin, TrendingUp, Users, ArrowRight } from "lucide-react";
 import type { PathwayResult } from "@/lib/onboarding";
 
 export default function Pathways() {
@@ -57,15 +56,9 @@ export default function Pathways() {
     return () => cancelAnimationFrame(raf);
   }, [result]);
 
-  async function handleSignOut() {
-    await supabase.auth.signOut();
-    navigate("/auth", { replace: true });
-    toast.success("Signed out");
-  }
-
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex items-center justify-center py-20">
         <Loader2 className="w-6 h-6 animate-spin text-accent" />
       </div>
     );
