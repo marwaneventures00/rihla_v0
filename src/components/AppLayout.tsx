@@ -26,6 +26,7 @@ import {
   GraduationCap,
   Users,
   BarChart3,
+  Settings,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -41,6 +42,7 @@ const ADMIN_ITEMS = [
   { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
   { title: "Students", url: "/admin/students", icon: Users },
   { title: "Analytics", url: "/admin/analytics", icon: BarChart3 },
+  { title: "Settings", url: "/admin/settings", icon: Settings },
 ];
 
 type Profile = { full_name: string | null; institution_name: string | null };
