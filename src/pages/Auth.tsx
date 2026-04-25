@@ -123,7 +123,6 @@ export default function Auth() {
         <div className="relative z-10">
           <div className="flex items-baseline gap-3">
             <h1 className="text-3xl font-bold tracking-tight">Rihla</h1>
-            <span className="text-xl opacity-80" dir="rtl">رحلة</span>
           </div>
         </div>
         <div className="relative z-10 max-w-md">
@@ -147,7 +146,6 @@ export default function Auth() {
         <Card className="w-full max-w-md p-8 shadow-elevated">
           <div className="lg:hidden mb-6 flex items-baseline gap-2">
             <h1 className="text-2xl font-bold">Rihla</h1>
-            <span className="text-base text-muted-foreground" dir="rtl">رحلة</span>
           </div>
 
           <Tabs value={tab} onValueChange={(v) => setTab(v as "student" | "admin")}>
