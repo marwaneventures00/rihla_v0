@@ -67,84 +67,64 @@ export default function Pathways() {
   if (!result) return null;
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Top bar */}
-      <header className="border-b border-border bg-card">
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-baseline gap-2">
-            <span className="font-bold text-lg">Masarat</span>
-            <span className="text-sm text-muted-foreground" dir="rtl">مسارات</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-muted-foreground hidden sm:inline">
-              {profile?.full_name}
-            </span>
-            <Button variant="ghost" size="sm" onClick={handleSignOut}>
-              <LogOut className="w-4 h-4" /> Sign out
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-6xl mx-auto px-6 py-10 space-y-8">
-        {/* Profile summary */}
-        <Card className="p-8 shadow-card">
-          <div className="grid md:grid-cols-[1fr_auto] gap-6 items-center">
-            <div>
-              <p className="text-sm text-muted-foreground mb-1">Your career profile</p>
-              <h1 className="text-3xl font-bold mb-3">
-                {profile?.full_name ?? "Your"} pathways
-              </h1>
-              <p className="text-muted-foreground mb-4">
-                {profile?.field_of_study} · Personalized for the Moroccan market
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {result.topTraits.map((t) => (
-                  <Badge key={t} variant="secondary" className="text-sm bg-accent-soft text-accent border-0">
-                    {t}
-                  </Badge>
-                ))}
-              </div>
+    <div className="space-y-8 max-w-6xl">
+      {/* Profile summary */}
+      <Card className="p-8 shadow-card">
+        <div className="grid md:grid-cols-[1fr_auto] gap-6 items-center">
+          <div>
+            <p className="text-sm text-muted-foreground mb-1">Your career profile</p>
+            <h1 className="text-3xl font-bold mb-3">
+              {profile?.full_name ?? "Your"} pathways
+            </h1>
+            <p className="text-muted-foreground mb-4">
+              {profile?.field_of_study} · Personalized for the Moroccan market
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {result.topTraits.map((t) => (
+                <Badge key={t} variant="secondary" className="text-sm bg-accent-soft text-accent border-0">
+                  {t}
+                </Badge>
+              ))}
             </div>
-            <ScoreRing score={animatedScore} />
           </div>
-        </Card>
-
-        {/* Pathways */}
-        <section>
-          <h2 className="text-xl font-bold mb-4">Recommended pathways</h2>
-          <div className="grid md:grid-cols-3 gap-5">
-            {result.pathways.map((p) => (
-              <PathwayCard key={p.title} pathway={p} />
-            ))}
-          </div>
-        </section>
-
-        {/* Action plan */}
-        <Card className="p-8 shadow-card">
-          <div className="flex items-center gap-3 mb-1">
-            <TrendingUp className="w-5 h-5 text-accent" />
-            <h2 className="text-xl font-bold">Your 90-day action plan</h2>
-          </div>
-          <p className="text-sm text-muted-foreground mb-6">Concrete steps to bridge your skills gap and start building momentum.</p>
-          <ol className="space-y-3">
-            {result.actionPlan.map((a, i) => (
-              <li key={i} className="flex gap-4 p-4 rounded-lg border border-border hover:border-accent/40 transition-colors">
-                <div className="shrink-0 w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center text-sm font-bold">
-                  {i + 1}
-                </div>
-                <p className="text-sm leading-relaxed pt-1">{a}</p>
-              </li>
-            ))}
-          </ol>
-        </Card>
-
-        <div className="flex justify-end">
-          <Button variant="outline" disabled>
-            Explore the job market <ArrowRight className="w-4 h-4" />
-          </Button>
+          <ScoreRing score={animatedScore} />
         </div>
-      </main>
+      </Card>
+
+      {/* Pathways */}
+      <section>
+        <h2 className="text-xl font-bold mb-4">Recommended pathways</h2>
+        <div className="grid md:grid-cols-3 gap-5">
+          {result.pathways.map((p) => (
+            <PathwayCard key={p.title} pathway={p} />
+          ))}
+        </div>
+      </section>
+
+      {/* Action plan */}
+      <Card className="p-8 shadow-card">
+        <div className="flex items-center gap-3 mb-1">
+          <TrendingUp className="w-5 h-5 text-accent" />
+          <h2 className="text-xl font-bold">Your 90-day action plan</h2>
+        </div>
+        <p className="text-sm text-muted-foreground mb-6">Concrete steps to bridge your skills gap and start building momentum.</p>
+        <ol className="space-y-3">
+          {result.actionPlan.map((a, i) => (
+            <li key={i} className="flex gap-4 p-4 rounded-lg border border-border hover:border-accent/40 transition-colors">
+              <div className="shrink-0 w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center text-sm font-bold">
+                {i + 1}
+              </div>
+              <p className="text-sm leading-relaxed pt-1">{a}</p>
+            </li>
+          ))}
+        </ol>
+      </Card>
+
+      <div className="flex justify-end">
+        <Button asChild variant="outline">
+          <Link to="/market">Explore the job market <ArrowRight className="w-4 h-4" /></Link>
+        </Button>
+      </div>
     </div>
   );
 }
