@@ -10,6 +10,7 @@ import Onboarding from "./pages/Onboarding.tsx";
 import Pathways from "./pages/Pathways.tsx";
 import Market from "./pages/Market.tsx";
 import Profile from "./pages/Profile.tsx";
+import Develop from "./pages/Develop.tsx";
 import AdminDashboard from "./pages/AdminDashboard.tsx";
 import AppLayout from "./components/AppLayout.tsx";
 
@@ -30,6 +31,7 @@ const App = () => (
           <Route element={<AppLayout requireRole="student" />}>
             <Route path="/pathways" element={<Pathways />} />
             <Route path="/market" element={<Market />} />
+            <Route path="/develop" element={<Develop />} />
             <Route path="/profile" element={<Profile />} />
           </Route>
 
