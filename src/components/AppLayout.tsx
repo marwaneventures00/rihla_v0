@@ -17,6 +17,14 @@ import {
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import {
   LayoutDashboard,
   Briefcase,
   User,
@@ -27,6 +35,8 @@ import {
   Users,
   BarChart3,
   Settings,
+  ChevronDown,
+  ShieldCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -48,10 +58,14 @@ const ADMIN_ITEMS = [
 
 type Profile = { full_name: string | null; institution_name: string | null };
 
+const VIEW_KEY = "rihla.activeView";
+
 export default function AppLayout({ requireRole }: { requireRole?: Role }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [loading, setLoading] = useState(true);
-  const [role, setRole] = useState<Role | null>(null);
+  const [availableRoles, setAvailableRoles] = useState<Role[]>([]);
+  const [activeView, setActiveView] = useState<Role | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
 
   useEffect(() => {
@@ -67,18 +81,44 @@ export default function AppLayout({ requireRole }: { requireRole?: Role }) {
       ]);
       if (!mounted) return;
 
-      const isAdmin = roles?.some((r) => r.role === "admin");
-      const resolved: Role = isAdmin ? "admin" : "student";
-      setRole(resolved);
+      const uniqueRoles = Array.from(new Set((roles ?? []).map((r) => r.role as Role)));
+      const isAdmin = uniqueRoles.includes("admin");
+      const isStudent = uniqueRoles.includes("student");
+      // Ensure at least one role
+      if (!isAdmin && !isStudent) uniqueRoles.push("student");
+
+      // Resolve active view: respect requireRole if user has it; else stored; else default
+      const stored = (typeof window !== "undefined" ? localStorage.getItem(VIEW_KEY) : null) as Role | null;
+      let resolved: Role;
+      if (requireRole && uniqueRoles.includes(requireRole)) {
+        resolved = requireRole;
+      } else if (stored && uniqueRoles.includes(stored)) {
+        resolved = stored;
+      } else {
+        resolved = isAdmin ? "admin" : "student";
+      }
+
+      setAvailableRoles(uniqueRoles);
+      setActiveView(resolved);
       setProfile(prof);
       setLoading(false);
 
-      if (requireRole && requireRole !== resolved) {
+      if (typeof window !== "undefined") localStorage.setItem(VIEW_KEY, resolved);
+
+      // If route requires a role the user doesn't have, redirect
+      if (requireRole && !uniqueRoles.includes(requireRole)) {
         navigate(resolved === "admin" ? "/admin" : "/pathways", { replace: true });
       }
     })();
     return () => { mounted = false; };
-  }, [navigate, requireRole]);
+  }, [navigate, requireRole, location.pathname]);
+
+  function switchView(next: Role) {
+    if (next === activeView) return;
+    localStorage.setItem(VIEW_KEY, next);
+    setActiveView(next);
+    navigate(next === "admin" ? "/admin" : "/pathways", { replace: true });
+  }
 
   async function signOut() {
     await supabase.auth.signOut();
@@ -86,18 +126,19 @@ export default function AppLayout({ requireRole }: { requireRole?: Role }) {
     navigate("/auth", { replace: true });
   }
 
-  if (loading || !role) {
+  if (loading || !activeView) {
     return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin text-accent" /></div>;
   }
 
-  const items = role === "admin" ? ADMIN_ITEMS : STUDENT_ITEMS;
+  const items = activeView === "admin" ? ADMIN_ITEMS : STUDENT_ITEMS;
   const initials = (profile?.full_name ?? "U")
     .split(" ").map((s) => s[0]).join("").slice(0, 2).toUpperCase();
+  const hasBoth = availableRoles.length > 1;
 
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
-        <AppSidebar items={items} role={role} />
+        <AppSidebar items={items} />
 
         <div className="flex-1 flex flex-col min-w-0">
           <header className="h-16 border-b border-border bg-card flex items-center px-4 gap-3 sticky top-0 z-10">
@@ -105,6 +146,29 @@ export default function AppLayout({ requireRole }: { requireRole?: Role }) {
             <div className="flex-1 min-w-0">
               <p className="text-sm text-muted-foreground truncate">{profile?.institution_name ?? "—"}</p>
             </div>
+
+            {hasBoth && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-2">
+                    {activeView === "admin" ? <ShieldCheck className="w-4 h-4" /> : <GraduationCap className="w-4 h-4" />}
+                    <span className="hidden sm:inline">{activeView === "admin" ? "Admin view" : "Student view"}</span>
+                    <ChevronDown className="w-3.5 h-3.5 opacity-60" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>Switch view</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => switchView("student")}>
+                    <GraduationCap className="w-4 h-4 mr-2" /> Student view
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => switchView("admin")}>
+                    <ShieldCheck className="w-4 h-4 mr-2" /> Admin view
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+
             <button className="relative w-9 h-9 rounded-full hover:bg-secondary flex items-center justify-center transition-colors" aria-label="Notifications">
               <Bell className="w-4 h-4" />
               <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-accent" />
@@ -115,7 +179,7 @@ export default function AppLayout({ requireRole }: { requireRole?: Role }) {
               </div>
               <div className="hidden sm:block text-sm">
                 <p className="font-medium leading-tight">{profile?.full_name ?? "User"}</p>
-                <p className="text-xs text-muted-foreground capitalize">{role}</p>
+                <p className="text-xs text-muted-foreground capitalize">{activeView}</p>
               </div>
               <Button variant="ghost" size="icon" onClick={signOut} aria-label="Sign out">
                 <LogOut className="w-4 h-4" />
@@ -132,7 +196,7 @@ export default function AppLayout({ requireRole }: { requireRole?: Role }) {
   );
 }
 
-function AppSidebar({ items, role }: { items: typeof STUDENT_ITEMS; role: Role }) {
+function AppSidebar({ items }: { items: typeof STUDENT_ITEMS }) {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
