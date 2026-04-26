@@ -19,7 +19,10 @@ const Index = () => {
         supabase.from("user_roles").select("role").eq("user_id", uid),
       ]);
       const isAdmin = roles?.some((r) => r.role === "admin");
-      if (isAdmin) navigate("/admin", { replace: true });
+      const isStudent = roles?.some((r) => r.role === "student");
+      const stored = localStorage.getItem("rihla.activeView");
+      const view = stored === "admin" && isAdmin ? "admin" : stored === "student" && isStudent ? "student" : isAdmin ? "admin" : "student";
+      if (view === "admin") navigate("/admin", { replace: true });
       else navigate(profile?.onboarding_completed ? "/pathways" : "/onboarding", { replace: true });
     })();
   }, [navigate]);
