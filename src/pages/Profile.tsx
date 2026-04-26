@@ -208,6 +208,41 @@ export default function Profile() {
         </ul>
       </Card>
 
+      {/* Practice history */}
+      {(caseSessions.length > 0 || interviewSessions.length > 0) && (
+        <Card className="p-6">
+          <h2 className="font-semibold mb-4">Practice history</h2>
+          <div className="grid md:grid-cols-2 gap-6">
+            <div>
+              <p className="text-sm font-semibold mb-2 flex items-center gap-2"><Briefcase className="w-4 h-4 text-accent" /> Business cases</p>
+              {caseSessions.length === 0 ? <p className="text-xs text-muted-foreground">None yet.</p> : (
+                <ul className="space-y-2">
+                  {caseSessions.map((c) => (
+                    <li key={c.id} className="text-sm p-2 rounded border border-border flex justify-between">
+                      <span className="truncate">{c.case_json?.title ?? "Case"}</span>
+                      <span className="font-semibold text-accent shrink-0 ml-2">{c.score_json?.overall_score ?? "—"}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <div>
+              <p className="text-sm font-semibold mb-2 flex items-center gap-2"><Mic className="w-4 h-4 text-accent" /> Mock interviews</p>
+              {interviewSessions.length === 0 ? <p className="text-xs text-muted-foreground">None yet.</p> : (
+                <ul className="space-y-2">
+                  {interviewSessions.map((i) => (
+                    <li key={i.id} className="text-sm p-2 rounded border border-border flex justify-between">
+                      <span className="truncate">{i.role}</span>
+                      <span className="font-semibold text-accent shrink-0 ml-2">{i.feedback_json?.overall_score ?? "—"}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        </Card>
+      )}
+
       {/* Demo helper: promote to admin */}
       {!hasAdmin && universityId && (
         <Card className="p-6 border-dashed">
