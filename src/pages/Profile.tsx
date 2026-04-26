@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, ShieldCheck, Save } from "lucide-react";
+import { Loader2, ShieldCheck, Save, Briefcase, Mic } from "lucide-react";
 import { toast } from "sonner";
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid } from "recharts";
 import type { PathwayResult } from "@/lib/onboarding";
@@ -30,6 +30,8 @@ export default function Profile() {
   const [pathways, setPathways] = useState<PathwayRow[]>([]);
   const [hasAdmin, setHasAdmin] = useState(false);
   const [universityId, setUniversityId] = useState<string | null>(null);
+  const [caseSessions, setCaseSessions] = useState<any[]>([]);
+  const [interviewSessions, setInterviewSessions] = useState<any[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -38,11 +40,13 @@ export default function Profile() {
       const userId = s.session.user.id;
       setUid(userId);
 
-      const [{ data: p }, { data: a }, { data: pw }, { data: r }] = await Promise.all([
+      const [{ data: p }, { data: a }, { data: pw }, { data: r }, { data: cs }, { data: is }] = await Promise.all([
         supabase.from("profiles").select("full_name, field_of_study, study_level, institution_name, university_id").eq("user_id", userId).maybeSingle(),
         supabase.from("action_plan_items").select("id, action_text, completed").eq("user_id", userId).order("created_at"),
         supabase.from("pathway_results").select("id, result_json, created_at").eq("user_id", userId).order("created_at"),
         supabase.from("user_roles").select("role").eq("user_id", userId),
+        supabase.from("case_sessions").select("id, case_json, score_json, completed_at, created_at").eq("user_id", userId).not("completed_at", "is", null).order("completed_at", { ascending: false }).limit(5),
+        supabase.from("interview_sessions").select("id, role, feedback_json, completed_at, created_at").eq("user_id", userId).not("completed_at", "is", null).order("completed_at", { ascending: false }).limit(5),
       ]);
 
       if (p) {
@@ -55,6 +59,8 @@ export default function Profile() {
       setActions((a ?? []) as ActionItem[]);
       setPathways((pw ?? []).map((row) => ({ ...row, result_json: row.result_json as unknown as PathwayResult })));
       setHasAdmin(!!r?.some((x) => x.role === "admin"));
+      setCaseSessions(cs ?? []);
+      setInterviewSessions(is ?? []);
       setLoading(false);
     })();
   }, [navigate]);
