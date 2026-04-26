@@ -38,6 +38,81 @@ export type Database = {
         }
         Relationships: []
       }
+      case_sessions: {
+        Row: {
+          answer_text: string | null
+          case_json: Json
+          completed_at: string | null
+          created_at: string
+          difficulty: string | null
+          id: string
+          score_json: Json | null
+          sector: string | null
+          user_id: string
+        }
+        Insert: {
+          answer_text?: string | null
+          case_json: Json
+          completed_at?: string | null
+          created_at?: string
+          difficulty?: string | null
+          id?: string
+          score_json?: Json | null
+          sector?: string | null
+          user_id: string
+        }
+        Update: {
+          answer_text?: string | null
+          case_json?: Json
+          completed_at?: string | null
+          created_at?: string
+          difficulty?: string | null
+          id?: string
+          score_json?: Json | null
+          sector?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      interview_sessions: {
+        Row: {
+          answers_json: Json | null
+          completed_at: string | null
+          created_at: string
+          feedback_json: Json | null
+          id: string
+          interview_type: string | null
+          language: string | null
+          questions_json: Json
+          role: string
+          user_id: string
+        }
+        Insert: {
+          answers_json?: Json | null
+          completed_at?: string | null
+          created_at?: string
+          feedback_json?: Json | null
+          id?: string
+          interview_type?: string | null
+          language?: string | null
+          questions_json: Json
+          role: string
+          user_id: string
+        }
+        Update: {
+          answers_json?: Json | null
+          completed_at?: string | null
+          created_at?: string
+          feedback_json?: Json | null
+          id?: string
+          interview_type?: string | null
+          language?: string | null
+          questions_json?: Json
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       onboarding_responses: {
         Row: {
           ambition_level: number | null
