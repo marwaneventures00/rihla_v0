@@ -35,6 +35,7 @@ type Role = "student" | "admin";
 const STUDENT_ITEMS = [
   { title: "Pathways", url: "/pathways", icon: LayoutDashboard },
   { title: "Job Market", url: "/market", icon: Briefcase },
+  { title: "Develop", url: "/develop", icon: GraduationCap },
   { title: "My Profile", url: "/profile", icon: User },
 ];
 
