@@ -122,7 +122,7 @@ export default function Auth() {
       <div className="relative hidden lg:flex flex-col justify-between p-12 text-primary-foreground bg-gradient-hero overflow-hidden">
         <div className="relative z-10">
           <div className="flex items-baseline gap-3">
-            <h1 className="text-3xl font-bold tracking-tight">Rihla</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Cariva</h1>
           </div>
         </div>
         <div className="relative z-10 max-w-md">
@@ -130,11 +130,11 @@ export default function Auth() {
             Discover your career path.
           </h2>
           <p className="text-lg opacity-85">
-            Built for Moroccan students. Powered by labor-market intelligence and personalized AI guidance.
+            AI-native career intelligence. Powered by Claude AI.
           </p>
         </div>
         <div className="relative z-10 text-sm opacity-70">
-          © {new Date().getFullYear()} Rihla — Career readiness platform
+          © {new Date().getFullYear()} Cariva — AI-native career intelligence. Powered by Claude AI.
         </div>
         {/* Decorative gradient orbs */}
         <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-accent/30 blur-3xl" />
@@ -145,7 +145,7 @@ export default function Auth() {
       <div className="flex items-center justify-center p-6 sm:p-12">
         <Card className="w-full max-w-md p-8 shadow-elevated">
           <div className="lg:hidden mb-6 flex items-baseline gap-2">
-            <h1 className="text-2xl font-bold">Rihla</h1>
+            <h1 className="text-2xl font-bold">Cariva</h1>
           </div>
 
           <Tabs value={tab} onValueChange={(v) => setTab(v as "student" | "admin")}>

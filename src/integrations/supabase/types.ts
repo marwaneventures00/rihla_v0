@@ -113,6 +113,30 @@ export type Database = {
         }
         Relationships: []
       }
+      meet_connections: {
+        Row: {
+          alumni_id: string
+          created_at: string
+          id: string
+          status: string
+          student_id: string
+        }
+        Insert: {
+          alumni_id: string
+          created_at?: string
+          id?: string
+          status?: string
+          student_id: string
+        }
+        Update: {
+          alumni_id?: string
+          created_at?: string
+          id?: string
+          status?: string
+          student_id?: string
+        }
+        Relationships: []
+      }
       onboarding_responses: {
         Row: {
           ambition_level: number | null
@@ -169,12 +193,15 @@ export type Database = {
       }
       profiles: {
         Row: {
+          company_name: string | null
           created_at: string
+          current_role: string | null
           field_of_study: string | null
           full_name: string | null
           id: string
           institution_name: string | null
           institution_type: string | null
+          is_alumni: boolean
           onboarding_completed: boolean
           study_level: string | null
           university_id: string | null
@@ -182,12 +209,15 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          company_name?: string | null
           created_at?: string
+          current_role?: string | null
           field_of_study?: string | null
           full_name?: string | null
           id?: string
           institution_name?: string | null
           institution_type?: string | null
+          is_alumni?: boolean
           onboarding_completed?: boolean
           study_level?: string | null
           university_id?: string | null
@@ -195,12 +225,15 @@ export type Database = {
           user_id: string
         }
         Update: {
+          company_name?: string | null
           created_at?: string
+          current_role?: string | null
           field_of_study?: string | null
           full_name?: string | null
           id?: string
           institution_name?: string | null
           institution_type?: string | null
+          is_alumni?: boolean
           onboarding_completed?: boolean
           study_level?: string | null
           university_id?: string | null

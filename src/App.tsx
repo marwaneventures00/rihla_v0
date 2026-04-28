@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import Landing from "./pages/Landing.tsx";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Auth from "./pages/Auth.tsx";
@@ -13,6 +14,7 @@ import Profile from "./pages/Profile.tsx";
 import Develop from "./pages/Develop.tsx";
 import AdminDashboard from "./pages/AdminDashboard.tsx";
 import AppLayout from "./components/AppLayout.tsx";
+import MeetAndGreet from "./pages/MeetAndGreet.tsx";
 
 const queryClient = new QueryClient();
 
@@ -23,7 +25,8 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
+          <Route path="/" element={<Landing />} />
+          <Route path="/home" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/onboarding" element={<Onboarding />} />
 
@@ -32,6 +35,7 @@ const App = () => (
             <Route path="/pathways" element={<Pathways />} />
             <Route path="/market" element={<Market />} />
             <Route path="/develop" element={<Develop />} />
+            <Route path="/meet-and-greet" element={<MeetAndGreet />} />
             <Route path="/profile" element={<Profile />} />
           </Route>
 

@@ -37,6 +37,7 @@ import {
   Settings,
   ChevronDown,
   ShieldCheck,
+  Handshake,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -46,6 +47,7 @@ const STUDENT_ITEMS = [
   { title: "Pathways", url: "/pathways", icon: LayoutDashboard },
   { title: "Job Market", url: "/market", icon: Briefcase },
   { title: "Develop", url: "/develop", icon: GraduationCap },
+  { title: "Meet & Greet", url: "/meet-and-greet", icon: Handshake },
   { title: "My Profile", url: "/profile", icon: User },
 ];
 
@@ -58,7 +60,7 @@ const ADMIN_ITEMS = [
 
 type Profile = { full_name: string | null; institution_name: string | null };
 
-const VIEW_KEY = "rihla.activeView";
+const VIEW_KEY = "cariva.activeView";
 
 export default function AppLayout({ requireRole }: { requireRole?: Role }) {
   const navigate = useNavigate();
@@ -210,7 +212,7 @@ function AppSidebar({ items }: { items: typeof STUDENT_ITEMS }) {
           </div>
           {!collapsed && (
             <div className="min-w-0">
-              <p className="font-bold leading-none">Rihla</p>
+              <p className="font-bold leading-none">Cariva</p>
             </div>
           )}
         </div>

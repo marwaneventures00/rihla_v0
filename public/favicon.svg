@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <radialGradient id="wash" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(24 22) rotate(45) scale(40)">
+      <stop stop-color="#FFF5F5" />
+      <stop offset="1" stop-color="#FFFFFF" />
+    </radialGradient>
+    <linearGradient id="red" x1="16" y1="12" x2="50" y2="52" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FF5A5F" />
+      <stop offset="0.55" stop-color="#EF2D3A" />
+      <stop offset="1" stop-color="#C81E2A" />
+    </linearGradient>
+    <filter id="soft" x="8" y="8" width="48" height="48" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="1.6" />
+    </filter>
+  </defs>
+
+  <rect x="4" y="4" width="56" height="56" rx="18" fill="url(#wash)" />
+  <rect x="4.5" y="4.5" width="55" height="55" rx="17.5" stroke="#EFEFF3" />
+
+  <g filter="url(#soft)" opacity="0.26">
+    <rect x="29" y="15" width="6" height="34" rx="3" fill="#E02B36" />
+    <rect x="15" y="29" width="34" height="6" rx="3" fill="#E02B36" />
+  </g>
+
+  <g transform="rotate(-8 32 32)">
+    <rect x="29" y="14" width="6" height="36" rx="3" fill="url(#red)" />
+    <rect x="14" y="29" width="36" height="6" rx="3" fill="url(#red)" />
+  </g>
+
+  <circle cx="23" cy="16" r="2" fill="#FFD2D6" />
+  <circle cx="49" cy="42" r="1.5" fill="#F6B8BF" />
+</svg>

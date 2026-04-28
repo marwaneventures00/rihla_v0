@@ -1,3 +1,3 @@
-# Welcome to your Lovable project
+# Cariva
 
 TODO: Document your project here

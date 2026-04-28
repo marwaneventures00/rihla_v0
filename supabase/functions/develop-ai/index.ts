@@ -5,7 +5,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const ANTHROPIC_MODEL = 'claude-sonnet-4-20250514';
+const OPENAI_MODEL = 'gpt-4o-mini';
 const MAX_TOKENS = 2000;
 
 type Action =
@@ -125,33 +125,35 @@ Return ONLY this JSON:
   }
 }
 
-async function callClaude(action: Action, payload: any): Promise<any> {
-  const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
-  if (!ANTHROPIC_API_KEY) throw new Error('ANTHROPIC_API_KEY not configured');
+async function callOpenAI(action: Action, payload: any): Promise<any> {
+  const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+  if (!OPENAI_API_KEY) throw new Error('OPENAI_API_KEY not configured');
 
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
+  const res = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
-      'x-api-key': ANTHROPIC_API_KEY,
-      'anthropic-version': '2023-06-01',
+      'Authorization': `Bearer ${OPENAI_API_KEY}`,
       'content-type': 'application/json',
     },
     body: JSON.stringify({
-      model: ANTHROPIC_MODEL,
+      model: OPENAI_MODEL,
       max_tokens: MAX_TOKENS,
-      system: SYSTEM_PROMPTS[action],
-      messages: [{ role: 'user', content: buildPrompt(action, payload) }],
+      messages: [
+        { role: 'system', content: SYSTEM_PROMPTS[action] },
+        { role: 'user', content: buildPrompt(action, payload) },
+      ],
+      response_format: { type: 'json_object' },
     }),
   });
 
   if (!res.ok) {
     const errText = await res.text();
-    console.error('Anthropic error:', res.status, errText);
-    throw new Error(`Anthropic API error ${res.status}`);
+    console.error('OpenAI error:', res.status, errText);
+    throw new Error(`OpenAI API error ${res.status}`);
   }
 
   const data = await res.json();
-  const text = data?.content?.[0]?.text ?? '';
+  const text = data?.choices?.[0]?.message?.content ?? '';
   const cleaned = text.trim().replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();
   // Pull first JSON object/array from the text
   const match = cleaned.match(/\{[\s\S]*\}/);
@@ -193,7 +195,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const result = await callClaude(action, payload);
+    const result = await callOpenAI(action, payload);
 
     return new Response(JSON.stringify({ result }), {
       status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },

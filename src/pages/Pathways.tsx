@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, MapPin, TrendingUp, Users, ArrowRight } from "lucide-react";
+import { Loader2, MapPin, TrendingUp, Users, ArrowRight, RotateCcw } from "lucide-react";
 import type { PathwayResult } from "@/lib/onboarding";
 
 export default function Pathways() {
@@ -87,7 +87,14 @@ export default function Pathways() {
               ))}
             </div>
           </div>
-          <ScoreRing score={animatedScore} />
+          <div className="space-y-4">
+            <ScoreRing score={animatedScore} />
+            <Button asChild variant="outline" size="sm" className="w-full">
+              <Link to="/onboarding">
+                <RotateCcw className="w-4 h-4" /> Redo questionnaire
+              </Link>
+            </Button>
+          </div>
         </div>
       </Card>
 
