@@ -1,3 +1,4 @@
+// Cariva v1.0 - Gemini API
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 
 const corsHeaders = {
@@ -5,7 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const GEMINI_MODEL = 'gemini-1.5-flash';
+const GEMINI_MODEL = 'gemini-1.5-flash'; // v2
 const MAX_TOKENS = 2000;
 
 type Action =
@@ -129,19 +130,27 @@ async function callGemini(action: Action, payload: any): Promise<any> {
   const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
   if (!GEMINI_API_KEY) throw new Error('GEMINI_API_KEY not configured');
 
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{
-          text: SYSTEM_PROMPTS[action] + '\n\n' + buildPrompt(action, payload)
-        }]}],
-        generationConfig: { temperature: 0.7, maxOutputTokens: 2000 }
-      })
-    }
-  );
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      systemInstruction: {
+        parts: [{ text: SYSTEM_PROMPTS[action] }],
+      },
+      contents: [
+        {
+          role: 'user',
+          parts: [{ text: buildPrompt(action, payload) }],
+        },
+      ],
+      generationConfig: {
+        maxOutputTokens: MAX_TOKENS,
+        responseMimeType: 'application/json',
+      },
+    }),
+  });
 
   if (!res.ok) {
     const errText = await res.text();
@@ -152,7 +161,6 @@ async function callGemini(action: Action, payload: any): Promise<any> {
   const data = await res.json();
   const text = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
   const cleaned = text.trim().replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();
-  // Pull first JSON object/array from the text
   const match = cleaned.match(/\{[\s\S]*\}/);
   return JSON.parse(match ? match[0] : cleaned);
 }
