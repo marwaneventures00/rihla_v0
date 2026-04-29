@@ -360,8 +360,6 @@ export default function Landing() {
               {[
                 "25 universities",
                 "8,000+ students",
-                "MAD 80K avg license",
-                "63% EBITDA margin Y3",
               ].map((item) => (
                 <div key={item} className="rounded-xl border border-[#1E1E35] bg-[#0F0F1A] p-4 text-sm text-[#D2D2E5]">
                   {item}
