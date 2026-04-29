@@ -113,6 +113,33 @@ export type Database = {
         }
         Relationships: []
       }
+      meet_connections: {
+        Row: {
+          alumni_id: string
+          created_at: string
+          id: string
+          status: string
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          alumni_id: string
+          created_at?: string
+          id?: string
+          status?: string
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          alumni_id?: string
+          created_at?: string
+          id?: string
+          status?: string
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       onboarding_responses: {
         Row: {
           ambition_level: number | null
