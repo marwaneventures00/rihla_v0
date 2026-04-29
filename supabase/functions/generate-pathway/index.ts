@@ -91,27 +91,19 @@ Deno.serve(async (req) => {
 
     const payload: OnboardingPayload = await req.json();
 
-    const combinedPrompt = `INSTRUCTIONS:\n${SYSTEM_PROMPT}\n\nREQUEST:\n${buildUserPrompt(payload)}`;
-
-    const aiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              { text: combinedPrompt },
-            ],
-          },
-        ],
-        generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 2000,
-        },
-      }),
-    });
+    const aiRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{
+            text: SYSTEM_PROMPT + '\n\n' + buildUserPrompt(payload)
+          }]}],
+          generationConfig: { temperature: 0.7, maxOutputTokens: 2000 }
+        })
+      }
+    );
 
     if (!aiRes.ok) {
       const errText = await aiRes.text();

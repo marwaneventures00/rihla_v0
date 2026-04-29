@@ -129,27 +129,19 @@ async function callGemini(action: Action, payload: any): Promise<any> {
   const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
   if (!GEMINI_API_KEY) throw new Error('GEMINI_API_KEY not configured');
 
-  const combinedPrompt = `INSTRUCTIONS:\n${SYSTEM_PROMPTS[action]}\n\nREQUEST:\n${buildPrompt(action, payload)}`;
-
-  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      contents: [
-        {
-          parts: [
-            { text: combinedPrompt },
-          ],
-        },
-      ],
-      generationConfig: {
-        temperature: 0.7,
-        maxOutputTokens: MAX_TOKENS,
-      },
-    }),
-  });
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{
+          text: SYSTEM_PROMPTS[action] + '\n\n' + buildPrompt(action, payload)
+        }]}],
+        generationConfig: { temperature: 0.7, maxOutputTokens: 2000 }
+      })
+    }
+  );
 
   if (!res.ok) {
     const errText = await res.text();
