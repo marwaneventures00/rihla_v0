@@ -14,7 +14,8 @@ type Action =
   | 'score_case'
   | 'generate_interview'
   | 'score_interview'
-  | 'recommend_resources';
+  | 'recommend_resources'
+  | 'generate_pulse';
 
 const SYSTEM_PROMPTS: Record<Action, string> = {
   generate_case:
@@ -27,6 +28,8 @@ const SYSTEM_PROMPTS: Record<Action, string> = {
     'You are a senior HR interviewer and career coach specializing in the Moroccan job market. Always respond with valid JSON only.',
   recommend_resources:
     'You are a career development advisor for Moroccan university students. Recommend specific learning resources based on the student profile. Always respond with valid JSON only.',
+  generate_pulse:
+    'You are a personal career advisor for Moroccan university students. Generate a personalized weekly career briefing that is motivating, specific, and actionable. Always respond with valid JSON only.',
 };
 
 function buildPrompt(action: Action, p: any): string {
@@ -122,6 +125,41 @@ Return ONLY this JSON:
   "top_resources": [
     {"type": "course"|"internship"|"certification", "name": string, "why_now": string, "time_to_complete": string, "direct_link": string}
   ] (exactly 3)
+}`;
+    case 'generate_pulse':
+      return `Generate a weekly career pulse for this student:
+Profile: ${p.field_of_study}, ${p.level}
+Top pathway: ${p.top_pathway}
+Skills gaps: ${(p.skills_gap || []).join(', ')}
+Active applications: ${p.active_applications || 0}
+Readiness score: ${p.readiness_score || 0}
+
+Return ONLY this JSON:
+{
+  "week_theme": string,
+  "opening_message": string,
+  "skill_of_the_week": {
+    "skill": string,
+    "why_this_week": string,
+    "how_to_practice": string,
+    "time_required": string
+  },
+  "job_to_apply": {
+    "role": string,
+    "company": string,
+    "why_it_fits": string,
+    "where_to_find": string
+  },
+  "resource_of_the_week": {
+    "type": string,
+    "name": string,
+    "provider": string,
+    "time_required": string,
+    "direct_link": string
+  },
+  "interview_tip": string,
+  "closing_motivation": string,
+  "weekly_challenge": string
 }`;
   }
 }

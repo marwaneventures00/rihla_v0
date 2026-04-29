@@ -74,6 +74,86 @@ export type Database = {
         }
         Relationships: []
       }
+      interview_insights: {
+        Row: {
+          generated_at: string | null
+          id: string
+          insight_json: Json | null
+          user_id: string
+        }
+        Insert: {
+          generated_at?: string | null
+          id?: string
+          insight_json?: Json | null
+          user_id: string
+        }
+        Update: {
+          generated_at?: string | null
+          id?: string
+          insight_json?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      interview_rounds: {
+        Row: {
+          application_id: string
+          created_at: string | null
+          duration_minutes: number | null
+          feedback_received: string | null
+          format: string | null
+          id: string
+          interview_date: string | null
+          interviewer_name: string | null
+          my_performance: number | null
+          next_steps: string | null
+          questions_asked: string | null
+          round_number: number | null
+          round_type: string | null
+          user_id: string
+        }
+        Insert: {
+          application_id: string
+          created_at?: string | null
+          duration_minutes?: number | null
+          feedback_received?: string | null
+          format?: string | null
+          id?: string
+          interview_date?: string | null
+          interviewer_name?: string | null
+          my_performance?: number | null
+          next_steps?: string | null
+          questions_asked?: string | null
+          round_number?: number | null
+          round_type?: string | null
+          user_id: string
+        }
+        Update: {
+          application_id?: string
+          created_at?: string | null
+          duration_minutes?: number | null
+          feedback_received?: string | null
+          format?: string | null
+          id?: string
+          interview_date?: string | null
+          interviewer_name?: string | null
+          my_performance?: number | null
+          next_steps?: string | null
+          questions_asked?: string | null
+          round_number?: number | null
+          round_type?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interview_rounds_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "job_applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       interview_sessions: {
         Row: {
           answers_json: Json | null
@@ -109,6 +189,66 @@ export type Database = {
           language?: string | null
           questions_json?: Json
           role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      job_applications: {
+        Row: {
+          application_date: string | null
+          company_name: string
+          contact_email: string | null
+          contact_name: string | null
+          created_at: string | null
+          id: string
+          job_url: string | null
+          location: string | null
+          next_action: string | null
+          next_action_date: string | null
+          notes: string | null
+          role_title: string
+          salary_range: string | null
+          source: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          application_date?: string | null
+          company_name: string
+          contact_email?: string | null
+          contact_name?: string | null
+          created_at?: string | null
+          id?: string
+          job_url?: string | null
+          location?: string | null
+          next_action?: string | null
+          next_action_date?: string | null
+          notes?: string | null
+          role_title: string
+          salary_range?: string | null
+          source?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          application_date?: string | null
+          company_name?: string
+          contact_email?: string | null
+          contact_name?: string | null
+          created_at?: string | null
+          id?: string
+          job_url?: string | null
+          location?: string | null
+          next_action?: string | null
+          next_action_date?: string | null
+          notes?: string | null
+          role_title?: string
+          salary_range?: string | null
+          source?: string | null
+          status?: string | null
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
@@ -305,6 +445,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      weekly_pulses: {
+        Row: {
+          created_at: string | null
+          id: string
+          pulse_json: Json | null
+          user_id: string
+          week_start: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          pulse_json?: Json | null
+          user_id: string
+          week_start: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          pulse_json?: Json | null
+          user_id?: string
+          week_start?: string
+        }
+        Relationships: []
       }
     }
     Views: {
