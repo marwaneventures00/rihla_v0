@@ -15,44 +15,47 @@ import Develop from "./pages/Develop.tsx";
 import AdminDashboard from "./pages/AdminDashboard.tsx";
 import AppLayout from "./components/AppLayout.tsx";
 import MeetAndGreet from "./pages/MeetAndGreet.tsx";
+import { LanguageProvider } from "./lib/i18n.tsx";
 
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route path="/home" element={<Index />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/onboarding" element={<Onboarding />} />
+  <LanguageProvider>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Landing />} />
+            <Route path="/home" element={<Index />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/onboarding" element={<Onboarding />} />
 
-          {/* Student app */}
-          <Route element={<AppLayout requireRole="student" />}>
-            <Route path="/pathways" element={<Pathways />} />
-            <Route path="/market" element={<Market />} />
-            <Route path="/develop" element={<Develop />} />
-            <Route path="/meet-and-greet" element={<MeetAndGreet />} />
-            <Route path="/profile" element={<Profile />} />
-          </Route>
+            {/* Student app */}
+            <Route element={<AppLayout requireRole="student" />}>
+              <Route path="/pathways" element={<Pathways />} />
+              <Route path="/market" element={<Market />} />
+              <Route path="/develop" element={<Develop />} />
+              <Route path="/meet-and-greet" element={<MeetAndGreet />} />
+              <Route path="/profile" element={<Profile />} />
+            </Route>
 
-          {/* Admin app */}
-          <Route element={<AppLayout requireRole="admin" />}>
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin/students" element={<AdminDashboard />} />
-            <Route path="/admin/analytics" element={<AdminDashboard />} />
-            <Route path="/admin/settings" element={<AdminDashboard />} />
-          </Route>
+            {/* Admin app */}
+            <Route element={<AppLayout requireRole="admin" />}>
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/students" element={<AdminDashboard />} />
+              <Route path="/admin/analytics" element={<AdminDashboard />} />
+              <Route path="/admin/settings" element={<AdminDashboard />} />
+            </Route>
 
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </LanguageProvider>
 );
 
 export default App;

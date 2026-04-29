@@ -9,10 +9,12 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, Languages } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
 
 export default function Auth() {
   const navigate = useNavigate();
+  const { t, toggleLanguage } = useLanguage();
   const [tab, setTab] = useState<"student" | "admin">("student");
   const [mode, setMode] = useState<"signin" | "signup">("signup");
   const [loading, setLoading] = useState(false);
@@ -122,18 +124,18 @@ export default function Auth() {
       <div className="relative hidden lg:flex flex-col justify-between p-12 text-primary-foreground bg-gradient-hero overflow-hidden">
         <div className="relative z-10">
           <div className="flex items-baseline gap-3">
-            <h1 className="text-3xl font-bold tracking-tight">Cariva</h1>
+            <h1 className="text-3xl font-bold tracking-tight text-white">Cariva</h1>
           </div>
         </div>
         <div className="relative z-10 max-w-md">
-          <h2 className="text-5xl font-bold leading-tight mb-6">
+          <h2 className="text-5xl font-bold leading-tight mb-6 text-white">
             Discover your career path.
           </h2>
-          <p className="text-lg opacity-85">
+          <p className="text-lg text-white/85">
             AI-native career intelligence. Powered by Claude AI.
           </p>
         </div>
-        <div className="relative z-10 text-sm opacity-70">
+        <div className="relative z-10 text-sm text-white/70">
           © {new Date().getFullYear()} Cariva — AI-native career intelligence. Powered by Claude AI.
         </div>
         {/* Decorative gradient orbs */}
@@ -144,19 +146,56 @@ export default function Auth() {
       {/* Right: forms */}
       <div className="flex items-center justify-center p-6 sm:p-12">
         <Card className="w-full max-w-md p-8 shadow-elevated">
-          <div className="lg:hidden mb-6 flex items-baseline gap-2">
+          <div className="lg:hidden mb-6 flex items-center justify-between gap-2">
             <h1 className="text-2xl font-bold">Cariva</h1>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={toggleLanguage}
+                className="text-sm text-muted-foreground hover:text-accent transition-colors"
+                aria-label="Toggle language"
+              >
+                <Languages className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate("/")}
+                className="text-sm text-muted-foreground hover:text-accent transition-colors"
+              >
+                {t("auth.backHome", "Back to home")}
+              </button>
+            </div>
+          </div>
+
+          <div className="hidden lg:flex justify-end mb-4">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={toggleLanguage}
+                className="text-sm text-muted-foreground hover:text-accent transition-colors"
+                aria-label="Toggle language"
+              >
+                <Languages className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate("/")}
+                className="text-sm text-muted-foreground hover:text-accent transition-colors"
+              >
+                {t("auth.backHome", "Back to home")}
+              </button>
+            </div>
           </div>
 
           <Tabs value={tab} onValueChange={(v) => setTab(v as "student" | "admin")}>
             <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="student">Student</TabsTrigger>
-              <TabsTrigger value="admin">University admin</TabsTrigger>
+              <TabsTrigger value="student">{t("auth.student", "Student")}</TabsTrigger>
+              <TabsTrigger value="admin">{t("auth.universityAdmin", "University admin")}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="student">
               <h2 className="text-xl font-semibold mb-1">
-                {mode === "signup" ? "Get started" : "Welcome back"}
+                {mode === "signup" ? t("auth.getStarted", "Get started") : t("auth.welcomeBack", "Welcome back")}
               </h2>
               <p className="text-sm text-muted-foreground mb-6">
                 {mode === "signup"
@@ -195,7 +234,7 @@ export default function Auth() {
 
                 <Button type="submit" variant="accent" className="w-full" disabled={loading}>
                   {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                  {mode === "signup" ? "Create account" : "Sign in"}
+                  {mode === "signup" ? t("auth.createAccount", "Create account") : t("auth.signIn", "Sign in")}
                 </Button>
               </form>
 
@@ -224,7 +263,7 @@ export default function Auth() {
                 </div>
                 <Button type="submit" variant="accent" className="w-full" disabled={loading}>
                   {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                  Sign in
+                  {t("auth.signIn", "Sign in")}
                 </Button>
               </form>
             </TabsContent>

@@ -1,7 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ComponentType } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { NavLink } from "@/components/NavLink";
+import CarivaLogo from "@/components/CarivaLogo";
+import { useLanguage } from "@/lib/i18n";
 import {
   Sidebar,
   SidebarContent,
@@ -38,29 +40,18 @@ import {
   ChevronDown,
   ShieldCheck,
   Handshake,
+  Moon,
+  Sun,
+  Languages,
 } from "lucide-react";
 import { toast } from "sonner";
 
 type Role = "student" | "admin";
 
-const STUDENT_ITEMS = [
-  { title: "Pathways", url: "/pathways", icon: LayoutDashboard },
-  { title: "Job Market", url: "/market", icon: Briefcase },
-  { title: "Develop", url: "/develop", icon: GraduationCap },
-  { title: "Meet & Greet", url: "/meet-and-greet", icon: Handshake },
-  { title: "My Profile", url: "/profile", icon: User },
-];
-
-const ADMIN_ITEMS = [
-  { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
-  { title: "Students", url: "/admin/students", icon: Users },
-  { title: "Analytics", url: "/admin/analytics", icon: BarChart3 },
-  { title: "Settings", url: "/admin/settings", icon: Settings },
-];
-
 type Profile = { full_name: string | null; institution_name: string | null };
 
 const VIEW_KEY = "cariva.activeView";
+const THEME_KEY = "cariva.app.theme";
 
 export default function AppLayout({ requireRole }: { requireRole?: Role }) {
   const navigate = useNavigate();
@@ -69,6 +60,16 @@ export default function AppLayout({ requireRole }: { requireRole?: Role }) {
   const [availableRoles, setAvailableRoles] = useState<Role[]>([]);
   const [activeView, setActiveView] = useState<Role | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const { t, toggleLanguage } = useLanguage();
+
+  useEffect(() => {
+    const saved = localStorage.getItem(THEME_KEY);
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const useDark = saved ? saved === "dark" : prefersDark;
+    setIsDarkMode(useDark);
+    document.documentElement.classList.toggle("dark", useDark);
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -122,6 +123,13 @@ export default function AppLayout({ requireRole }: { requireRole?: Role }) {
     navigate(next === "admin" ? "/admin" : "/pathways", { replace: true });
   }
 
+  function toggleTheme() {
+    const next = !isDarkMode;
+    setIsDarkMode(next);
+    document.documentElement.classList.toggle("dark", next);
+    localStorage.setItem(THEME_KEY, next ? "dark" : "light");
+  }
+
   async function signOut() {
     await supabase.auth.signOut();
     toast.success("Signed out");
@@ -132,6 +140,19 @@ export default function AppLayout({ requireRole }: { requireRole?: Role }) {
     return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin text-accent" /></div>;
   }
 
+  const STUDENT_ITEMS = [
+    { title: t("nav.pathways", "Pathways"), url: "/pathways", icon: LayoutDashboard },
+    { title: t("nav.market", "Job Market"), url: "/market", icon: Briefcase },
+    { title: t("nav.develop", "Develop"), url: "/develop", icon: GraduationCap },
+    { title: t("nav.meet", "Meet & Greet"), url: "/meet-and-greet", icon: Handshake },
+    { title: t("nav.profile", "My Profile"), url: "/profile", icon: User },
+  ];
+  const ADMIN_ITEMS = [
+    { title: t("nav.dashboard", "Dashboard"), url: "/admin", icon: LayoutDashboard },
+    { title: t("nav.students", "Students"), url: "/admin/students", icon: Users },
+    { title: t("nav.analytics", "Analytics"), url: "/admin/analytics", icon: BarChart3 },
+    { title: t("nav.settings", "Settings"), url: "/admin/settings", icon: Settings },
+  ];
   const items = activeView === "admin" ? ADMIN_ITEMS : STUDENT_ITEMS;
   const initials = (profile?.full_name ?? "U")
     .split(" ").map((s) => s[0]).join("").slice(0, 2).toUpperCase();
@@ -154,22 +175,40 @@ export default function AppLayout({ requireRole }: { requireRole?: Role }) {
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="gap-2">
                     {activeView === "admin" ? <ShieldCheck className="w-4 h-4" /> : <GraduationCap className="w-4 h-4" />}
-                    <span className="hidden sm:inline">{activeView === "admin" ? "Admin view" : "Student view"}</span>
+                    <span className="hidden sm:inline">{activeView === "admin" ? t("app.adminView", "Admin view") : t("app.studentView", "Student view")}</span>
                     <ChevronDown className="w-3.5 h-3.5 opacity-60" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>Switch view</DropdownMenuLabel>
+                  <DropdownMenuLabel>{t("app.switchView", "Switch view")}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => switchView("student")}>
-                    <GraduationCap className="w-4 h-4 mr-2" /> Student view
+                    <GraduationCap className="w-4 h-4 mr-2" /> {t("app.studentView", "Student view")}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => switchView("admin")}>
-                    <ShieldCheck className="w-4 h-4 mr-2" /> Admin view
+                    <ShieldCheck className="w-4 h-4 mr-2" /> {t("app.adminView", "Admin view")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
+
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={toggleLanguage}
+              aria-label="Toggle language"
+            >
+              <Languages className="w-4 h-4" />
+            </Button>
+
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={toggleTheme}
+              aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+            >
+              {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </Button>
 
             <button className="relative w-9 h-9 rounded-full hover:bg-secondary flex items-center justify-center transition-colors" aria-label="Notifications">
               <Bell className="w-4 h-4" />
@@ -183,7 +222,7 @@ export default function AppLayout({ requireRole }: { requireRole?: Role }) {
                 <p className="font-medium leading-tight">{profile?.full_name ?? "User"}</p>
                 <p className="text-xs text-muted-foreground capitalize">{activeView}</p>
               </div>
-              <Button variant="ghost" size="icon" onClick={signOut} aria-label="Sign out">
+              <Button variant="ghost" size="icon" onClick={signOut} aria-label={t("app.signOut", "Sign out")}>
                 <LogOut className="w-4 h-4" />
               </Button>
             </div>
@@ -198,7 +237,9 @@ export default function AppLayout({ requireRole }: { requireRole?: Role }) {
   );
 }
 
-function AppSidebar({ items }: { items: typeof STUDENT_ITEMS }) {
+type NavItem = { title: string; url: string; icon: ComponentType<{ className?: string }> };
+
+function AppSidebar({ items }: { items: NavItem[] }) {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
@@ -208,7 +249,7 @@ function AppSidebar({ items }: { items: typeof STUDENT_ITEMS }) {
       <SidebarHeader className="px-4 py-5 border-b border-sidebar-border">
         <div className="flex items-center gap-2.5 overflow-hidden">
           <div className="shrink-0 w-9 h-9 rounded-lg bg-gradient-accent flex items-center justify-center text-accent-foreground">
-            <GraduationCap className="w-5 h-5" />
+            <CarivaLogo className="w-6 h-6" />
           </div>
           {!collapsed && (
             <div className="min-w-0">

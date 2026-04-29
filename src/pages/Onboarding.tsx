@@ -19,6 +19,7 @@ import {
   type OnboardingState,
   type Personality,
 } from "@/lib/onboarding";
+import { useLanguage } from "@/lib/i18n";
 
 const FIELDS = [
   "Engineering",
@@ -73,6 +74,40 @@ const PERSONALITY_QUESTIONS: { key: keyof Personality; label: string; trait: str
 ];
 
 export default function Onboarding() {
+  const { language } = useLanguage();
+  const tr = (en: string, fr: string) => (language === "fr" ? fr : en);
+  const optionLabel: Record<string, string> = {
+    Engineering: "Ingenierie",
+    "Business & Management": "Business et management",
+    Law: "Droit",
+    Medicine: "Medecine",
+    Sciences: "Sciences",
+    "Arts & Humanities": "Lettres et sciences humaines",
+    "IT & Computer Science": "Informatique et sciences du numerique",
+    Architecture: "Architecture",
+    Other: "Autre",
+    "Public university": "Universite publique",
+    "Private grande école": "Grande ecole privee",
+    "Public grande école": "Grande ecole publique",
+    "Finance & Banking": "Finance et banque",
+    Consulting: "Conseil",
+    "Tech & Digital": "Tech et digital",
+    "Energy & Industry": "Energie et industrie",
+    "Public Sector": "Secteur public",
+    Healthcare: "Sante",
+    Agribusiness: "Agrobusiness",
+    Logistics: "Logistique",
+    "Marketing & Media": "Marketing et media",
+    Entrepreneurship: "Entrepreneuriat",
+    "Large corporation": "Grande entreprise",
+    "SME/startup": "PME/startup",
+    "Public institution": "Institution publique",
+    "I'm open to all": "Je suis ouvert(e) a tout",
+    "Morocco only": "Maroc uniquement",
+    "Morocco + Francophone Africa": "Maroc + Afrique francophone",
+    International: "International",
+  };
+  const labelFor = (value: string) => (language === "fr" ? (optionLabel[value] ?? value) : value);
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [data, setData] = useState<OnboardingState>(defaultOnboarding);
@@ -108,7 +143,7 @@ export default function Onboarding() {
     setData((d) => {
       if (d.sectors.includes(s)) return { ...d, sectors: d.sectors.filter((x) => x !== s) };
       if (d.sectors.length >= 3) {
-        toast.info("You can pick up to 3 sectors");
+        toast.info(tr("You can pick up to 3 sectors", "Vous pouvez choisir jusqu'a 3 secteurs"));
         return d;
       }
       return { ...d, sectors: [...d.sectors, s] };
@@ -121,7 +156,7 @@ export default function Onboarding() {
 
   async function handleSubmit() {
     if (!step3Valid) {
-      toast.error("Please answer all questions");
+      toast.error(tr("Please answer all questions", "Veuillez repondre a toutes les questions"));
       return;
     }
     setSubmitting(true);
@@ -169,11 +204,11 @@ export default function Onboarding() {
       if ((fnData as any)?.error) throw new Error((fnData as any).error);
 
       localStorage.removeItem(STORAGE_KEY);
-      toast.success("Your career pathways are ready!");
+      toast.success(tr("Your career pathways are ready!", "Vos parcours de carriere sont prets !"));
       navigate("/pathways", { replace: true });
     } catch (err: any) {
       console.error(err);
-      toast.error(err?.message ?? "Something went wrong. Please try again.");
+      toast.error(err?.message ?? tr("Something went wrong. Please try again.", "Une erreur est survenue. Veuillez reessayer."));
     } finally {
       setSubmitting(false);
     }
@@ -188,15 +223,15 @@ export default function Onboarding() {
       <div className="max-w-3xl mx-auto">
         <div className="flex items-center justify-between mb-3">
           <div>
-            <p className="text-sm text-muted-foreground">Step {step} of 3</p>
+            <p className="text-sm text-muted-foreground">{tr("Step", "Etape")} {step} {tr("of", "sur")} 3</p>
             <h1 className="text-2xl font-bold">
-              {step === 1 && "Academic profile"}
-              {step === 2 && "Career appetite"}
-              {step === 3 && "Personality snapshot"}
+              {step === 1 && tr("Academic profile", "Profil academique")}
+              {step === 2 && tr("Career appetite", "Aspirations de carriere")}
+              {step === 3 && tr("Personality snapshot", "Apercu de personnalite")}
             </h1>
           </div>
           <div className="text-right">
-            <p className="text-sm text-muted-foreground mb-1">Progress</p>
+            <p className="text-sm text-muted-foreground mb-1">{tr("Progress", "Progression")}</p>
             <p className="text-sm font-semibold text-accent">{Math.round(progress)}%</p>
           </div>
         </div>
@@ -206,18 +241,18 @@ export default function Onboarding() {
           {step === 1 && (
             <div className="space-y-6">
               <div>
-                <Label>Field of study</Label>
+                <Label>{tr("Field of study", "Domaine d'etude")}</Label>
                 <select
                   className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm mt-1"
                   value={data.field}
                   onChange={(e) => update("field", e.target.value)}
                 >
-                  <option value="">Select your field</option>
-                  {FIELDS.map((f) => <option key={f} value={f}>{f}</option>)}
+                  <option value="">{tr("Select your field", "Selectionnez votre domaine")}</option>
+                  {FIELDS.map((f) => <option key={f} value={f}>{labelFor(f)}</option>)}
                 </select>
               </div>
               <div>
-                <Label>Study level</Label>
+                <Label>{tr("Study level", "Niveau d'etudes")}</Label>
                 <RadioGroup
                   className="grid grid-cols-5 gap-2 mt-2"
                   value={data.level}
@@ -239,11 +274,11 @@ export default function Onboarding() {
                 </RadioGroup>
               </div>
               <div>
-                <Label htmlFor="inst">Institution name</Label>
+                <Label htmlFor="inst">{tr("Institution name", "Nom de l'etablissement")}</Label>
                 <Input id="inst" value={data.institutionName} onChange={(e) => update("institutionName", e.target.value)} />
               </div>
               <div>
-                <Label>Institution type</Label>
+                <Label>{tr("Institution type", "Type d'etablissement")}</Label>
                 <RadioGroup
                   className="grid sm:grid-cols-3 gap-2 mt-2"
                   value={data.institutionType}
@@ -259,7 +294,7 @@ export default function Onboarding() {
                       )}
                     >
                       <RadioGroupItem id={`it-${t}`} value={t} className="sr-only" />
-                      {t}
+                      {labelFor(t)}
                     </Label>
                   ))}
                 </RadioGroup>
@@ -270,7 +305,7 @@ export default function Onboarding() {
           {step === 2 && (
             <div className="space-y-6">
               <div>
-                <Label>Preferred sectors <span className="text-muted-foreground font-normal">(pick up to 3)</span></Label>
+                <Label>{tr("Preferred sectors", "Secteurs preferes")} <span className="text-muted-foreground font-normal">{tr("(pick up to 3)", "(choisissez jusqu'a 3)")}</span></Label>
                 <div className="grid sm:grid-cols-2 gap-2 mt-2">
                   {SECTORS.map((s) => {
                     const selected = data.sectors.includes(s);
@@ -283,7 +318,7 @@ export default function Onboarding() {
                         )}
                       >
                         <Checkbox checked={selected} onCheckedChange={() => toggleSector(s)} />
-                        <span className="text-sm">{s}</span>
+                        <span className="text-sm">{labelFor(s)}</span>
                       </label>
                     );
                   })}
@@ -291,7 +326,7 @@ export default function Onboarding() {
               </div>
 
               <div>
-                <Label>Work environment</Label>
+                <Label>{tr("Work environment", "Environnement de travail")}</Label>
                 <RadioGroup
                   className="grid sm:grid-cols-2 gap-2 mt-2"
                   value={data.workEnv}
@@ -307,14 +342,14 @@ export default function Onboarding() {
                       )}
                     >
                       <RadioGroupItem id={`we-${w}`} value={w} className="sr-only" />
-                      {w}
+                      {labelFor(w)}
                     </Label>
                   ))}
                 </RadioGroup>
               </div>
 
               <div>
-                <Label>Geographic ambition</Label>
+                <Label>{tr("Geographic ambition", "Ambition geographique")}</Label>
                 <RadioGroup
                   className="grid sm:grid-cols-3 gap-2 mt-2"
                   value={data.geography}
@@ -330,7 +365,7 @@ export default function Onboarding() {
                       )}
                     >
                       <RadioGroupItem id={`g-${g}`} value={g} className="sr-only" />
-                      {g}
+                      {labelFor(g)}
                     </Label>
                   ))}
                 </RadioGroup>
@@ -338,7 +373,7 @@ export default function Onboarding() {
 
               <div>
                 <div className="flex items-center justify-between">
-                  <Label>Ambition horizon</Label>
+                  <Label>{tr("Ambition horizon", "Horizon d'ambition")}</Label>
                   <span className="text-sm font-semibold text-accent">{data.ambition} / 5</span>
                 </div>
                 <Slider
@@ -350,8 +385,8 @@ export default function Onboarding() {
                   className="mt-3"
                 />
                 <div className="flex justify-between text-xs text-muted-foreground mt-2">
-                  <span>Stable job</span>
-                  <span>Leadership / entrepreneurship</span>
+                  <span>{tr("Stable job", "Emploi stable")}</span>
+                  <span>{tr("Leadership / entrepreneurship", "Leadership / entrepreneuriat")}</span>
                 </div>
               </div>
             </div>
@@ -360,7 +395,7 @@ export default function Onboarding() {
           {step === 3 && (
             <div className="space-y-6">
               <p className="text-sm text-muted-foreground">
-                Rate how much each statement describes you, from 1 (not at all) to 5 (completely).
+                {tr("Rate how much each statement describes you, from 1 (not at all) to 5 (completely).", "Evaluez chaque affirmation de 1 (pas du tout) a 5 (completement).")}
               </p>
               {PERSONALITY_QUESTIONS.map((q, i) => (
                 <div key={q.key}>
@@ -401,7 +436,7 @@ export default function Onboarding() {
               onClick={() => setStep((s) => Math.max(1, s - 1))}
               disabled={step === 1}
             >
-              <ArrowLeft className="w-4 h-4" /> Back
+              <ArrowLeft className="w-4 h-4" /> {tr("Back", "Retour")}
             </Button>
             {step < 3 ? (
               <Button
@@ -409,11 +444,11 @@ export default function Onboarding() {
                 onClick={() => setStep((s) => s + 1)}
                 disabled={(step === 1 && !step1Valid) || (step === 2 && !step2Valid)}
               >
-                Continue <ArrowRight className="w-4 h-4" />
+                {tr("Continue", "Continuer")} <ArrowRight className="w-4 h-4" />
               </Button>
             ) : (
               <Button variant="hero" onClick={handleSubmit} disabled={!step3Valid}>
-                <Sparkles className="w-4 h-4" /> Generate my pathways
+                <Sparkles className="w-4 h-4" /> {tr("Generate my pathways", "Generer mes parcours")}
               </Button>
             )}
           </div>
@@ -424,15 +459,17 @@ export default function Onboarding() {
 }
 
 function AnalyzingScreen() {
+  const { language } = useLanguage();
+  const tr = (en: string, fr: string) => (language === "fr" ? fr : en);
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-background">
       <Card className="max-w-md w-full p-10 text-center shadow-elevated">
         <div className="mx-auto w-14 h-14 rounded-full bg-accent-soft flex items-center justify-center mb-4">
           <Loader2 className="w-7 h-7 text-accent animate-spin" />
         </div>
-        <h2 className="text-xl font-bold mb-2">Analyzing your profile…</h2>
+        <h2 className="text-xl font-bold mb-2">{tr("Analyzing your profile...", "Analyse de votre profil...")}</h2>
         <p className="text-sm text-muted-foreground mb-6">
-          Our career intelligence engine is matching your strengths to opportunities in the Moroccan job market.
+          {tr("Our career intelligence engine is matching your strengths to opportunities in the Moroccan job market.", "Notre moteur d'intelligence carriere associe vos points forts aux opportunites du marche marocain.")}
         </p>
         <div className="h-2 bg-secondary rounded-full overflow-hidden">
           <div className="h-full bg-gradient-accent animate-pulse w-2/3 rounded-full" />

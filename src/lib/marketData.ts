@@ -84,29 +84,30 @@ export type Employer = {
   sector: string;
   size: "SME" | "Large" | "Group";
   hiring: boolean;
+  careersUrl: string;
 };
 
 export const EMPLOYERS: Employer[] = [
-  { name: "OCP Group", sector: "Energy & Industry", size: "Group", hiring: true },
-  { name: "Attijariwafa Bank", sector: "Finance & Banking", size: "Group", hiring: true },
-  { name: "Maroc Telecom", sector: "Tech & Digital", size: "Group", hiring: true },
-  { name: "McKinsey Casablanca", sector: "Consulting", size: "Large", hiring: true },
-  { name: "Deloitte Maroc", sector: "Consulting", size: "Large", hiring: true },
-  { name: "BMCE Bank of Africa", sector: "Finance & Banking", size: "Group", hiring: true },
-  { name: "Inwi", sector: "Tech & Digital", size: "Large", hiring: false },
-  { name: "Lydec", sector: "Energy & Industry", size: "Large", hiring: false },
-  { name: "Royal Air Maroc", sector: "Logistics", size: "Group", hiring: true },
-  { name: "CDG (Caisse de Dépôt)", sector: "Public Sector", size: "Group", hiring: true },
-  { name: "HPS Worldwide", sector: "Tech & Digital", size: "Large", hiring: true },
-  { name: "Renault Tanger", sector: "Energy & Industry", size: "Group", hiring: true },
-  { name: "Stellantis Kenitra", sector: "Energy & Industry", size: "Group", hiring: true },
-  { name: "Marsa Maroc", sector: "Logistics", size: "Large", hiring: false },
-  { name: "Cosumar", sector: "Agribusiness", size: "Large", hiring: true },
-  { name: "Label Vie", sector: "Agribusiness", size: "Large", hiring: true },
-  { name: "BCP Bank", sector: "Finance & Banking", size: "Group", hiring: true },
-  { name: "PwC Maroc", sector: "Consulting", size: "Large", hiring: true },
-  { name: "EY Maroc", sector: "Consulting", size: "Large", hiring: true },
-  { name: "ONCF (Railways)", sector: "Public Sector", size: "Group", hiring: false },
+  { name: "OCP Group", sector: "Energy & Industry", size: "Group", hiring: true, careersUrl: "https://www.ocpgroup.ma/careers" },
+  { name: "Attijariwafa Bank", sector: "Finance & Banking", size: "Group", hiring: true, careersUrl: "https://www.attijariwafabank.com/fr/carrieres" },
+  { name: "Maroc Telecom", sector: "Tech & Digital", size: "Group", hiring: true, careersUrl: "https://www.iam.ma/particulier/emploi/" },
+  { name: "McKinsey Casablanca", sector: "Consulting", size: "Large", hiring: true, careersUrl: "https://www.mckinsey.com/careers/search-jobs" },
+  { name: "Deloitte Maroc", sector: "Consulting", size: "Large", hiring: true, careersUrl: "https://www.deloitte.com/africa/en/careers.html" },
+  { name: "BMCE Bank of Africa", sector: "Finance & Banking", size: "Group", hiring: true, careersUrl: "https://www.bankofafrica.ma/fr/particuliers/nous-connaitre/rejoignez-nous" },
+  { name: "Inwi", sector: "Tech & Digital", size: "Large", hiring: false, careersUrl: "https://www.inwi.ma/recrutement" },
+  { name: "Lydec", sector: "Energy & Industry", size: "Large", hiring: false, careersUrl: "https://www.lydec.ma/carrieres" },
+  { name: "Royal Air Maroc", sector: "Logistics", size: "Group", hiring: true, careersUrl: "https://www.royalairmaroc.com/ma-en/career" },
+  { name: "CDG (Caisse de Dépôt)", sector: "Public Sector", size: "Group", hiring: true, careersUrl: "https://www.cdg.ma/fr/talents" },
+  { name: "HPS Worldwide", sector: "Tech & Digital", size: "Large", hiring: true, careersUrl: "https://www.hps-worldwide.com/careers/" },
+  { name: "Renault Tanger", sector: "Energy & Industry", size: "Group", hiring: true, careersUrl: "https://www.renaultgroup.com/talents/" },
+  { name: "Stellantis Kenitra", sector: "Energy & Industry", size: "Group", hiring: true, careersUrl: "https://www.stellantis.com/en/careers" },
+  { name: "Marsa Maroc", sector: "Logistics", size: "Large", hiring: false, careersUrl: "https://www.marsamaroc.co.ma/en/talents" },
+  { name: "Cosumar", sector: "Agribusiness", size: "Large", hiring: true, careersUrl: "https://www.cosumar.co.ma/fr/carrieres" },
+  { name: "Label Vie", sector: "Agribusiness", size: "Large", hiring: true, careersUrl: "https://www.labelvie.ma/recrutement/" },
+  { name: "BCP Bank", sector: "Finance & Banking", size: "Group", hiring: true, careersUrl: "https://www.gbp.ma/recrutement" },
+  { name: "PwC Maroc", sector: "Consulting", size: "Large", hiring: true, careersUrl: "https://www.pwc.com/m1/en/careers.html" },
+  { name: "EY Maroc", sector: "Consulting", size: "Large", hiring: true, careersUrl: "https://www.ey.com/en_ma/careers" },
+  { name: "ONCF (Railways)", sector: "Public Sector", size: "Group", hiring: false, careersUrl: "https://www.oncf.ma/fr/Rejoignez-nous" },
 ];
 
 export type RoleDetail = {

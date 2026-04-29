@@ -5,7 +5,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const OPENAI_MODEL = 'gpt-4o-mini';
+const GEMINI_MODEL = 'gemini-1.5-flash';
 const MAX_TOKENS = 2000;
 
 type Action =
@@ -125,35 +125,40 @@ Return ONLY this JSON:
   }
 }
 
-async function callOpenAI(action: Action, payload: any): Promise<any> {
-  const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
-  if (!OPENAI_API_KEY) throw new Error('OPENAI_API_KEY not configured');
+async function callGemini(action: Action, payload: any): Promise<any> {
+  const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+  if (!GEMINI_API_KEY) throw new Error('GEMINI_API_KEY not configured');
 
-  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+  const combinedPrompt = `INSTRUCTIONS:\n${SYSTEM_PROMPTS[action]}\n\nREQUEST:\n${buildPrompt(action, payload)}`;
+
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${OPENAI_API_KEY}`,
-      'content-type': 'application/json',
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: OPENAI_MODEL,
-      max_tokens: MAX_TOKENS,
-      messages: [
-        { role: 'system', content: SYSTEM_PROMPTS[action] },
-        { role: 'user', content: buildPrompt(action, payload) },
+      contents: [
+        {
+          parts: [
+            { text: combinedPrompt },
+          ],
+        },
       ],
-      response_format: { type: 'json_object' },
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: MAX_TOKENS,
+      },
     }),
   });
 
   if (!res.ok) {
     const errText = await res.text();
-    console.error('OpenAI error:', res.status, errText);
-    throw new Error(`OpenAI API error ${res.status}`);
+    console.error('Gemini error:', res.status, errText);
+    throw new Error(`Gemini API error ${res.status}`);
   }
 
   const data = await res.json();
-  const text = data?.choices?.[0]?.message?.content ?? '';
+  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
   const cleaned = text.trim().replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();
   // Pull first JSON object/array from the text
   const match = cleaned.match(/\{[\s\S]*\}/);
@@ -195,7 +200,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const result = await callOpenAI(action, payload);
+    const result = await callGemini(action, payload);
 
     return new Response(JSON.stringify({ result }), {
       status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },

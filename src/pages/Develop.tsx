@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useLanguage } from "@/lib/i18n";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -38,7 +39,7 @@ async function callDevelopAI(action: string, payload: any) {
   return (data as any).result;
 }
 
-function ScoreCircle({ value, color = "#C8102E" }: { value: number; color?: string }) {
+function ScoreCircle({ value, color = "#6366F1" }: { value: number; color?: string }) {
   const r = 52; const c = 2 * Math.PI * r;
   const offset = c - (value / 100) * c;
   return (
@@ -89,6 +90,8 @@ type CaseScore = {
 };
 
 function BusinessCasesTab() {
+  const { language } = useLanguage();
+  const tr = (en: string, fr: string) => (language === "fr" ? fr : en);
   const [difficulty, setDifficulty] = useState("Consultant");
   const [sector, setSector] = useState(SECTORS[0]);
   const [generating, setGenerating] = useState(false);
@@ -146,12 +149,12 @@ function BusinessCasesTab() {
         if (row) setCaseId(row.id);
       }
     } catch (e: any) {
-      toast.error(e.message || "Failed to generate case");
+      toast.error(e.message || tr("Failed to generate case", "Echec de generation du cas"));
     } finally { setGenerating(false); }
   }
 
   async function submitForScoring() {
-    if (!caseData || !answer.trim()) { toast.error("Write your answer first."); return; }
+    if (!caseData || !answer.trim()) { toast.error(tr("Write your answer first.", "Ecrivez d'abord votre reponse.")); return; }
     setScoring(true);
     try {
       const result = await callDevelopAI("score_case", {
@@ -165,7 +168,7 @@ function BusinessCasesTab() {
         }).eq("id", caseId);
       }
     } catch (e: any) {
-      toast.error(e.message || "Scoring failed");
+      toast.error(e.message || tr("Scoring failed", "Echec de l'evaluation"));
     } finally { setScoring(false); }
   }
 
@@ -178,7 +181,7 @@ function BusinessCasesTab() {
   if (score) {
     const gradeColor = score.grade === "Offer" ? "bg-emerald-500"
       : score.grade === "Strong Pass" ? "bg-[hsl(var(--primary))]"
-      : score.grade === "Pass" ? "bg-amber-500" : "bg-[#C8102E]";
+      : score.grade === "Pass" ? "bg-amber-500" : "bg-accent";
     const dims = [
       { k: "Structure", v: score.scores.structure },
       { k: "Quantitative", v: score.scores.quantitative },
@@ -187,14 +190,14 @@ function BusinessCasesTab() {
     ];
     return (
       <div className="space-y-6">
-        <Button variant="ghost" size="sm" onClick={reset}><ArrowLeft className="w-4 h-4" /> Back to cases</Button>
+        <Button variant="ghost" size="sm" onClick={reset}><ArrowLeft className="w-4 h-4" /> {tr("Back to cases", "Retour aux cas")}</Button>
         <Card className="p-6">
           <div className="flex flex-col md:flex-row items-center gap-6">
             <ScoreCircle value={score.overall_score} />
             <div className="flex-1 text-center md:text-left">
               <Badge className={`${gradeColor} text-white mb-2`}>{score.grade}</Badge>
               <h2 className="text-2xl font-bold">{caseData?.title}</h2>
-              <p className="text-sm text-muted-foreground">Time: {fmtTime(seconds)}</p>
+              <p className="text-sm text-muted-foreground">{tr("Time", "Temps")} : {fmtTime(seconds)}</p>
             </div>
           </div>
           <div className="grid sm:grid-cols-2 gap-4 mt-6">
@@ -209,30 +212,30 @@ function BusinessCasesTab() {
 
         <div className="grid md:grid-cols-2 gap-4">
           <Card className="p-5 border-l-4 border-l-emerald-500">
-            <h3 className="font-semibold mb-3 flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-500" /> Strengths</h3>
+            <h3 className="font-semibold mb-3 flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-500" /> {tr("Strengths", "Points forts")}</h3>
             <ul className="space-y-2 text-sm">{score.strengths.map((s, i) => <li key={i}>• {s}</li>)}</ul>
           </Card>
           <Card className="p-5 border-l-4 border-l-amber-500">
-            <h3 className="font-semibold mb-3 flex items-center gap-2"><AlertCircle className="w-4 h-4 text-amber-500" /> Areas to improve</h3>
+            <h3 className="font-semibold mb-3 flex items-center gap-2"><AlertCircle className="w-4 h-4 text-amber-500" /> {tr("Areas to improve", "Axes d'amelioration")}</h3>
             <ul className="space-y-2 text-sm">{score.improvements.map((s, i) => <li key={i}>• {s}</li>)}</ul>
           </Card>
         </div>
 
         <Card className="p-5">
           <button onClick={() => setRevealModel((v) => !v)} className="flex items-center gap-2 font-semibold">
-            <Lightbulb className="w-4 h-4 text-[#C8102E]" /> What a top candidate said
+            <Lightbulb className="w-4 h-4 text-accent" /> {tr("What a top candidate said", "Ce qu'un excellent candidat a dit")}
             <ChevronRight className={`w-4 h-4 transition-transform ${revealModel ? "rotate-90" : ""}`} />
           </button>
           {revealModel && <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{score.what_a_top_candidate_said}</p>}
         </Card>
 
         <Card className="p-5 bg-accent-soft">
-          <p className="text-sm"><strong>Next case suggestion: </strong>{score.next_case_suggestion}</p>
+          <p className="text-sm"><strong>{tr("Next case suggestion:", "Suggestion de prochain cas :")} </strong>{score.next_case_suggestion}</p>
         </Card>
 
         <div className="flex flex-wrap gap-3">
-          <Button onClick={reset} className="bg-[#C8102E] text-white hover:bg-[#C8102E]/90"><RefreshCw className="w-4 h-4" /> Try another case</Button>
-          <Button variant="outline">Practice interview for this role</Button>
+          <Button onClick={reset} className="bg-accent text-accent-foreground hover:bg-accent/90"><RefreshCw className="w-4 h-4" /> {tr("Try another case", "Essayer un autre cas")}</Button>
+          <Button variant="outline">{tr("Practice interview for this role", "S'entrainer en entretien pour ce role")}</Button>
         </div>
       </div>
     );
@@ -248,21 +251,21 @@ function BusinessCasesTab() {
               <Badge variant="secondary" className="mb-2"><Building2 className="w-3 h-3" /> {caseData.company}</Badge>
               <h2 className="text-xl font-bold">{caseData.title}</h2>
             </div>
-            <Badge className="bg-[#C8102E] text-white"><Clock className="w-3 h-3" /> {fmtTime(seconds)}</Badge>
+            <Badge className="bg-accent text-accent-foreground"><Clock className="w-3 h-3" /> {fmtTime(seconds)}</Badge>
           </div>
           <p className="text-sm leading-relaxed text-muted-foreground">{caseData.context}</p>
 
-          <div className="border-2 border-[#C8102E] rounded-lg p-4 bg-[#C8102E]/5">
-            <p className="text-xs font-semibold text-[#C8102E] mb-1">THE QUESTION</p>
+          <div className="border-2 border-accent rounded-lg p-4 bg-accent/5">
+            <p className="text-xs font-semibold text-accent mb-1">{tr("THE QUESTION", "LA QUESTION")}</p>
             <p className="font-medium">{caseData.question}</p>
           </div>
 
           <div>
-            <p className="text-xs font-semibold uppercase text-muted-foreground mb-2">Data provided</p>
+            <p className="text-xs font-semibold uppercase text-muted-foreground mb-2">{tr("Data provided", "Donnees fournies")}</p>
             <div className="space-y-2">
               {caseData.data_provided.map((d, i) => (
                 <div key={i} className="flex gap-3 p-3 rounded-md border border-border">
-                  <span className="text-xs font-bold text-[#C8102E]">{i + 1}</span>
+                  <span className="text-xs font-bold text-accent">{i + 1}</span>
                   <span className="text-sm">{d}</span>
                 </div>
               ))}
@@ -271,7 +274,7 @@ function BusinessCasesTab() {
 
           <div>
             <Button variant="outline" size="sm" onClick={() => setShowHints((v) => !v)}>
-              <Lightbulb className="w-4 h-4" /> {showHints ? "Hide" : "Show"} hints
+              <Lightbulb className="w-4 h-4" /> {showHints ? tr("Hide", "Masquer") : tr("Show", "Afficher")} {tr("hints", "indices")}
             </Button>
             {showHints && (
               <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
@@ -282,16 +285,16 @@ function BusinessCasesTab() {
         </Card>
 
         <Card className="p-6 space-y-3 self-start sticky top-20">
-          <h3 className="font-semibold">Your answer</h3>
+          <h3 className="font-semibold">{tr("Your answer", "Votre reponse")}</h3>
           <Textarea
             value={answer}
             onChange={(e) => setAnswer(e.target.value)}
-            placeholder="Structure your approach here. Start with your framework, then walk through each bucket..."
+            placeholder={tr("Structure your approach here. Start with your framework, then walk through each bucket...", "Structurez votre approche ici. Commencez par votre cadre, puis detaillez chaque volet...")}
             className="min-h-[300px]"
           />
           <p className="text-xs text-muted-foreground">{answer.length} characters</p>
-          <Button onClick={submitForScoring} disabled={scoring} className="w-full bg-[#C8102E] text-white hover:bg-[#C8102E]/90">
-            {scoring ? "Scoring..." : "Submit for scoring →"}
+          <Button onClick={submitForScoring} disabled={scoring} className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
+            {scoring ? tr("Scoring...", "Evaluation...") : tr("Submit for scoring →", "Soumettre pour evaluation →")}
           </Button>
         </Card>
       </div>
@@ -316,43 +319,43 @@ function BusinessCasesTab() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold">Business Case Simulator</h2>
-        <p className="text-muted-foreground">Practice real consulting frameworks on Morocco-specific cases.</p>
+        <h2 className="text-2xl font-bold">{tr("Business Case Simulator", "Simulateur de cas business")}</h2>
+        <p className="text-muted-foreground">{tr("Practice real consulting frameworks on Morocco-specific cases.", "Entrainez-vous avec de vrais cadres de conseil sur des cas adaptes au Maroc.")}</p>
       </div>
 
       <Card className="p-6">
-        <p className="text-sm font-semibold mb-3">Difficulty</p>
+        <p className="text-sm font-semibold mb-3">{tr("Difficulty", "Difficulte")}</p>
         <div className="grid md:grid-cols-3 gap-3">
           {DIFFICULTIES.map((d) => (
             <button key={d.id} onClick={() => setDifficulty(d.id)}
-              className={`text-left p-4 rounded-lg border-2 transition ${difficulty === d.id ? "border-[#C8102E] bg-[#C8102E]/5" : "border-border hover:border-muted-foreground/30"}`}>
+              className={`text-left p-4 rounded-lg border-2 transition ${difficulty === d.id ? "border-accent bg-accent/5" : "border-border hover:border-muted-foreground/30"}`}>
               <p className="font-semibold">{d.id}</p>
               <p className="text-xs text-muted-foreground mt-1">{d.desc}</p>
             </button>
           ))}
         </div>
 
-        <p className="text-sm font-semibold mb-3 mt-6">Sector</p>
+        <p className="text-sm font-semibold mb-3 mt-6">{tr("Sector", "Secteur")}</p>
         <div className="flex flex-wrap gap-2">
           {SECTORS.map((s) => (
             <button key={s} onClick={() => setSector(s)}
-              className={`px-3 py-1.5 rounded-full text-sm border transition ${sector === s ? "bg-[#C8102E] text-white border-[#C8102E]" : "border-border hover:border-muted-foreground/30"}`}>
+              className={`px-3 py-1.5 rounded-full text-sm border transition ${sector === s ? "bg-accent text-accent-foreground border-accent" : "border-border hover:border-muted-foreground/30"}`}>
               {s}
             </button>
           ))}
         </div>
 
-        <Button onClick={() => generate()} className="mt-6 bg-[#C8102E] text-white hover:bg-[#C8102E]/90">
-          Generate my case <ChevronRight className="w-4 h-4" />
+        <Button onClick={() => generate()} className="mt-6 bg-accent text-accent-foreground hover:bg-accent/90">
+          {tr("Generate my case", "Generer mon cas")} <ChevronRight className="w-4 h-4" />
         </Button>
       </Card>
 
       <Card className="p-6">
-        <h3 className="font-semibold mb-3">Quick-launch cases</h3>
+        <h3 className="font-semibold mb-3">{tr("Quick-launch cases", "Cas rapides")}</h3>
         <div className="space-y-2">
           {STARTERS.map((s) => (
             <button key={s} onClick={() => generate(s)}
-              className="w-full text-left p-3 rounded-md border border-border hover:border-[#C8102E] hover:bg-[#C8102E]/5 transition flex justify-between items-center">
+              className="w-full text-left p-3 rounded-md border border-border hover:border-accent hover:bg-accent/5 transition flex justify-between items-center">
               <span className="text-sm">{s}</span>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </button>
@@ -387,6 +390,8 @@ type IFeedback = {
 };
 
 function InterviewPrepTab({ profile, defaultRole }: { profile: Profile | null; defaultRole: string }) {
+  const { language: appLanguage } = useLanguage();
+  const tr = (en: string, fr: string) => (appLanguage === "fr" ? fr : en);
   const [role, setRole] = useState(defaultRole);
   const [type, setType] = useState("Mixed");
   const [language, setLanguage] = useState("French");
@@ -419,7 +424,7 @@ function InterviewPrepTab({ profile, defaultRole }: { profile: Profile | null; d
         if (row) setSessionId(row.id);
       }
     } catch (e: any) {
-      toast.error(e.message || "Failed to generate interview");
+      toast.error(e.message || tr("Failed to generate interview", "Echec de generation de l'entretien"));
     } finally { setGenerating(false); }
   }
 
@@ -447,16 +452,16 @@ function InterviewPrepTab({ profile, defaultRole }: { profile: Profile | null; d
     const decisionColor =
       feedback.hiring_decision === "Strong hire" ? "bg-emerald-500" :
       feedback.hiring_decision === "Hire" ? "bg-[hsl(var(--primary))]" :
-      feedback.hiring_decision === "Maybe" ? "bg-amber-500" : "bg-[#C8102E]";
+      feedback.hiring_decision === "Maybe" ? "bg-amber-500" : "bg-accent";
     return (
       <div className="space-y-6">
-        <Button variant="ghost" size="sm" onClick={reset}><ArrowLeft className="w-4 h-4" /> Back</Button>
+        <Button variant="ghost" size="sm" onClick={reset}><ArrowLeft className="w-4 h-4" /> {tr("Back", "Retour")}</Button>
         <Card className="p-6">
           <div className="flex flex-col md:flex-row items-center gap-6">
             <ScoreCircle value={feedback.overall_score} />
             <div className="flex-1 text-center md:text-left">
               <Badge className={`${decisionColor} text-white mb-2`}>{feedback.hiring_decision}</Badge>
-              <h2 className="text-2xl font-bold">Mock interview · {role}</h2>
+              <h2 className="text-2xl font-bold">{tr("Mock interview", "Entretien blanc")} · {role}</h2>
             </div>
           </div>
           <div className="grid sm:grid-cols-3 gap-4 mt-6">
@@ -481,15 +486,15 @@ function InterviewPrepTab({ profile, defaultRole }: { profile: Profile | null; d
                 <AccordionItem value={`q${qs.question_id}`} className="border-0">
                   <AccordionTrigger className="px-5 hover:no-underline">
                     <div className="flex-1 text-left">
-                      <p className="text-xs text-muted-foreground">Question {qs.question_id}</p>
+                      <p className="text-xs text-muted-foreground">{tr("Question", "Question")} {qs.question_id}</p>
                       <p className="font-medium">{q?.question}</p>
                     </div>
-                    <Badge className="mr-3 bg-[#C8102E] text-white">{qs.score}</Badge>
+                    <Badge className="mr-3 bg-accent text-accent-foreground">{qs.score}</Badge>
                   </AccordionTrigger>
                   <AccordionContent className="px-5 pb-4 space-y-2 text-sm">
-                    <p><strong className="text-emerald-600">Strong: </strong>{qs.what_was_strong}</p>
-                    <p><strong className="text-amber-600">Improve: </strong>{qs.what_to_improve}</p>
-                    <p className="text-muted-foreground"><strong>Model hint: </strong>{qs.model_answer_hint}</p>
+                    <p><strong className="text-emerald-600">{tr("Strong:", "Fort :")} </strong>{qs.what_was_strong}</p>
+                    <p><strong className="text-amber-600">{tr("Improve:", "A ameliorer :")} </strong>{qs.what_to_improve}</p>
+                    <p className="text-muted-foreground"><strong>{tr("Model hint:", "Indice modele :")} </strong>{qs.model_answer_hint}</p>
                   </AccordionContent>
                 </AccordionItem>
               </Card>
@@ -497,14 +502,14 @@ function InterviewPrepTab({ profile, defaultRole }: { profile: Profile | null; d
           })}
         </Accordion>
 
-        <Card className="p-5 border-l-4 border-l-[#C8102E]">
-          <h3 className="font-semibold mb-2">Coach note</h3>
+        <Card className="p-5 border-l-4 border-l-accent">
+          <h3 className="font-semibold mb-2">{tr("Coach note", "Note du coach")}</h3>
           <p className="text-sm leading-relaxed">{feedback.coach_note}</p>
         </Card>
 
         <div className="flex flex-wrap gap-3">
-          <Button onClick={() => { reset(); startInterview(); }} className="bg-[#C8102E] text-white hover:bg-[#C8102E]/90">Retry this interview</Button>
-          <Button variant="outline" onClick={reset}>Try a different role</Button>
+          <Button onClick={() => { reset(); startInterview(); }} className="bg-accent text-accent-foreground hover:bg-accent/90">{tr("Retry this interview", "Reessayer cet entretien")}</Button>
+          <Button variant="outline" onClick={reset}>{tr("Try a different role", "Essayer un autre role")}</Button>
         </div>
       </div>
     );
@@ -516,7 +521,7 @@ function InterviewPrepTab({ profile, defaultRole }: { profile: Profile | null; d
     return (
       <div className="space-y-5 max-w-3xl mx-auto">
         <Progress value={((idx + 1) / questions.length) * 100} />
-        <p className="text-sm text-muted-foreground text-center">Question {idx + 1} of {questions.length}</p>
+        <p className="text-sm text-muted-foreground text-center">{tr("Question", "Question")} {idx + 1} {tr("of", "sur")} {questions.length}</p>
         {idx === 0 && intro && (
           <Card className="p-4 bg-accent-soft text-sm italic">{intro}</Card>
         )}
@@ -526,24 +531,24 @@ function InterviewPrepTab({ profile, defaultRole }: { profile: Profile | null; d
             <div className="flex-1">
               <Badge variant="outline" className="mb-2 capitalize">{q.type}</Badge>
               <p className="text-lg font-medium">{q.question}</p>
-              <p className="text-xs text-muted-foreground mt-2">⏱ Suggested: {Math.round(q.time_suggestion / 60)} min</p>
+              <p className="text-xs text-muted-foreground mt-2">⏱ {tr("Suggested", "Suggere")} : {Math.round(q.time_suggestion / 60)} min</p>
             </div>
           </div>
         </Card>
         <Textarea
           value={answers[q.id] ?? ""}
           onChange={(e) => setAnswers((a) => ({ ...a, [q.id]: e.target.value }))}
-          placeholder="Type your answer..."
+          placeholder={tr("Type your answer...", "Ecrivez votre reponse...")}
           className="min-h-[200px]"
         />
         <div className="flex justify-between">
-          <Button variant="ghost" disabled={idx === 0} onClick={() => setIdx((i) => i - 1)}>← Previous</Button>
+          <Button variant="ghost" disabled={idx === 0} onClick={() => setIdx((i) => i - 1)}>← {tr("Previous", "Precedent")}</Button>
           {isLast ? (
-            <Button onClick={submitForFeedback} disabled={scoring} className="bg-[#C8102E] text-white hover:bg-[#C8102E]/90">
-              {scoring ? "Scoring..." : "Get my feedback →"}
+            <Button onClick={submitForFeedback} disabled={scoring} className="bg-accent text-accent-foreground hover:bg-accent/90">
+              {scoring ? tr("Scoring...", "Evaluation...") : tr("Get my feedback →", "Obtenir mon feedback →")}
             </Button>
           ) : (
-            <Button onClick={() => setIdx((i) => i + 1)} className="bg-[#C8102E] text-white hover:bg-[#C8102E]/90">Next question →</Button>
+            <Button onClick={() => setIdx((i) => i + 1)} className="bg-accent text-accent-foreground hover:bg-accent/90">{tr("Next question →", "Question suivante →")}</Button>
           )}
         </div>
       </div>
@@ -557,13 +562,13 @@ function InterviewPrepTab({ profile, defaultRole }: { profile: Profile | null; d
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold">Mock Interview Simulator</h2>
-        <p className="text-muted-foreground">Practice with AI. Get scored. Improve before the real thing.</p>
+        <h2 className="text-2xl font-bold">{tr("Mock Interview Simulator", "Simulateur d'entretien blanc")}</h2>
+        <p className="text-muted-foreground">{tr("Practice with AI. Get scored. Improve before the real thing.", "Entrainez-vous avec l'IA. Obtenez un score. Progressez avant le vrai entretien.")}</p>
       </div>
 
       <Card className="p-6 space-y-5">
         <div>
-          <p className="text-sm font-semibold mb-2">Target role</p>
+          <p className="text-sm font-semibold mb-2">{tr("Target role", "Role cible")}</p>
           <Select value={role} onValueChange={setRole}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -575,12 +580,12 @@ function InterviewPrepTab({ profile, defaultRole }: { profile: Profile | null; d
         </div>
 
         <div>
-          <p className="text-sm font-semibold mb-2">Interview type</p>
+          <p className="text-sm font-semibold mb-2">{tr("Interview type", "Type d'entretien")}</p>
           <div className="grid md:grid-cols-3 gap-3">
             {INTERVIEW_TYPES.map((t) => (
               <button key={t.id} onClick={() => setType(t.id)}
-                className={`text-left p-4 rounded-lg border-2 transition ${type === t.id ? "border-[#C8102E] bg-[#C8102E]/5" : "border-border hover:border-muted-foreground/30"}`}>
-                <t.icon className="w-5 h-5 text-[#C8102E] mb-2" />
+                className={`text-left p-4 rounded-lg border-2 transition ${type === t.id ? "border-accent bg-accent/5" : "border-border hover:border-muted-foreground/30"}`}>
+                <t.icon className="w-5 h-5 text-accent mb-2" />
                 <p className="font-semibold">{t.id}</p>
                 <p className="text-xs text-muted-foreground">{t.desc}</p>
               </button>
@@ -589,19 +594,19 @@ function InterviewPrepTab({ profile, defaultRole }: { profile: Profile | null; d
         </div>
 
         <div>
-          <p className="text-sm font-semibold mb-2">Language</p>
+          <p className="text-sm font-semibold mb-2">{tr("Language", "Langue")}</p>
           <div className="flex gap-2">
             {LANGUAGES.map((l) => (
               <button key={l} onClick={() => setLanguage(l)}
-                className={`px-4 py-2 rounded-full text-sm border transition ${language === l ? "bg-[#C8102E] text-white border-[#C8102E]" : "border-border"}`}>
+                className={`px-4 py-2 rounded-full text-sm border transition ${language === l ? "bg-accent text-accent-foreground border-accent" : "border-border"}`}>
                 {l}
               </button>
             ))}
           </div>
         </div>
 
-        <Button onClick={startInterview} className="bg-[#C8102E] text-white hover:bg-[#C8102E]/90">
-          Start interview <ChevronRight className="w-4 h-4" />
+        <Button onClick={startInterview} className="bg-accent text-accent-foreground hover:bg-accent/90">
+          {tr("Start interview", "Demarrer l'entretien")} <ChevronRight className="w-4 h-4" />
         </Button>
       </Card>
     </div>
@@ -618,6 +623,8 @@ type AIRec = {
 };
 
 function ResourcesTab({ pathway, profile }: { pathway: PathwayResult | null; profile: Profile | null }) {
+  const { language } = useLanguage();
+  const tr = (en: string, fr: string) => (language === "fr" ? fr : en);
   const [filter, setFilter] = useState<typeof RESOURCE_CATEGORIES[number]>("All");
   const [aiRec, setAiRec] = useState<AIRec | null>(null);
   const [loadingRec, setLoadingRec] = useState(true);
@@ -661,8 +668,8 @@ function ResourcesTab({ pathway, profile }: { pathway: PathwayResult | null; pro
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold">Resources hub</h2>
-        <p className="text-muted-foreground">Curated for your pathway and Moroccan market relevance.</p>
+        <h2 className="text-2xl font-bold">{tr("Resources hub", "Hub de ressources")}</h2>
+        <p className="text-muted-foreground">{tr("Curated for your pathway and Moroccan market relevance.", "Selectionne selon votre parcours et la realite du marche marocain.")}</p>
       </div>
 
       {/* AI "Start here" */}
@@ -674,17 +681,17 @@ function ResourcesTab({ pathway, profile }: { pathway: PathwayResult | null; pro
           </div>
         </Card>
       ) : aiRec ? (
-        <Card className="p-6 border-l-4 border-l-[#C8102E]">
+        <Card className="p-6 border-l-4 border-l-accent">
           <div className="flex items-center gap-2 mb-2">
-            <Sparkles className="w-4 h-4 text-[#C8102E]" />
-            <h3 className="font-semibold">Start here</h3>
+            <Sparkles className="w-4 h-4 text-accent" />
+            <h3 className="font-semibold">{tr("Start here", "Commencez ici")}</h3>
           </div>
           <p className="text-sm text-muted-foreground mb-4">{aiRec.priority_message}</p>
           <div className="grid md:grid-cols-3 gap-3">
             {aiRec.top_resources.map((r, i) => (
               <a key={i} href={r.direct_link} target="_blank" rel="noopener noreferrer"
-                className="block p-4 rounded-lg border border-border hover:border-[#C8102E] transition">
-                <Badge className="bg-[#C8102E] text-white mb-2">Recommended for you</Badge>
+                className="block p-4 rounded-lg border border-border hover:border-accent transition">
+                <Badge className="bg-accent text-accent-foreground mb-2">{tr("Recommended for you", "Recommande pour vous")}</Badge>
                 <p className="font-semibold text-sm">{r.name}</p>
                 <p className="text-xs text-muted-foreground mt-1">{r.why_now}</p>
                 <p className="text-xs mt-2"><Clock className="w-3 h-3 inline" /> {r.time_to_complete}</p>
@@ -706,7 +713,7 @@ function ResourcesTab({ pathway, profile }: { pathway: PathwayResult | null; pro
 
       <div className="grid md:grid-cols-2 gap-4">
         {filtered.length === 0 && (
-          <Card className="p-6 text-sm text-muted-foreground col-span-full">No resources in this category yet.</Card>
+          <Card className="p-6 text-sm text-muted-foreground col-span-full">{tr("No resources in this category yet.", "Aucune ressource dans cette categorie pour le moment.")}</Card>
         )}
         {filtered.map((r) => (
           <Card key={r.id} className="p-5 space-y-3">
@@ -720,18 +727,18 @@ function ResourcesTab({ pathway, profile }: { pathway: PathwayResult | null; pro
                   <p className="text-xs text-muted-foreground">{r.provider}</p>
                 </div>
               </div>
-              {isRecommended(r) && <Badge className="bg-[#C8102E] text-white shrink-0">Recommended</Badge>}
+              {isRecommended(r) && <Badge className="bg-accent text-accent-foreground shrink-0">{tr("Recommended", "Recommande")}</Badge>}
             </div>
             <div className="flex flex-wrap gap-2 text-xs">
               <Badge variant="secondary"><Clock className="w-3 h-3" /> {r.duration}</Badge>
               {r.level && <Badge variant="outline">{r.level}</Badge>}
-              {r.popular && <Badge className="bg-amber-500 text-white">Popular in Morocco</Badge>}
+              {r.popular && <Badge className="bg-accent text-accent-foreground">{tr("Popular in Morocco", "Populaire au Maroc")}</Badge>}
             </div>
-            <p className="text-xs"><strong>Skill: </strong>{r.skill}</p>
+            <p className="text-xs"><strong>{tr("Skill:", "Competence :")} </strong>{r.skill}</p>
             <p className="text-xs text-muted-foreground italic">🇲🇦 {r.moroccoNote}</p>
             <a href={r.link} target="_blank" rel="noopener noreferrer">
               <Button variant="outline" size="sm" className="w-full">
-                {r.category === "Virtual Internships" ? "Start free" : "Enroll free"}
+                {r.category === "Virtual Internships" ? tr("Start free", "Commencer gratuitement") : tr("Enroll free", "S'inscrire gratuitement")}
                 <ExternalLink className="w-3 h-3" />
               </Button>
             </a>
@@ -747,6 +754,8 @@ function ResourcesTab({ pathway, profile }: { pathway: PathwayResult | null; pro
 // =====================================================================
 
 export default function Develop() {
+  const { language } = useLanguage();
+  const tr = (en: string, fr: string) => (language === "fr" ? fr : en);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [pathway, setPathway] = useState<PathwayResult | null>(null);
 
@@ -769,15 +778,15 @@ export default function Develop() {
   return (
     <div className="space-y-6 max-w-6xl">
       <div>
-        <h1 className="text-3xl font-bold mb-1">Develop</h1>
-        <p className="text-muted-foreground">Build the skills that get you hired in Morocco.</p>
+        <h1 className="text-3xl font-bold mb-1">{tr("Develop", "Developpement")}</h1>
+        <p className="text-muted-foreground">{tr("Build the skills that get you hired in Morocco.", "Developpez les competences qui vous font recruter au Maroc.")}</p>
       </div>
 
       <Tabs defaultValue="cases">
         <TabsList>
-          <TabsTrigger value="cases"><Briefcase className="w-4 h-4" /> Business Cases</TabsTrigger>
-          <TabsTrigger value="interview"><Mic className="w-4 h-4" /> Interview Prep</TabsTrigger>
-          <TabsTrigger value="resources"><BookOpen className="w-4 h-4" /> Resources</TabsTrigger>
+          <TabsTrigger value="cases"><Briefcase className="w-4 h-4" /> {tr("Business Cases", "Cas business")}</TabsTrigger>
+          <TabsTrigger value="interview"><Mic className="w-4 h-4" /> {tr("Interview Prep", "Preparation entretien")}</TabsTrigger>
+          <TabsTrigger value="resources"><BookOpen className="w-4 h-4" /> {tr("Resources", "Ressources")}</TabsTrigger>
         </TabsList>
         <TabsContent value="cases" className="mt-6"><BusinessCasesTab /></TabsContent>
         <TabsContent value="interview" className="mt-6"><InterviewPrepTab profile={profile} defaultRole={defaultRole} /></TabsContent>

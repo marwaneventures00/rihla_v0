@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, UserPlus } from "lucide-react";
 import { toast } from "sonner";
+import { useLanguage } from "@/lib/i18n";
 
 type MyProfile = {
   user_id: string;
@@ -28,6 +29,8 @@ type Connection = {
 };
 
 export default function MeetAndGreet() {
+  const { language } = useLanguage();
+  const tr = (en: string, fr: string) => (language === "fr" ? fr : en);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [uid, setUid] = useState<string | null>(null);
@@ -58,7 +61,7 @@ export default function MeetAndGreet() {
       .maybeSingle();
 
     if (pErr || !p) {
-      toast.error(pErr?.message ?? "Could not load your profile");
+      toast.error(pErr?.message ?? tr("Could not load your profile", "Impossible de charger votre profil"));
       setLoading(false);
       return;
     }
@@ -131,7 +134,7 @@ export default function MeetAndGreet() {
       return;
     }
 
-    toast.success("Request sent");
+    toast.success(tr("Request sent", "Demande envoyee"));
     await loadConnections(uid);
   }
 
@@ -158,22 +161,22 @@ export default function MeetAndGreet() {
   return (
     <div className="space-y-6 max-w-5xl">
       <div>
-        <h1 className="text-3xl font-bold mb-1">Meet & greet</h1>
+        <h1 className="text-3xl font-bold mb-1">{tr("Meet & greet", "Meet & greet")}</h1>
         <p className="text-muted-foreground">
-          Find alumni from your school and track, then request to connect.
+          {tr("Find alumni from your school and track, then request to connect.", "Trouvez des alumni de votre ecole et filiere, puis envoyez une demande de connexion.")}
         </p>
       </div>
 
       <Card className="p-6 space-y-4">
         <div className="flex items-center justify-between gap-3">
           <p className="text-sm text-muted-foreground">
-            Matching by {myProfile?.institution_name ?? "your institution"} and {myProfile?.field_of_study ?? "your track"}.
+            {tr("Matching by", "Correspondance par")} {myProfile?.institution_name ?? tr("your institution", "votre etablissement")} {tr("and", "et")} {myProfile?.field_of_study ?? tr("your track", "votre filiere")}.
           </p>
-          <Badge variant="secondary">{filteredAlumni.length} alumni</Badge>
+          <Badge variant="secondary">{filteredAlumni.length} {tr("alumni", "alumni")}</Badge>
         </div>
 
         <Input
-          placeholder="Search by name, track, or school"
+          placeholder={tr("Search by name, track, or school", "Rechercher par nom, filiere ou ecole")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -185,9 +188,9 @@ export default function MeetAndGreet() {
             return (
               <div key={a.user_id} className="p-4 rounded-lg border border-border flex items-start justify-between gap-4">
                 <div>
-                  <p className="font-semibold">{a.full_name ?? "Alumni member"}</p>
-                  <p className="text-sm text-muted-foreground">{a.field_of_study ?? "Track not set"}</p>
-                  <p className="text-xs text-muted-foreground mt-1">{a.institution_name ?? "Institution not set"}</p>
+                  <p className="font-semibold">{a.full_name ?? tr("Alumni member", "Membre alumni")}</p>
+                  <p className="text-sm text-muted-foreground">{a.field_of_study ?? tr("Track not set", "Filiere non renseignee")}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{a.institution_name ?? tr("Institution not set", "Etablissement non renseigne")}</p>
                 </div>
                 <Button
                   size="sm"
@@ -196,7 +199,7 @@ export default function MeetAndGreet() {
                   onClick={() => requestConnection(a.user_id)}
                 >
                   <UserPlus className="w-4 h-4" />
-                  {requested ? `Requested (${existing?.status})` : "Add alumni"}
+                  {requested ? `${tr("Requested", "Demande")} (${existing?.status})` : tr("Add alumni", "Ajouter un alumni")}
                 </Button>
               </div>
             );
@@ -204,7 +207,7 @@ export default function MeetAndGreet() {
 
           {filteredAlumni.length === 0 && (
             <div className="p-8 text-center text-sm text-muted-foreground border border-dashed rounded-lg">
-              No alumni found for your current match yet.
+              {tr("No alumni found for your current match yet.", "Aucun alumni trouve pour votre correspondance actuelle.")}
             </div>
           )}
         </div>

@@ -7,6 +7,7 @@ import {
   XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid, Legend,
 } from "recharts";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n";
 
 /* ---------- Mock data ---------- */
 
@@ -35,7 +36,7 @@ const FIELDS = [
 ];
 
 // Navy / red palette
-const FIELD_COLORS = ["#1A1A2E", "#C8102E", "#2D2D52", "#E85D6F", "#4A4A6A"];
+const FIELD_COLORS = ["#6366F1", "#8B5CF6", "#4F46E5", "#A78BFA", "#7C83FF"];
 
 const WAU = [
   40, 48, 55, 62, 70, 82, 95, 110, 128, 144, 162, 180,
@@ -80,6 +81,53 @@ const STUDENTS: Student[] = [
 type SortKey = keyof Student;
 
 export default function AdminDashboard() {
+  const { language } = useLanguage();
+  const tr = (en: string, fr: string) => (language === "fr" ? fr : en);
+  const localizedStats = STATS.map((s) => ({
+    ...s,
+    label:
+      s.label === "Total enrolled students"
+        ? tr("Total enrolled students", "Total des etudiants inscrits")
+        : s.label === "Active users (onboarded)"
+          ? tr("Active users (onboarded)", "Utilisateurs actifs (onboardes)")
+          : s.label === "Activation rate"
+            ? tr("Activation rate", "Taux d'activation")
+            : tr("Avg. career readiness", "Maturite carriere moyenne"),
+    trend: tr(
+      s.trend,
+      s.trend
+        .replace("vs last month", "vs mois dernier")
+        .replace("pts", "pts"),
+    ),
+  }));
+  const localizedPathways = PATHWAYS.map((p) => ({
+    ...p,
+    name:
+      p.name === "Management Consultant"
+        ? tr("Management Consultant", "Consultant en management")
+        : p.name === "Software Engineer"
+          ? tr("Software Engineer", "Ingenieur logiciel")
+          : p.name === "Financial Analyst"
+            ? tr("Financial Analyst", "Analyste financier")
+            : p.name === "HR Manager"
+              ? tr("HR Manager", "Responsable RH")
+              : p.name === "Marketing Manager"
+                ? tr("Marketing Manager", "Responsable marketing")
+                : p.name,
+  }));
+  const localizedFields = FIELDS.map((f) => ({
+    ...f,
+    name:
+      f.name === "Engineering"
+        ? tr("Engineering", "Ingenierie")
+        : f.name === "Business"
+          ? tr("Business", "Business")
+          : f.name === "Sciences"
+            ? tr("Sciences", "Sciences")
+            : f.name === "Other"
+              ? tr("Other", "Autre")
+              : f.name,
+  }));
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<SortKey>("name");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
@@ -115,18 +163,21 @@ export default function AdminDashboard() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold mb-1">Institutional dashboard</h1>
+        <h1 className="text-3xl font-bold mb-1">{tr("Institutional dashboard", "Tableau de bord institutionnel")}</h1>
         <p className="text-muted-foreground">
-          Live view of cohort engagement, career-readiness and skills gaps across your university.
+          {tr(
+            "Live view of cohort engagement, career-readiness and skills gaps across your university.",
+            "Vue en direct de l'engagement des cohortes, de la maturite carriere et des ecarts de competences de votre universite.",
+          )}
         </p>
       </div>
 
       {/* Stat cards */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {STATS.map((s) => (
+        {localizedStats.map((s) => (
           <Card key={s.label} className="p-5">
             <p className="text-sm text-muted-foreground">{s.label}</p>
-            <p className="text-3xl font-bold mt-2" style={{ color: "#C8102E" }}>
+            <p className="text-3xl font-bold mt-2 text-accent">
               {s.value}
             </p>
             <div className="flex items-center gap-1 mt-2 text-xs text-emerald-600 font-medium">
@@ -140,27 +191,27 @@ export default function AdminDashboard() {
       {/* Charts row */}
       <div className="grid lg:grid-cols-3 gap-5">
         <Card className="p-6">
-          <h2 className="font-semibold mb-4">Top career pathways chosen</h2>
+          <h2 className="font-semibold mb-4">{tr("Top career pathways chosen", "Parcours de carriere les plus choisis")}</h2>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={PATHWAYS} layout="vertical" margin={{ left: 10 }}>
+              <BarChart data={localizedPathways} layout="vertical" margin={{ left: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
                 <XAxis type="number" fontSize={11} tick={{ fill: "hsl(var(--muted-foreground))" }} />
                 <YAxis dataKey="name" type="category" width={130} fontSize={11} tick={{ fill: "hsl(var(--muted-foreground))" }} />
                 <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
-                <Bar dataKey="count" fill="#C8102E" radius={[0, 6, 6, 0]} />
+                <Bar dataKey="count" fill="hsl(var(--accent))" radius={[0, 6, 6, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </Card>
 
         <Card className="p-6">
-          <h2 className="font-semibold mb-4">Students by field of study</h2>
+          <h2 className="font-semibold mb-4">{tr("Students by field of study", "Etudiants par domaine d'etude")}</h2>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={FIELDS} dataKey="value" nameKey="name" innerRadius={45} outerRadius={85} paddingAngle={2}>
-                  {FIELDS.map((_, i) => (
+                <Pie data={localizedFields} dataKey="value" nameKey="name" innerRadius={45} outerRadius={85} paddingAngle={2}>
+                  {localizedFields.map((_, i) => (
                     <Cell key={i} fill={FIELD_COLORS[i % FIELD_COLORS.length]} />
                   ))}
                 </Pie>
@@ -175,7 +226,7 @@ export default function AdminDashboard() {
         </Card>
 
         <Card className="p-6">
-          <h2 className="font-semibold mb-4">Weekly active users (last 12 weeks)</h2>
+          <h2 className="font-semibold mb-4">{tr("Weekly active users (last 12 weeks)", "Utilisateurs actifs hebdomadaires (12 dernieres semaines)")}</h2>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={WAU}>
@@ -186,9 +237,9 @@ export default function AdminDashboard() {
                 <Line
                   type="monotone"
                   dataKey="users"
-                  stroke="#C8102E"
+                  stroke="hsl(var(--accent))"
                   strokeWidth={2.5}
-                  dot={{ fill: "#C8102E", r: 3 }}
+                  dot={{ fill: "hsl(var(--accent))", r: 3 }}
                   activeDot={{ r: 5 }}
                 />
               </LineChart>
@@ -199,15 +250,15 @@ export default function AdminDashboard() {
 
       {/* Skills gap heatmap */}
       <Card className="p-6">
-        <h2 className="font-semibold mb-1">Most common skills gaps across your cohort</h2>
+        <h2 className="font-semibold mb-1">{tr("Most common skills gaps across your cohort", "Ecarts de competences les plus frequents de votre cohorte")}</h2>
         <p className="text-sm text-muted-foreground mb-4">
-          Color intensity reflects how many students lack each skill.
+          {tr("Color intensity reflects how many students lack each skill.", "L'intensite de la couleur montre combien d'etudiants manquent chaque competence.")}
         </p>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           {SKILLS_GAP.map((g) => {
             const intensity = g.count / maxGap; // 0..1
-            // light pink -> deep red
-            const bg = `rgba(200, 16, 46, ${0.08 + intensity * 0.82})`;
+            // light indigo -> deep indigo
+            const bg = `rgba(99, 102, 241, ${0.08 + intensity * 0.82})`;
             const dark = intensity > 0.55;
             return (
               <div
@@ -219,7 +270,7 @@ export default function AdminDashboard() {
                   {g.skill}
                 </p>
                 <p className={cn("text-xs mt-2", dark ? "text-white/85" : "text-muted-foreground")}>
-                  {g.count} students
+                  {g.count} {tr("students", "etudiants")}
                 </p>
               </div>
             );
@@ -230,13 +281,13 @@ export default function AdminDashboard() {
       {/* Engagement table */}
       <Card className="p-6">
         <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
-          <h2 className="font-semibold">Student engagement</h2>
+          <h2 className="font-semibold">{tr("Student engagement", "Engagement etudiant")}</h2>
           <div className="relative max-w-xs flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by name, field or level…"
+              placeholder={tr("Search by name, field or level...", "Rechercher par nom, domaine ou niveau...")}
               className="pl-9"
             />
           </div>
@@ -246,12 +297,12 @@ export default function AdminDashboard() {
             <thead>
               <tr className="text-left border-b border-border">
                 {([
-                  ["name", "Name"],
-                  ["field", "Field of study"],
-                  ["level", "Level"],
-                  ["onboarding", "Onboarding"],
-                  ["readiness", "Readiness score"],
-                  ["lastActive", "Last active"],
+                  ["name", tr("Name", "Nom")],
+                  ["field", tr("Field of study", "Domaine d'etude")],
+                  ["level", tr("Level", "Niveau")],
+                  ["onboarding", tr("Onboarding", "Onboarding")],
+                  ["readiness", tr("Readiness score", "Score de maturite")],
+                  ["lastActive", tr("Last active", "Derniere activite")],
                 ] as [SortKey, string][]).map(([k, label]) => (
                   <th
                     key={k}
@@ -289,7 +340,7 @@ export default function AdminDashboard() {
               {filteredSorted.length === 0 && (
                 <tr>
                   <td colSpan={6} className="py-8 text-center text-sm text-muted-foreground">
-                    No students match your search.
+                    {tr("No students match your search.", "Aucun etudiant ne correspond a votre recherche.")}
                   </td>
                 </tr>
               )}
@@ -304,7 +355,7 @@ export default function AdminDashboard() {
 function StatusBadge({ status }: { status: Status }) {
   const styles: Record<Status, string> = {
     Completed: "bg-emerald-50 text-emerald-700 border border-emerald-200",
-    "In progress": "bg-amber-50 text-amber-700 border border-amber-200",
+    "In progress": "bg-accent-soft text-accent border border-accent/25",
     "Not started": "bg-secondary text-muted-foreground border border-border",
   };
   return (

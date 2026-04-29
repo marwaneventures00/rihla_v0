@@ -10,6 +10,7 @@ import { Loader2, ShieldCheck, Save, Briefcase, Mic } from "lucide-react";
 import { toast } from "sonner";
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid } from "recharts";
 import type { PathwayResult } from "@/lib/onboarding";
+import { useLanguage } from "@/lib/i18n";
 
 type ProfileRow = {
   full_name: string | null;
@@ -21,6 +22,8 @@ type ActionItem = { id: string; action_text: string; completed: boolean };
 type PathwayRow = { id: string; result_json: PathwayResult; created_at: string };
 
 export default function Profile() {
+  const { language } = useLanguage();
+  const tr = (en: string, fr: string) => (language === "fr" ? fr : en);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -88,7 +91,7 @@ export default function Profile() {
     }).eq("user_id", uid);
     setSaving(false);
     if (error) toast.error(error.message);
-    else toast.success("Profile saved");
+    else toast.success(tr("Profile saved", "Profil enregistre"));
   }
 
   async function toggleAction(item: ActionItem) {
@@ -106,7 +109,7 @@ export default function Profile() {
     const { error } = await supabase.from("user_roles").insert({ user_id: uid, role: "admin", university_id: universityId });
     if (error) { toast.error(error.message); return; }
     setHasAdmin(true);
-    toast.success("Admin role granted. Refresh to see admin nav.");
+    toast.success(tr("Admin role granted. Refresh to see admin nav.", "Role admin accorde. Actualisez pour voir la navigation admin."));
   }
 
   if (loading) return <div className="flex justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-accent" /></div>;
@@ -117,8 +120,8 @@ export default function Profile() {
   return (
     <div className="space-y-6 max-w-5xl">
       <div>
-        <h1 className="text-3xl font-bold mb-1">My profile & progress</h1>
-        <p className="text-muted-foreground">Keep your information current and track your career-readiness journey.</p>
+        <h1 className="text-3xl font-bold mb-1">{tr("My profile & progress", "Mon profil et ma progression")}</h1>
+        <p className="text-muted-foreground">{tr("Keep your information current and track your career-readiness journey.", "Gardez vos informations a jour et suivez votre progression de maturite carriere.")}</p>
       </div>
 
       <div className="grid lg:grid-cols-[1fr_1.2fr] gap-6">
@@ -134,22 +137,22 @@ export default function Profile() {
             </div>
           </div>
           <div className="space-y-4">
-            <div><Label>Full name</Label><Input value={profile.full_name ?? ""} onChange={(e) => setProfile((p) => ({ ...p, full_name: e.target.value }))} /></div>
-            <div><Label>Institution</Label><Input value={profile.institution_name ?? ""} onChange={(e) => setProfile((p) => ({ ...p, institution_name: e.target.value }))} /></div>
+            <div><Label>{tr("Full name", "Nom complet")}</Label><Input value={profile.full_name ?? ""} onChange={(e) => setProfile((p) => ({ ...p, full_name: e.target.value }))} /></div>
+            <div><Label>{tr("Institution", "Etablissement")}</Label><Input value={profile.institution_name ?? ""} onChange={(e) => setProfile((p) => ({ ...p, institution_name: e.target.value }))} /></div>
             <div className="grid grid-cols-2 gap-3">
-              <div><Label>Field of study</Label><Input value={profile.field_of_study ?? ""} onChange={(e) => setProfile((p) => ({ ...p, field_of_study: e.target.value }))} /></div>
-              <div><Label>Level</Label><Input value={profile.study_level ?? ""} onChange={(e) => setProfile((p) => ({ ...p, study_level: e.target.value }))} /></div>
+              <div><Label>{tr("Field of study", "Domaine d'etude")}</Label><Input value={profile.field_of_study ?? ""} onChange={(e) => setProfile((p) => ({ ...p, field_of_study: e.target.value }))} /></div>
+              <div><Label>{tr("Level", "Niveau")}</Label><Input value={profile.study_level ?? ""} onChange={(e) => setProfile((p) => ({ ...p, study_level: e.target.value }))} /></div>
             </div>
             <Button variant="accent" onClick={saveProfile} disabled={saving} className="w-full">
-              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Save changes
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} {tr("Save changes", "Enregistrer les modifications")}
             </Button>
           </div>
         </Card>
 
         {/* Score history */}
         <Card className="p-6">
-          <h2 className="font-semibold mb-1">Career readiness over time</h2>
-          <p className="text-sm text-muted-foreground mb-4">Tracked across your pathway assessments.</p>
+          <h2 className="font-semibold mb-1">{tr("Career readiness over time", "Maturite carriere dans le temps")}</h2>
+          <p className="text-sm text-muted-foreground mb-4">{tr("Tracked across your pathway assessments.", "Suivie a travers vos evaluations de parcours.")}</p>
           <div className="h-56">
             {scoreHistory.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
@@ -162,7 +165,7 @@ export default function Profile() {
                 </LineChart>
               </ResponsiveContainer>
             ) : (
-              <p className="text-sm text-muted-foreground">Complete your onboarding to see your readiness journey.</p>
+              <p className="text-sm text-muted-foreground">{tr("Complete your onboarding to see your readiness journey.", "Terminez votre onboarding pour voir votre progression.")}</p>
             )}
           </div>
         </Card>
@@ -171,7 +174,7 @@ export default function Profile() {
       {/* Saved pathways */}
       {latestPathways.length > 0 && (
         <Card className="p-6">
-          <h2 className="font-semibold mb-4">Your saved pathways</h2>
+          <h2 className="font-semibold mb-4">{tr("Your saved pathways", "Vos parcours enregistres")}</h2>
           <div className="grid sm:grid-cols-3 gap-3">
             {latestPathways.map((p) => (
               <div key={p.title} className="p-4 rounded-lg border border-border">
@@ -190,8 +193,8 @@ export default function Profile() {
       <Card className="p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="font-semibold">My 90-day action plan</h2>
-            <p className="text-sm text-muted-foreground">{completed} of {actions.length} complete</p>
+            <h2 className="font-semibold">{tr("My 90-day action plan", "Mon plan d'action sur 90 jours")}</h2>
+            <p className="text-sm text-muted-foreground">{completed} {tr("of", "sur")} {actions.length} {tr("complete", "termines")}</p>
           </div>
           <div className="w-40 h-2 bg-secondary rounded-full overflow-hidden">
             <div className="h-full bg-gradient-accent transition-all" style={{ width: actions.length ? `${(completed / actions.length) * 100}%` : "0%" }} />
@@ -204,18 +207,18 @@ export default function Profile() {
               <span className={a.completed ? "text-sm text-muted-foreground line-through" : "text-sm"}>{a.action_text}</span>
             </li>
           ))}
-          {actions.length === 0 && <p className="text-sm text-muted-foreground">Your action plan will appear here after completing onboarding.</p>}
+          {actions.length === 0 && <p className="text-sm text-muted-foreground">{tr("Your action plan will appear here after completing onboarding.", "Votre plan d'action apparaitra ici apres l'onboarding.")}</p>}
         </ul>
       </Card>
 
       {/* Practice history */}
       {(caseSessions.length > 0 || interviewSessions.length > 0) && (
         <Card className="p-6">
-          <h2 className="font-semibold mb-4">Practice history</h2>
+          <h2 className="font-semibold mb-4">{tr("Practice history", "Historique d'entrainement")}</h2>
           <div className="grid md:grid-cols-2 gap-6">
             <div>
-              <p className="text-sm font-semibold mb-2 flex items-center gap-2"><Briefcase className="w-4 h-4 text-accent" /> Business cases</p>
-              {caseSessions.length === 0 ? <p className="text-xs text-muted-foreground">None yet.</p> : (
+              <p className="text-sm font-semibold mb-2 flex items-center gap-2"><Briefcase className="w-4 h-4 text-accent" /> {tr("Business cases", "Cas business")}</p>
+              {caseSessions.length === 0 ? <p className="text-xs text-muted-foreground">{tr("None yet.", "Aucun pour le moment.")}</p> : (
                 <ul className="space-y-2">
                   {caseSessions.map((c) => (
                     <li key={c.id} className="text-sm p-2 rounded border border-border flex justify-between">
@@ -227,8 +230,8 @@ export default function Profile() {
               )}
             </div>
             <div>
-              <p className="text-sm font-semibold mb-2 flex items-center gap-2"><Mic className="w-4 h-4 text-accent" /> Mock interviews</p>
-              {interviewSessions.length === 0 ? <p className="text-xs text-muted-foreground">None yet.</p> : (
+              <p className="text-sm font-semibold mb-2 flex items-center gap-2"><Mic className="w-4 h-4 text-accent" /> {tr("Mock interviews", "Entretiens blancs")}</p>
+              {interviewSessions.length === 0 ? <p className="text-xs text-muted-foreground">{tr("None yet.", "Aucun pour le moment.")}</p> : (
                 <ul className="space-y-2">
                   {interviewSessions.map((i) => (
                     <li key={i.id} className="text-sm p-2 rounded border border-border flex justify-between">
@@ -251,9 +254,9 @@ export default function Profile() {
               <ShieldCheck className="w-5 h-5 text-accent" />
             </div>
             <div className="flex-1">
-              <h3 className="font-semibold">Demo: try the admin dashboard</h3>
-              <p className="text-sm text-muted-foreground mb-3">Grant yourself the university admin role for this university to preview the institutional analytics dashboard.</p>
-              <Button variant="outline" size="sm" onClick={promoteToAdmin}>Grant admin role</Button>
+              <h3 className="font-semibold">{tr("Demo: try the admin dashboard", "Demo : tester le tableau de bord admin")}</h3>
+              <p className="text-sm text-muted-foreground mb-3">{tr("Grant yourself the university admin role for this university to preview the institutional analytics dashboard.", "Attribuez-vous le role admin universitaire pour previsualiser le tableau analytique institutionnel.")}</p>
+              <Button variant="outline" size="sm" onClick={promoteToAdmin}>{tr("Grant admin role", "Accorder le role admin")}</Button>
             </div>
           </div>
         </Card>
