@@ -6,7 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const OPENAI_MODEL = 'gpt-4o-mini';
+const GEMINI_MODEL = 'gemini-1.5-flash'; // v2
 const MAX_TOKENS = 2000;
 
 type Action =
