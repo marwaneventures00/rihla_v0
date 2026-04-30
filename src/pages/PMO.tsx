@@ -1,0 +1,18 @@
+import { useLanguage } from "@/lib/i18n";
+
+export default function PMO() {
+  const { language } = useLanguage();
+  const tr = (en: string, fr: string) => (language === "fr" ? fr : en);
+
+  return (
+    <div className="space-y-4 max-w-4xl">
+      <h1 className="text-3xl font-bold">{tr("Career PMO", "PMO Carriere")}</h1>
+      <p className="text-muted-foreground">
+        {tr(
+          "Track your goals, deadlines, and weekly career priorities.",
+          "Suivez vos objectifs, vos echeances et vos priorites de carriere hebdomadaires.",
+        )}
+      </p>
+    </div>
+  );
+}

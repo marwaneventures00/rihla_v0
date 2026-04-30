@@ -13,6 +13,8 @@ import Market from "./pages/Market.tsx";
 import Profile from "./pages/Profile.tsx";
 import Develop from "./pages/Develop.tsx";
 import AdminDashboard from "./pages/AdminDashboard.tsx";
+import PMO from "./pages/PMO.tsx";
+import Pulse from "./pages/Pulse.tsx";
 import AppLayout from "./components/AppLayout.tsx";
 import MeetAndGreet from "./pages/MeetAndGreet.tsx";
 import { LanguageProvider } from "./lib/i18n.tsx";
@@ -36,6 +38,8 @@ const App = () => (
             <Route element={<AppLayout requireRole="student" />}>
               <Route path="/pathways" element={<Pathways />} />
               <Route path="/market" element={<Market />} />
+              <Route path="/pmo" element={<PMO />} />
+              <Route path="/pulse" element={<Pulse />} />
               <Route path="/develop" element={<Develop />} />
               <Route path="/meet-and-greet" element={<MeetAndGreet />} />
               <Route path="/profile" element={<Profile />} />
