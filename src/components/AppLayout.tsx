@@ -36,6 +36,7 @@ import {
   GraduationCap,
   Users,
   BarChart3,
+  TrendingUp,
   Settings,
   ChevronDown,
   ShieldCheck,
@@ -58,6 +59,7 @@ export default function AppLayout({ requireRole }: { requireRole?: Role }) {
   const location = useLocation();
   const [loading, setLoading] = useState(true);
   const [availableRoles, setAvailableRoles] = useState<Role[]>([]);
+  const [adminUniversityId, setAdminUniversityId] = useState<string | null>(null);
   const [activeView, setActiveView] = useState<Role | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -79,7 +81,7 @@ export default function AppLayout({ requireRole }: { requireRole?: Role }) {
       const uid = s.session.user.id;
 
       const [{ data: roles }, { data: prof }] = await Promise.all([
-        supabase.from("user_roles").select("role").eq("user_id", uid),
+        supabase.from("user_roles").select("role, university_id").eq("user_id", uid),
         supabase.from("profiles").select("full_name, institution_name").eq("user_id", uid).maybeSingle(),
       ]);
       if (!mounted) return;
@@ -87,6 +89,7 @@ export default function AppLayout({ requireRole }: { requireRole?: Role }) {
       const uniqueRoles = Array.from(new Set((roles ?? []).map((r) => r.role as Role)));
       const isAdmin = uniqueRoles.includes("admin");
       const isStudent = uniqueRoles.includes("student");
+      const uniForAdmin = (roles ?? []).find((r) => r.role === "admin" && r.university_id)?.university_id ?? null;
       // Ensure at least one role
       if (!isAdmin && !isStudent) uniqueRoles.push("student");
 
@@ -102,6 +105,7 @@ export default function AppLayout({ requireRole }: { requireRole?: Role }) {
       }
 
       setAvailableRoles(uniqueRoles);
+      setAdminUniversityId(uniForAdmin);
       setActiveView(resolved);
       setProfile(prof);
       setLoading(false);
@@ -152,6 +156,16 @@ export default function AppLayout({ requireRole }: { requireRole?: Role }) {
     { title: t("nav.dashboard", "Dashboard"), url: "/admin", icon: LayoutDashboard },
     { title: t("nav.students", "Students"), url: "/admin/students", icon: Users },
     { title: t("nav.analytics", "Analytics"), url: "/admin/analytics", icon: BarChart3 },
+    ...(adminUniversityId
+      ? [
+          {
+            title: "Observatoire",
+            url: "/admin/observatoire",
+            icon: TrendingUp,
+            badge: "New",
+          },
+        ]
+      : []),
     { title: t("nav.settings", "Settings"), url: "/admin/settings", icon: Settings },
   ];
   const items = activeView === "admin" ? ADMIN_ITEMS : STUDENT_ITEMS;
@@ -238,7 +252,12 @@ export default function AppLayout({ requireRole }: { requireRole?: Role }) {
   );
 }
 
-type NavItem = { title: string; url: string; icon: ComponentType<{ className?: string }> };
+type NavItem = {
+  title: string;
+  url: string;
+  icon: ComponentType<{ className?: string }>;
+  badge?: string;
+};
 
 function AppSidebar({ items }: { items: NavItem[] }) {
   const { state } = useSidebar();
@@ -275,7 +294,19 @@ function AppSidebar({ items }: { items: NavItem[] }) {
                         activeClassName="!bg-accent-soft !text-accent border-l-accent font-medium"
                       >
                         <item.icon className="w-4 h-4 shrink-0" />
-                        {!collapsed && <span>{item.title}</span>}
+                        {!collapsed && (
+                          <span className="flex items-center gap-2 min-w-0">
+                            <span className="truncate">{item.title}</span>
+                            {item.badge && (
+                              <span
+                                className="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded-full border shrink-0"
+                                style={{ backgroundColor: "#B8860B33", color: "#F3D27A", borderColor: "#B8860B" }}
+                              >
+                                {item.badge}
+                              </span>
+                            )}
+                          </span>
+                        )}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

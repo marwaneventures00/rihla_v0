@@ -13,6 +13,7 @@ import Market from "./pages/Market.tsx";
 import Profile from "./pages/Profile.tsx";
 import Develop from "./pages/Develop.tsx";
 import AdminDashboard from "./pages/AdminDashboard.tsx";
+import AdminObservatoire from "./pages/AdminObservatoire.tsx";
 import PMO from "./pages/PMO.tsx";
 import Pulse from "./pages/Pulse.tsx";
 import AppLayout from "./components/AppLayout.tsx";
@@ -51,6 +52,7 @@ const App = () => (
               <Route path="/admin/students" element={<AdminDashboard />} />
               <Route path="/admin/analytics" element={<AdminDashboard />} />
               <Route path="/admin/settings" element={<AdminDashboard />} />
+              <Route path="/admin/observatoire" element={<AdminObservatoire />} />
             </Route>
 
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

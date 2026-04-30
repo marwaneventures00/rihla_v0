@@ -15,7 +15,8 @@ type Action =
   | 'generate_interview'
   | 'score_interview'
   | 'recommend_resources'
-  | 'generate_pulse';
+  | 'generate_pulse'
+  | 'analyze_graduates';
 
 const SYSTEM_PROMPTS: Record<Action, string> = {
   generate_case:
@@ -30,6 +31,8 @@ const SYSTEM_PROMPTS: Record<Action, string> = {
     'You are a career development advisor for Moroccan university students. Recommend specific learning resources based on the student profile. Always respond with valid JSON only.',
   generate_pulse:
     'You are a personal career advisor for Moroccan university students. Generate a personalized weekly career briefing that is motivating, specific, and actionable. Always respond with valid JSON only.',
+  analyze_graduates:
+    "You are a higher education analytics expert specializing in Moroccan universities and graduate outcomes. Provide strategic insights for university leadership. Always respond with valid JSON only.",
 };
 
 function buildPrompt(action: Action, p: any): string {
@@ -161,6 +164,21 @@ Return ONLY this JSON:
   "closing_motivation": string,
   "weekly_challenge": string
 }`;
+    case 'analyze_graduates':
+      return `Analyze this graduate outcomes dataset for a Moroccan university leadership team.
+
+Return ONLY this JSON:
+{
+  "headline_finding": string,
+  "employment_trend": string,
+  "top_performing_field": string,
+  "attention_needed": string,
+  "recommendation_for_university": string,
+  "comparison_to_morocco_average": string
+}
+
+Context (aggregate stats + filters):
+${JSON.stringify(p)}`;
   }
 }
 
