@@ -266,10 +266,10 @@ export default function AdminDashboard() {
                 className="rounded-lg p-4 border border-border transition-transform hover:-translate-y-0.5"
                 style={{ backgroundColor: bg }}
               >
-                <p className={cn("font-semibold text-sm leading-tight", dark ? "text-white" : "text-foreground")}>
+                <p className={cn("font-semibold text-sm leading-tight", dark ? "text-[color:var(--color-text-primary)]" : "text-foreground")}>
                   {g.skill}
                 </p>
-                <p className={cn("text-xs mt-2", dark ? "text-white/85" : "text-muted-foreground")}>
+                <p className={cn("text-xs mt-2", dark ? "text-[color:var(--color-text-secondary)]" : "text-muted-foreground")}>
                   {g.count} {tr("students", "etudiants")}
                 </p>
               </div>
@@ -306,7 +306,10 @@ export default function AdminDashboard() {
                 ] as [SortKey, string][]).map(([k, label]) => (
                   <th
                     key={k}
-                    className="py-3 px-2 font-medium text-muted-foreground cursor-pointer select-none hover:text-foreground"
+                    className={cn(
+                      "py-3 px-2 font-medium text-muted-foreground cursor-pointer select-none hover:text-foreground",
+                      (k === "field" || k === "level" || k === "readiness") && "hidden md:table-cell",
+                    )}
                     onClick={() => toggleSort(k)}
                   >
                     <span className="inline-flex items-center gap-1">
@@ -318,28 +321,43 @@ export default function AdminDashboard() {
                     </span>
                   </th>
                 ))}
+                <th className="py-3 px-2 font-medium text-muted-foreground md:hidden">
+                  {tr("Details", "Details")}
+                </th>
               </tr>
             </thead>
             <tbody>
               {filteredSorted.map((s) => (
                 <tr key={s.name} className="border-b border-border last:border-0 hover:bg-secondary/40">
                   <td className="py-3 px-2 font-medium">{s.name}</td>
-                  <td className="py-3 px-2 text-muted-foreground">{s.field}</td>
-                  <td className="py-3 px-2 text-muted-foreground">{s.level}</td>
+                  <td className="py-3 px-2 text-muted-foreground hidden md:table-cell">{s.field}</td>
+                  <td className="py-3 px-2 text-muted-foreground hidden md:table-cell">{s.level}</td>
                   <td className="py-3 px-2">
                     <StatusBadge status={s.onboarding} />
                   </td>
-                  <td className="py-3 px-2 font-semibold">
+                  <td className="py-3 px-2 font-semibold hidden md:table-cell">
                     {s.readiness > 0 ? `${s.readiness}/100` : "—"}
                   </td>
                   <td className="py-3 px-2 text-muted-foreground">
                     {new Date(s.lastActive).toLocaleDateString()}
                   </td>
+                  <td className="py-3 px-2 md:hidden">
+                    <details>
+                      <summary className="cursor-pointer text-xs text-foreground underline underline-offset-2">
+                        {tr("View details", "Voir details")}
+                      </summary>
+                      <div className="mt-2 text-xs text-muted-foreground space-y-1">
+                        <p>{tr("Field", "Domaine")} : {s.field}</p>
+                        <p>{tr("Level", "Niveau")} : {s.level}</p>
+                        <p>{tr("Readiness", "Maturite")} : {s.readiness > 0 ? `${s.readiness}/100` : "—"}</p>
+                      </div>
+                    </details>
+                  </td>
                 </tr>
               ))}
               {filteredSorted.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-sm text-muted-foreground">
+                  <td colSpan={7} className="py-8 text-center text-sm text-muted-foreground">
                     {tr("No students match your search.", "Aucun etudiant ne correspond a votre recherche.")}
                   </td>
                 </tr>

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import {
   Select,
   SelectContent,
@@ -21,13 +22,13 @@ type InterviewRound = Tables<"interview_rounds">;
 
 type StageKey = "wishlist" | "applied" | "round_1" | "round_2" | "final" | "offer";
 
-const PMO_BG = "#050508";
-const PMO_CARD = "#0F0F1A";
-const PMO_BORDER = "#1E1E35";
-const PMO_CTA = "#C8102E";
+const PMO_BG = "var(--color-background-tertiary)";
+const PMO_CARD = "var(--color-background-secondary)";
+const PMO_BORDER = "var(--color-border-tertiary)";
+const PMO_CTA = "hsl(var(--accent))";
 const PMO_STAGE = "#6366F1";
-const PMO_TEXT = "#FFFFFF";
-const PMO_MUTED = "#A0A0B8";
+const PMO_TEXT = "var(--color-text-primary)";
+const PMO_MUTED = "var(--color-text-secondary)";
 
 const STAGES: { key: StageKey; label: string; pill: string; left: string }[] = [
   { key: "wishlist", label: "Wishlist", pill: "#6B7280", left: "#6B7280" },
@@ -128,6 +129,7 @@ export default function PMO() {
   const [showRejected, setShowRejected] = useState(false);
   const [savingApplication, setSavingApplication] = useState(false);
   const [savingRound, setSavingRound] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   async function loadData(uid: string) {
     setLoading(true);
@@ -152,6 +154,15 @@ export default function PMO() {
       if (uid) await loadData(uid);
       else setLoading(false);
     })();
+  }, []);
+
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 768px)");
+    const sync = (matches: boolean) => setIsMobile(matches);
+    sync(query.matches);
+    const handler = (e: MediaQueryListEvent) => sync(e.matches);
+    query.addEventListener("change", handler);
+    return () => query.removeEventListener("change", handler);
   }, []);
 
   const appsByStage = useMemo(() => {
@@ -376,11 +387,11 @@ export default function PMO() {
   }
 
   return (
-    <div className="min-h-full rounded-xl p-6 md:p-8" style={{ backgroundColor: PMO_BG, color: PMO_TEXT, fontFamily: "Inter, sans-serif" }}>
+    <div className="min-h-full rounded-xl p-4 md:p-8" style={{ backgroundColor: PMO_BG, color: PMO_TEXT, fontFamily: "Inter, sans-serif" }}>
       <div className="flex items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-white">Career PMO</h1>
+            <h1 className="text-xl md:text-2xl font-bold text-foreground">Career PMO</h1>
             <span className="text-[10px] uppercase tracking-wide px-2 py-1 rounded-full border" style={{ backgroundColor: "#B8860B33", color: "#F3D27A", borderColor: "#B8860B" }}>
               Premium
             </span>
@@ -389,8 +400,9 @@ export default function PMO() {
         </div>
         <Button
           onClick={openCreateApplication}
-          className="rounded-xl text-white"
-          style={{ backgroundColor: PMO_CTA }}
+          variant="outline"
+          className="rounded-xl w-full md:w-auto"
+          style={{ backgroundColor: "transparent", borderColor: "var(--color-border-primary)", color: "var(--color-text-primary)" }}
         >
           <Plus className="w-4 h-4 mr-1" /> Add application
         </Button>
@@ -398,7 +410,7 @@ export default function PMO() {
 
       <div className="mt-5 border-t" style={{ borderColor: PMO_BORDER }} />
 
-      <section className="mt-5 grid gap-3 md:grid-cols-4">
+      <section className="mt-5 grid grid-cols-2 md:grid-cols-4 gap-3 stack-on-xs">
         {[
           { label: "APPLICATIONS", value: stats.total, color: PMO_TEXT },
           { label: "IN PROGRESS", value: stats.inProgress, color: PMO_TEXT },
@@ -421,15 +433,20 @@ export default function PMO() {
           ) : applications.length === 0 ? (
             <div className="rounded-xl border p-12 text-center" style={{ borderColor: PMO_BORDER, backgroundColor: PMO_CARD }}>
               <Briefcase className="w-12 h-12 mx-auto" style={{ color: PMO_BORDER }} />
-              <h3 className="mt-4 text-xl font-semibold text-white">Start tracking your applications</h3>
+              <h3 className="mt-4 text-xl font-semibold text-foreground">Start tracking your applications</h3>
               <p className="mt-2 text-sm" style={{ color: PMO_MUTED }}>Add your first application to build your pipeline.</p>
-              <Button className="mt-5 rounded-xl text-white" style={{ backgroundColor: PMO_CTA }} onClick={openCreateApplication}>
+              <Button
+                variant="outline"
+                className="mt-5 rounded-xl w-full md:w-auto"
+                style={{ backgroundColor: "transparent", borderColor: "var(--color-border-primary)", color: "var(--color-text-primary)" }}
+                onClick={openCreateApplication}
+              >
                 <Plus className="w-4 h-4 mr-1" /> Add application
               </Button>
             </div>
           ) : (
             <>
-              <div className="overflow-x-auto pb-2">
+              <div className="hidden md:block overflow-x-auto pb-2">
                 <div className="flex gap-3 min-w-max">
                   {STAGES.map((stage) => (
                     <div key={stage.key} className="w-[260px] shrink-0">
@@ -445,6 +462,27 @@ export default function PMO() {
                     </div>
                   ))}
                 </div>
+              </div>
+              <div className="md:hidden">
+                <Accordion type="multiple" className="space-y-2">
+                  {STAGES.map((stage) => (
+                    <AccordionItem key={stage.key} value={stage.key} className="rounded-lg border border-border bg-card px-3">
+                      <AccordionTrigger className="text-sm">
+                        <div className="flex w-full items-center justify-between pr-2">
+                          <span className="text-xs uppercase tracking-wide text-muted-foreground">{stage.label}</span>
+                          <span className="text-[10px] px-2 py-1 rounded-full" style={{ backgroundColor: `${stage.pill}25`, color: stage.pill }}>
+                            {appsByStage[stage.key].length}
+                          </span>
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        <div className="space-y-3 pb-2">
+                          {appsByStage[stage.key].map((app) => cardFor(app))}
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
               </div>
 
               <button
@@ -470,7 +508,7 @@ export default function PMO() {
 
         <aside className="sticky top-24 self-start">
           <div className="rounded-xl border p-4" style={{ backgroundColor: PMO_CARD, borderColor: PMO_BORDER }}>
-            <h3 className="text-sm font-semibold text-white">Upcoming Deadlines</h3>
+            <h3 className="text-sm font-semibold text-foreground">Upcoming Deadlines</h3>
             <div className="mt-3 space-y-2">
               {deadlines.length === 0 ? (
                 <p className="text-sm" style={{ color: PMO_MUTED }}>No deadlines this week</p>
@@ -478,7 +516,7 @@ export default function PMO() {
                 const color = days < 2 ? "#EF4444" : days < 5 ? "#F97316" : PMO_MUTED;
                 return (
                   <div key={app.id} className="rounded-lg border p-2" style={{ borderColor: PMO_BORDER }}>
-                    <p className="text-xs font-medium text-white">{app.company_name}</p>
+                    <p className="text-xs font-medium text-foreground">{app.company_name}</p>
                     <p className="text-xs" style={{ color: PMO_MUTED }}>{app.next_action ?? "Next action"}</p>
                     <p className="text-[11px] mt-1" style={{ color }}>{days === 0 ? "Today" : `In ${days} day${days > 1 ? "s" : ""}`}</p>
                   </div>
@@ -491,31 +529,31 @@ export default function PMO() {
 
       <Sheet open={isAppSheetOpen} onOpenChange={setIsAppSheetOpen}>
         <SheetContent
-          side="right"
-          className="w-[480px] sm:max-w-[480px] p-0 border-l"
+          side={isMobile ? "bottom" : "right"}
+          className={isMobile ? "h-[90vh] w-full p-0 border-t" : "w-[480px] sm:max-w-[480px] p-0 border-l"}
           style={{ backgroundColor: PMO_BG, borderColor: PMO_BORDER, color: PMO_TEXT }}
         >
           <div className="h-full overflow-y-auto p-6">
             <SheetHeader>
-              <SheetTitle className="text-white">{selectedApp?.company_name ?? "Application"}</SheetTitle>
+              <SheetTitle className="text-foreground">{selectedApp?.company_name ?? "Application"}</SheetTitle>
             </SheetHeader>
             <div className="mt-4 space-y-4 text-sm">
               <div className="rounded-xl border p-4" style={{ backgroundColor: PMO_CARD, borderColor: PMO_BORDER }}>
                 <p className="text-[11px] uppercase tracking-wide" style={{ color: PMO_MUTED }}>Role</p>
-                <p className="text-white mt-1">{selectedApp?.role_title ?? "—"}</p>
+                <p className="text-foreground mt-1">{selectedApp?.role_title ?? "—"}</p>
                 <p className="mt-2 text-xs" style={{ color: PMO_MUTED }}>{selectedApp?.location ?? "No location"} · {selectedApp?.salary_range ?? "No salary range"}</p>
                 <p className="mt-2 text-xs" style={{ color: PMO_MUTED }}>Applied: {formatDate(selectedApp?.application_date ?? null)}</p>
                 {selectedApp?.notes && <p className="mt-3 text-xs" style={{ color: PMO_MUTED }}>{selectedApp.notes}</p>}
               </div>
               <div>
-                <h4 className="text-sm font-semibold text-white">Interview timeline</h4>
+                <h4 className="text-sm font-semibold text-foreground">Interview timeline</h4>
                 <div className="mt-3 space-y-3">
                   {selectedAppRounds.length === 0 ? (
                     <p className="text-xs" style={{ color: PMO_MUTED }}>No interview rounds logged yet.</p>
                   ) : selectedAppRounds.map((round) => (
                     <div key={round.id} className="rounded-xl border p-3" style={{ backgroundColor: PMO_CARD, borderColor: PMO_BORDER }}>
                       <div className="flex justify-between">
-                        <p className="text-sm text-white">{round.round_type ?? "Round"}</p>
+                        <p className="text-sm text-foreground">{round.round_type ?? "Round"}</p>
                         <p className="text-xs" style={{ color: PMO_MUTED }}>{formatDate(round.interview_date)}</p>
                       </div>
                       <div className="mt-2 flex gap-1">
@@ -529,7 +567,12 @@ export default function PMO() {
                 </div>
               </div>
             </div>
-            <Button className="mt-6 w-full text-white rounded-xl" style={{ backgroundColor: PMO_CTA }} onClick={() => setIsRoundModalOpen(true)}>
+            <Button
+              variant="outline"
+              className="mt-6 w-full rounded-xl"
+              style={{ backgroundColor: "transparent", borderColor: "var(--color-border-primary)", color: "var(--color-text-primary)" }}
+              onClick={() => setIsRoundModalOpen(true)}
+            >
               <Plus className="w-4 h-4 mr-1" /> Log interview round
             </Button>
           </div>
@@ -538,13 +581,13 @@ export default function PMO() {
 
       <Sheet open={isAddSheetOpen} onOpenChange={setIsAddSheetOpen}>
         <SheetContent
-          side="right"
-          className="w-[480px] sm:max-w-[480px] p-0 border-l"
+          side={isMobile ? "bottom" : "right"}
+          className={isMobile ? "h-[90vh] w-full p-0 border-t" : "w-[480px] sm:max-w-[480px] p-0 border-l"}
           style={{ backgroundColor: PMO_BG, borderColor: PMO_BORDER, color: PMO_TEXT }}
         >
           <div className="h-full overflow-y-auto p-6">
             <SheetHeader>
-              <SheetTitle className="text-white">{editingAppId ? "Edit application" : "Add application"}</SheetTitle>
+              <SheetTitle className="text-foreground">{editingAppId ? "Edit application" : "Add application"}</SheetTitle>
             </SheetHeader>
             <div className="mt-5 space-y-5">
               <section className="space-y-3">
@@ -600,7 +643,7 @@ export default function PMO() {
                 <Textarea placeholder="Notes" value={appForm.notes} onChange={(e) => setAppForm((f) => ({ ...f, notes: e.target.value }))} className="border min-h-[110px]" style={{ backgroundColor: PMO_CARD, borderColor: PMO_BORDER, color: PMO_TEXT }} />
               </section>
             </div>
-            <Button onClick={() => void saveApplication()} disabled={savingApplication} className="mt-6 w-full text-white rounded-xl" style={{ backgroundColor: PMO_CTA }}>
+            <Button onClick={() => void saveApplication()} disabled={savingApplication} className="mt-6 w-full text-accent-foreground rounded-xl" style={{ backgroundColor: PMO_CTA }}>
               {savingApplication ? "Saving..." : editingAppId ? "Save changes" : "Create application"}
             </Button>
           </div>
@@ -610,7 +653,7 @@ export default function PMO() {
       <Dialog open={isRoundModalOpen} onOpenChange={setIsRoundModalOpen}>
         <DialogContent className="max-w-xl border" style={{ backgroundColor: PMO_BG, borderColor: PMO_BORDER, color: PMO_TEXT }}>
           <DialogHeader>
-            <DialogTitle className="text-white">Log interview round</DialogTitle>
+            <DialogTitle className="text-foreground">Log interview round</DialogTitle>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -654,7 +697,7 @@ export default function PMO() {
             <Textarea placeholder="Feedback received" value={roundForm.feedback_received} onChange={(e) => setRoundForm((f) => ({ ...f, feedback_received: e.target.value }))} className="border col-span-2 min-h-[80px]" style={{ backgroundColor: PMO_CARD, borderColor: PMO_BORDER, color: PMO_TEXT }} />
             <Textarea placeholder="Next steps" value={roundForm.next_steps} onChange={(e) => setRoundForm((f) => ({ ...f, next_steps: e.target.value }))} className="border col-span-2 min-h-[80px]" style={{ backgroundColor: PMO_CARD, borderColor: PMO_BORDER, color: PMO_TEXT }} />
           </div>
-          <Button onClick={() => void saveInterviewRound()} disabled={savingRound} className="w-full text-white rounded-xl" style={{ backgroundColor: PMO_CTA }}>
+          <Button onClick={() => void saveInterviewRound()} disabled={savingRound} className="w-full text-accent-foreground rounded-xl" style={{ backgroundColor: PMO_CTA }}>
             {savingRound ? "Saving..." : "Save interview round"}
           </Button>
         </DialogContent>

@@ -195,7 +195,7 @@ function BusinessCasesTab() {
           <div className="flex flex-col md:flex-row items-center gap-6">
             <ScoreCircle value={score.overall_score} />
             <div className="flex-1 text-center md:text-left">
-              <Badge className={`${gradeColor} text-white mb-2`}>{score.grade}</Badge>
+              <Badge className={`${gradeColor} text-primary-foreground mb-2`}>{score.grade}</Badge>
               <h2 className="text-2xl font-bold">{caseData?.title}</h2>
               <p className="text-sm text-muted-foreground">{tr("Time", "Temps")} : {fmtTime(seconds)}</p>
             </div>
@@ -460,7 +460,7 @@ function InterviewPrepTab({ profile, defaultRole }: { profile: Profile | null; d
           <div className="flex flex-col md:flex-row items-center gap-6">
             <ScoreCircle value={feedback.overall_score} />
             <div className="flex-1 text-center md:text-left">
-              <Badge className={`${decisionColor} text-white mb-2`}>{feedback.hiring_decision}</Badge>
+              <Badge className={`${decisionColor} text-primary-foreground mb-2`}>{feedback.hiring_decision}</Badge>
               <h2 className="text-2xl font-bold">{tr("Mock interview", "Entretien blanc")} · {role}</h2>
             </div>
           </div>
@@ -527,7 +527,12 @@ function InterviewPrepTab({ profile, defaultRole }: { profile: Profile | null; d
         )}
         <Card className="p-6">
           <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-full bg-[#1A1A2E] text-white flex items-center justify-center font-bold shrink-0">IV</div>
+            <div
+              className="w-12 h-12 rounded-full flex items-center justify-center font-bold shrink-0"
+              style={{ backgroundColor: "var(--color-background-tertiary)", color: "var(--color-text-primary)" }}
+            >
+              IV
+            </div>
             <div className="flex-1">
               <Badge variant="outline" className="mb-2 capitalize">{q.type}</Badge>
               <p className="text-lg font-medium">{q.question}</p>
@@ -705,7 +710,9 @@ function ResourcesTab({ pathway, profile }: { pathway: PathwayResult | null; pro
       <div className="flex flex-wrap gap-2">
         {RESOURCE_CATEGORIES.map((c) => (
           <button key={c} onClick={() => setFilter(c)}
-            className={`px-3 py-1.5 rounded-full text-sm border transition ${filter === c ? "bg-[#1A1A2E] text-white border-[#1A1A2E]" : "border-border"}`}>
+            className={`px-3 py-1.5 rounded-full text-sm border transition ${filter === c ? "border-border" : "border-border"}`}
+            style={filter === c ? { backgroundColor: "var(--color-background-tertiary)", color: "var(--color-text-primary)" } : undefined}
+          >
             {c}
           </button>
         ))}
@@ -719,7 +726,10 @@ function ResourcesTab({ pathway, profile }: { pathway: PathwayResult | null; pro
           <Card key={r.id} className="p-5 space-y-3">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-[#1A1A2E] text-white flex items-center justify-center text-xs font-bold shrink-0">
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+                  style={{ backgroundColor: "var(--color-background-tertiary)", color: "var(--color-text-primary)" }}
+                >
                   {r.provider.split(" ").map((s) => s[0]).join("").slice(0, 2)}
                 </div>
                 <div>
