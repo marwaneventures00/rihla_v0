@@ -144,6 +144,7 @@ export default function AppLayout({ requireRole }: { requireRole?: Role }) {
     { title: t("nav.pathways", "Pathways"), url: "/pathways", icon: LayoutDashboard },
     { title: t("nav.market", "Job Market"), url: "/market", icon: Briefcase },
     { title: t("nav.develop", "Develop"), url: "/develop", icon: GraduationCap },
+    { title: "Career PMO", url: "/pmo", icon: Briefcase },
     { title: t("nav.meet", "Meet & Greet"), url: "/meet-and-greet", icon: Handshake },
     { title: t("nav.profile", "My Profile"), url: "/profile", icon: User },
   ];
