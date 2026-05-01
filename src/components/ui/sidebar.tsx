@@ -206,7 +206,7 @@ const Sidebar = React.forwardRef<
       >
         <div
           data-sidebar="sidebar"
-          className="flex h-full w-full flex-col bg-sidebar group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:border-sidebar-border group-data-[variant=floating]:shadow"
+          className="glass glass-light dark:glass-dark flex h-full w-full flex-col bg-sidebar/80 group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:border-sidebar-border group-data-[variant=floating]:shadow"
         >
           {children}
         </div>
@@ -412,7 +412,7 @@ const SidebarMenuItem = React.forwardRef<HTMLLIElement, React.ComponentProps<"li
 SidebarMenuItem.displayName = "SidebarMenuItem";
 
 const sidebarMenuButtonVariants = cva(
-  "peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md border-l-[3px] border-transparent p-2 text-left text-sm font-normal text-[#A0A0B8] outline-none ring-sidebar-ring transition-[width,height,padding,color,border-color,background-color] hover:bg-transparent hover:text-white focus-visible:ring-2 active:bg-transparent active:text-white disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:border-l-primary data-[active=true]:bg-[rgba(200,16,46,0.08)] data-[active=true]:font-semibold data-[active=true]:text-white data-[state=open]:hover:bg-transparent data-[state=open]:hover:text-white group-data-[collapsible=icon]:!size-8 group-data-[collapsible=icon]:!p-2 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0",
+  "peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md border-l-[3px] border-transparent p-2 text-left text-sm font-normal text-sidebar-foreground outline-none ring-sidebar-ring transition-[width,height,padding,color,border-color,background-color] hover:bg-transparent hover:text-foreground focus-visible:ring-2 active:bg-transparent active:text-foreground disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:border-l-primary data-[active=true]:bg-[hsl(var(--accent-soft))] data-[active=true]:font-semibold data-[active=true]:text-foreground data-[state=open]:hover:bg-transparent data-[state=open]:hover:text-foreground group-data-[collapsible=icon]:!size-8 group-data-[collapsible=icon]:!p-2 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0",
   {
     variants: {
       variant: {

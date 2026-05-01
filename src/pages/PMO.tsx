@@ -25,8 +25,8 @@ type StageKey = "wishlist" | "applied" | "round_1" | "round_2" | "final" | "offe
 const PMO_BG = "var(--color-background-tertiary)";
 const PMO_CARD = "var(--color-background-secondary)";
 const PMO_BORDER = "var(--color-border-tertiary)";
-const PMO_CTA = "hsl(var(--accent))";
-const PMO_STAGE = "#6366F1";
+const PMO_CTA = "hsl(var(--primary))";
+const PMO_STAGE = "hsl(var(--primary))";
 const PMO_TEXT = "var(--color-text-primary)";
 const PMO_MUTED = "var(--color-text-secondary)";
 
@@ -450,9 +450,9 @@ export default function PMO() {
                 <div className="flex gap-3 min-w-max">
                   {STAGES.map((stage) => (
                     <div key={stage.key} className="w-[260px] shrink-0">
-                      <div className="mb-2 flex items-center justify-between">
+                      <div className="mb-2 glass rounded-full px-3 py-2 flex items-center justify-between border border-border">
                         <p className="text-[12px] uppercase tracking-wide" style={{ color: PMO_MUTED }}>{stage.label}</p>
-                        <span className="text-[10px] px-2 py-1 rounded-full" style={{ backgroundColor: `${stage.pill}25`, color: stage.pill }}>
+                        <span className="text-[10px] px-2 py-1 rounded-full border border-border bg-background/40" style={{ color: stage.pill }}>
                           {appsByStage[stage.key].length}
                         </span>
                       </div>
@@ -470,7 +470,7 @@ export default function PMO() {
                       <AccordionTrigger className="text-sm">
                         <div className="flex w-full items-center justify-between pr-2">
                           <span className="text-xs uppercase tracking-wide text-muted-foreground">{stage.label}</span>
-                          <span className="text-[10px] px-2 py-1 rounded-full" style={{ backgroundColor: `${stage.pill}25`, color: stage.pill }}>
+                          <span className="glass text-[10px] px-2 py-1 rounded-full border border-border bg-background/40" style={{ color: stage.pill }}>
                             {appsByStage[stage.key].length}
                           </span>
                         </div>
