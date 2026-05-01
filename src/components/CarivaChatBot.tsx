@@ -154,7 +154,7 @@ export default function CarivaChatBot() {
           onClick={openPanel}
           aria-label="Open Cariva AI chat"
           className="fixed bottom-6 right-6 z-[1000] w-14 h-14 rounded-full flex items-center justify-center transition-transform hover:scale-105"
-          style={{ backgroundColor: "#C8102E" }}
+          style={{ backgroundColor: "#000000" }}
         >
           <MessageCircle size={24} color="white" />
           {unread && <span className="absolute top-2 right-2 w-2 h-2 rounded-full" style={{ backgroundColor: "#8B5CF6" }} />}
@@ -171,7 +171,7 @@ export default function CarivaChatBot() {
             boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
           }}
         >
-          <div className="px-3 py-2 flex items-start justify-between gap-2" style={{ backgroundColor: "#C8102E" }}>
+          <div className="px-3 py-2 flex items-start justify-between gap-2" style={{ backgroundColor: "#000000" }}>
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 rounded-full bg-white/20 text-white text-xs font-semibold flex items-center justify-center">C</div>
@@ -180,7 +180,6 @@ export default function CarivaChatBot() {
                   <p className="text-[11px] text-white/75 leading-tight">Career Advisor</p>
                 </div>
               </div>
-              <span className="inline-block mt-1 text-[10px] px-2 py-0.5 rounded-full border border-white/20 text-white/85">Powered by Claude AI</span>
             </div>
             <div className="flex items-center gap-1">
               <button type="button" onClick={clearHistory} className="p-1.5 rounded hover:bg-white/10 text-white/80" aria-label="Clear chat history">
@@ -201,14 +200,14 @@ export default function CarivaChatBot() {
                 {messages.map((m) => (
                   <div key={m.id} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"} gap-2`}>
                     {m.role === "assistant" && (
-                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-[11px] font-semibold flex items-center justify-center mt-1">C</div>
+                      <div className="w-6 h-6 rounded-full bg-black text-white text-[11px] font-semibold flex items-center justify-center mt-1">C</div>
                     )}
                     <div className="max-w-[80%]">
                       <div
                         className="px-3 py-2 text-sm whitespace-pre-wrap"
                         style={
                           m.role === "user"
-                            ? { background: "#C8102E", color: "white", borderRadius: "16px 16px 4px 16px" }
+                            ? { background: "#000000", color: "white", borderRadius: "16px 16px 4px 16px" }
                             : { background: "var(--color-background-tertiary)", color: "var(--color-text-primary)", borderRadius: "16px 16px 16px 4px" }
                         }
                       >
@@ -221,7 +220,7 @@ export default function CarivaChatBot() {
 
                 {loading && (
                   <div className="flex justify-start gap-2">
-                    <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-[11px] font-semibold flex items-center justify-center mt-1">C</div>
+                    <div className="w-6 h-6 rounded-full bg-black text-white text-[11px] font-semibold flex items-center justify-center mt-1">C</div>
                     <div className="px-3 py-2 rounded-[16px] bg-muted flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground animate-bounce" />
                       <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground animate-bounce [animation-delay:120ms]" />
@@ -264,7 +263,7 @@ export default function CarivaChatBot() {
                     type="button"
                     onClick={() => void sendMessage()}
                     disabled={!input.trim() || loading}
-                    className="h-11 w-11 p-0 rounded-full bg-[#C8102E] hover:bg-[#A50D26]"
+                    className="h-11 w-11 p-0 rounded-full bg-black hover:bg-zinc-800"
                     aria-label="Send message"
                   >
                     <ArrowUp className="w-4 h-4" />
