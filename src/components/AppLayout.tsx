@@ -273,7 +273,7 @@ function AppSidebar({ items }: { items: NavItem[] }) {
           </div>
           {!collapsed && (
             <div className="min-w-0">
-              <p className="font-serif font-semibold leading-none">Cariva</p>
+              <p className="font-bold leading-none">Cariva</p>
             </div>
           )}
         </div>
