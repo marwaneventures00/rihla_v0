@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -16,9 +16,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: 240 30% 14%;
 
-    --primary: 353 85% 42%;             /* Cariva red #C8102E */
+    --primary: 353 84% 42%;             /* Cariva red #C8102E */
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 353 86% 35%;       /* #A50D26 */
 
     --secondary: 240 20% 96%;
     --secondary-foreground: 240 30% 14%;
@@ -26,10 +25,9 @@
     --muted: 240 20% 96%;
     --muted-foreground: 240 17% 35%;    /* #4A4A6A */
 
-    --accent: 353 85% 42%;
+    --accent: 353 84% 42%;
     --accent-foreground: 0 0% 100%;
-    --accent-soft: 353 85% 42% / 0.08;
-    --accent-border: 353 85% 42% / 0.25;
+    --accent-soft: 353 84% 42% / 0.08;
 
     --destructive: 353 84% 42%;
     --destructive-foreground: 0 0% 100%;
@@ -40,17 +38,17 @@
 
     --radius: 0.75rem;
 
-    --sidebar-background: 240 22% 10%;
+    --sidebar-background: 240 24% 12%;
     --sidebar-foreground: 240 9% 73%;
-    --sidebar-primary: 353 85% 42%;
+    --sidebar-primary: 353 84% 42%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 353 85% 42% / 0.08;
+    --sidebar-accent: 353 84% 42% / 0.08;
     --sidebar-accent-foreground: 0 0% 100%;
     --sidebar-border: 240 20% 22%;
-    --sidebar-ring: 353 85% 42%;
+    --sidebar-ring: 353 84% 42%;
 
-    --gradient-hero: linear-gradient(135deg, hsl(240 30% 14%) 0%, hsl(240 35% 22%) 60%, hsl(353 85% 42%) 130%);
-    --gradient-accent: linear-gradient(135deg, hsl(353 85% 42%) 0%, hsl(353 86% 35%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(240 30% 14%) 0%, hsl(240 35% 22%) 60%, hsl(353 84% 42%) 130%);
+    --gradient-accent: linear-gradient(135deg, hsl(353 84% 42%) 0%, hsl(353 80% 36%) 100%);
     --shadow-card: 0 1px 3px 0 hsl(240 30% 14% / 0.04), 0 1px 2px -1px hsl(240 30% 14% / 0.04);
     --shadow-elevated: 0 10px 30px -10px hsl(240 30% 14% / 0.15);
 
@@ -71,28 +69,26 @@
     --card-foreground: 240 27% 97%;
     --popover: 240 30% 12%;
     --popover-foreground: 240 27% 97%;
-    --primary: 353 85% 42%;
+    --primary: 353 84% 42%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 353 86% 35%;
     --secondary: 240 20% 18%;
     --secondary-foreground: 240 27% 97%;
     --muted: 240 20% 18%;
     --muted-foreground: 240 17% 65%;
-    --accent: 353 85% 42%;
+    --accent: 353 84% 42%;
     --accent-foreground: 0 0% 100%;
-    --accent-soft: 353 85% 42% / 0.08;
-    --accent-border: 353 85% 42% / 0.25;
+    --accent-soft: 353 84% 42% / 0.08;
     --border: 240 20% 20%;
     --input: 240 20% 20%;
-    --ring: 353 85% 42%;
+    --ring: 353 84% 42%;
     --sidebar-background: 240 27% 12%;
     --sidebar-foreground: 240 9% 73%;
-    --sidebar-primary: 353 85% 42%;
+    --sidebar-primary: 353 84% 42%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 353 85% 42% / 0.08;
+    --sidebar-accent: 353 84% 42% / 0.08;
     --sidebar-accent-foreground: 240 27% 97%;
     --sidebar-border: 240 20% 20%;
-    --sidebar-ring: 353 85% 42%;
+    --sidebar-ring: 353 84% 42%;
 
     --color-background-tertiary: hsl(var(--background));
     --color-background-secondary: hsl(var(--card));
@@ -118,28 +114,6 @@
   .bg-gradient-accent { background: var(--gradient-accent); }
   .shadow-card { box-shadow: var(--shadow-card); }
   .shadow-elevated { box-shadow: var(--shadow-elevated); }
-  .glass {
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-  }
-  .glass-light {
-    background: rgba(255, 255, 255, 0.75);
-    border: 1px solid rgba(0, 0, 0, 0.08);
-  }
-  .glass-dark {
-    background: rgba(15, 15, 26, 0.75);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-  }
-  .glass-red {
-    background: rgba(200, 16, 46, 0.85);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(200, 16, 46, 0.25);
-  }
-  @supports not (backdrop-filter: blur(20px)) {
-    .glass-dark { background: rgba(15, 15, 26, 0.95); }
-    .glass-light { background: rgba(255, 255, 255, 0.95); }
-  }
 
   @media (max-width: 400px) {
     .stack-on-xs {

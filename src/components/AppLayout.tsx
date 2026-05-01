@@ -179,10 +179,10 @@ export default function AppLayout({ requireRole }: { requireRole?: Role }) {
         <AppSidebar items={items} />
 
         <div className="flex-1 flex flex-col min-w-0">
-          <header className="glass glass-light dark:glass-dark h-16 border-b border-border bg-card/75 flex items-center px-4 gap-3 sticky top-0 z-50">
+          <header className="h-16 border-b border-border bg-card flex items-center px-4 gap-3 sticky top-0 z-10">
             <SidebarTrigger />
             <div className="flex-1 min-w-0">
-              <p className="text-xs text-muted-foreground truncate">{profile?.institution_name ?? "—"}</p>
+              <p className="text-xs text-[#A0A0B8] truncate">{profile?.institution_name ?? "—"}</p>
             </div>
 
             {hasBoth && (
@@ -213,7 +213,7 @@ export default function AppLayout({ requireRole }: { requireRole?: Role }) {
               onClick={toggleLanguage}
               aria-label="Toggle language"
             >
-              <Languages className="w-4 h-4 text-muted-foreground hover:text-foreground" />
+              <Languages className="w-4 h-4 text-[#A0A0B8] hover:text-white" />
             </Button>
 
             <Button
@@ -222,11 +222,11 @@ export default function AppLayout({ requireRole }: { requireRole?: Role }) {
               onClick={toggleTheme}
               aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
             >
-              {isDarkMode ? <Sun className="w-4 h-4 text-muted-foreground hover:text-foreground" /> : <Moon className="w-4 h-4 text-muted-foreground hover:text-foreground" />}
+              {isDarkMode ? <Sun className="w-4 h-4 text-[#A0A0B8] hover:text-white" /> : <Moon className="w-4 h-4 text-[#A0A0B8] hover:text-white" />}
             </Button>
 
             <button className="relative w-9 h-9 rounded-full hover:bg-secondary flex items-center justify-center transition-colors" aria-label="Notifications">
-              <Bell className="w-4 h-4 text-muted-foreground hover:text-foreground" />
+              <Bell className="w-4 h-4 text-[#A0A0B8] hover:text-white" />
               <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-primary" />
             </button>
             <div className="flex items-center gap-2 pl-2 border-l border-border">
@@ -270,12 +270,12 @@ function AppSidebar({ items }: { items: NavItem[] }) {
     <Sidebar collapsible="icon">
       <SidebarHeader className="px-4 py-5 border-b border-sidebar-border">
         <div className="flex items-center gap-2.5 overflow-hidden">
-          <div className="shrink-0 w-9 h-9 rounded-lg border border-sidebar-border bg-background/40 flex items-center justify-center text-foreground">
+          <div className="shrink-0 w-9 h-9 rounded-lg border border-sidebar-border bg-transparent flex items-center justify-center text-white">
             <CarivaLogo className="w-6 h-6" />
           </div>
           {!collapsed && (
             <div className="min-w-0">
-              <p className="font-semibold leading-none text-foreground">Cariva</p>
+              <p className="font-semibold leading-none text-white">Cariva</p>
             </div>
           )}
         </div>
@@ -293,7 +293,7 @@ function AppSidebar({ items }: { items: NavItem[] }) {
                         to={item.url}
                         end={item.url === "/admin"}
                         className="flex items-center gap-3 rounded-md transition-colors border-l-[3px] border-transparent"
-                        activeClassName="!bg-[hsl(var(--accent-soft))] !text-foreground border-l-primary font-semibold"
+                        activeClassName="!bg-[rgba(200,16,46,0.08)] !text-white border-l-primary font-semibold"
                       >
                         <item.icon className="w-4 h-4 shrink-0" />
                         {!collapsed && (

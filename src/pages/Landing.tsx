@@ -14,21 +14,21 @@ const STATS = [
 const FEATURES = [
   {
     icon: Sparkles,
-    gradient: "from-[#C8102E] to-[#A50D26]",
+    gradient: "from-[#6366F1] to-[#3B82F6]",
     title: "Personalized career pathways",
     body: "Answer 3 questions. Get AI-generated career paths built for the Moroccan market — with fit scores, salary ranges, and a 90-day action plan.",
     tag: "Powered by Claude AI",
   },
   {
     icon: TrendingUp,
-    gradient: "from-[#C8102E] to-[#A50D26]",
+    gradient: "from-[#3B82F6] to-[#22D3EE]",
     title: "Real Moroccan job market data",
     body: "Explore 12 sectors, 80+ roles, and 30 top employers. Understand what the market actually wants — before you graduate.",
     tag: "Updated monthly",
   },
   {
     icon: GraduationCap,
-    gradient: "from-[#C8102E] to-[#A50D26]",
+    gradient: "from-[#8B5CF6] to-[#C8102E]",
     title: "Close your skills gap",
     body: "Practice with AI mock interviews, solve Morocco-specific business cases, and get matched to the exact Coursera courses your pathway needs.",
     tag: "Business cases · Interviews · Courses",
@@ -121,21 +121,21 @@ export default function Landing() {
   const reduceMotion = useReducedMotion();
   const { t, toggleLanguage } = useLanguage();
   const heroWords = useMemo(() => ["Your", "career,", "personalized", "by", "AI."], []);
-  const isDarkMode = document.documentElement.classList.contains("dark");
+  const isDarkMode = true;
 
   return (
-    <div className="min-h-screen overflow-hidden transition-colors bg-background text-foreground">
+    <div className={`min-h-screen overflow-hidden transition-colors ${isDarkMode ? "bg-[#050508] text-white" : "bg-[#F6F7FB] text-[#141424]"}`}>
       <style>{`
         .mesh-bg-dark {
           background:
-            radial-gradient(1200px 600px at 10% 0%, rgba(200,16,46,0.12), transparent 60%),
-            radial-gradient(900px 500px at 90% 100%, rgba(200,16,46,0.1), transparent 60%),
+            radial-gradient(1200px 600px at 10% 0%, rgba(99,102,241,0.12), transparent 60%),
+            radial-gradient(900px 500px at 90% 100%, rgba(139,92,246,0.1), transparent 60%),
             linear-gradient(180deg, #050508 0%, #0D0D1A 100%);
           animation: meshShift 24s ease-in-out infinite alternate;
         }
         .mesh-bg-light {
           background:
-            radial-gradient(1200px 600px at 10% 0%, rgba(200,16,46,0.12), transparent 60%),
+            radial-gradient(1200px 600px at 10% 0%, rgba(99,102,241,0.12), transparent 60%),
             radial-gradient(900px 500px at 90% 100%, rgba(200,16,46,0.08), transparent 60%),
             linear-gradient(180deg, #F6F7FB 0%, #EEF0F8 100%);
           animation: meshShift 24s ease-in-out infinite alternate;
@@ -200,9 +200,9 @@ export default function Landing() {
 
       <section className={`relative min-h-screen flex items-center justify-center px-6 py-20 ${isDarkMode ? "mesh-bg-dark" : "mesh-bg-light"}`}>
         <div className={`absolute inset-0 ${isDarkMode ? "grid-overlay-dark" : "grid-overlay-light"}`} />
-        <div className="orb w-[600px] h-[600px] bg-primary/20 top-[-160px] left-[-120px]" />
-        <div className="orb orb2 w-[400px] h-[400px] bg-primary/20 bottom-[-120px] right-[-100px]" />
-        <div className="orb orb3 w-[300px] h-[300px] bg-primary/15 top-[30%] right-[20%]" />
+        <div className="orb w-[600px] h-[600px] bg-[#6366F1]/20 top-[-160px] left-[-120px]" />
+        <div className="orb orb2 w-[400px] h-[400px] bg-[#3B82F6]/20 bottom-[-120px] right-[-100px]" />
+        <div className="orb orb3 w-[300px] h-[300px] bg-[#8B5CF6]/15 top-[30%] right-[20%]" />
 
         <div className="relative z-10 max-w-5xl text-center">
           <div className="absolute -top-12 right-0">
@@ -261,7 +261,7 @@ export default function Landing() {
           >
             <Link
               to="/auth"
-              className="cta-gradient rounded-xl px-7 py-3.5 text-sm sm:text-base font-medium bg-gradient-to-r from-[#C8102E] to-[#A50D26] hover:brightness-110 hover:scale-[1.02] transition-all"
+              className="cta-gradient rounded-xl px-7 py-3.5 text-sm sm:text-base font-medium bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] hover:brightness-110 hover:scale-[1.02] transition-all"
             >
               {t("landing.cta.start", "Get started free →")}
             </Link>
@@ -287,7 +287,7 @@ export default function Landing() {
         <div className="max-w-6xl mx-auto grid grid-cols-2 lg:grid-cols-4 gap-8">
           {STATS.map((s) => (
             <div key={s.label} className="text-center lg:text-left">
-              <p className="text-3xl sm:text-4xl font-semibold bg-gradient-to-r from-[#C8102E] to-[#A50D26] bg-clip-text text-transparent">
+              <p className="text-3xl sm:text-4xl font-semibold bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent">
                 <CountUp target={s.value} suffix={s.suffix} />
               </p>
               <p className={`mt-2 text-sm ${isDarkMode ? "text-[#A0A0B8]" : "text-[#65658B]"}`}>{s.label}</p>
@@ -305,7 +305,7 @@ export default function Landing() {
               <motion.article
                 whileHover={reduceMotion ? {} : { scale: 1.02 }}
                 key={f.title}
-                className={`group rounded-2xl border p-6 hover:shadow-[0_0_36px_rgba(200,16,46,0.22)] transition-all ${
+                className={`group rounded-2xl border p-6 hover:shadow-[0_0_36px_rgba(99,102,241,0.22)] transition-all ${
                   isDarkMode ? "bg-[#0F0F1A] border-[#1E1E35]" : "bg-white border-[#E3E6F3]"
                 }`}
               >
@@ -325,10 +325,10 @@ export default function Landing() {
         <div className="max-w-6xl mx-auto">
           <h2 className="text-3xl sm:text-4xl font-semibold text-center">From lost to launched. In minutes.</h2>
           <div className="mt-12 grid md:grid-cols-4 gap-6 md:gap-4 relative">
-            <div className={`hidden md:block absolute left-0 right-0 top-5 h-px bg-gradient-to-r from-[#C8102E] to-[#A50D26] ${isDarkMode ? "opacity-100" : "opacity-70"}`} />
+            <div className={`hidden md:block absolute left-0 right-0 top-5 h-px bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] ${isDarkMode ? "opacity-100" : "opacity-70"}`} />
             {STEPS.map((step, i) => (
               <div key={step.title} className="relative md:text-center">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-[#C8102E] to-[#A50D26] text-white flex items-center justify-center font-semibold mx-0 md:mx-auto">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white flex items-center justify-center font-semibold mx-0 md:mx-auto">
                   {i + 1}
                 </div>
                 <h3 className="mt-4 font-semibold text-lg">{step.title}</h3>
@@ -369,14 +369,14 @@ export default function Landing() {
       <AnimatedSection className="px-6 py-24">
         <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-10 items-center">
           <div>
-            <p className="text-primary tracking-[0.15em] text-xs font-semibold">FOR INSTITUTIONS</p>
+            <p className="text-[#6366F1] tracking-[0.15em] text-xs font-semibold">FOR INSTITUTIONS</p>
             <h2 className="mt-3 text-3xl sm:text-4xl font-semibold">Give your students an unfair advantage</h2>
             <p className={`mt-5 leading-relaxed ${isDarkMode ? "text-[#A0A0B8]" : "text-[#66668C]"}`}>
               Cariva gives your institution a full career intelligence dashboard — cohort readiness scores, skills gap analysis, sector demand trends. The data your accreditors want to see.
             </p>
             <Link
               to="/auth"
-              className="inline-flex mt-7 rounded-xl px-6 py-3 text-sm font-medium bg-primary hover:bg-[hsl(var(--primary-hover))] transition-colors"
+              className="inline-flex mt-7 rounded-xl px-6 py-3 text-sm font-medium bg-[#6366F1] hover:bg-[#5558EB] transition-colors"
             >
               Request a demo →
             </Link>
@@ -387,14 +387,14 @@ export default function Landing() {
                 "Skills gap heatmap by department",
               ].map((item) => (
                 <li key={item} className="flex items-center gap-3">
-                  <Check className="w-4 h-4 text-primary" /> {item}
+                  <Check className="w-4 h-4 text-[#8B5CF6]" /> {item}
                 </li>
               ))}
             </ul>
           </div>
           <motion.div
             whileHover={reduceMotion ? {} : { scale: 1.02 }}
-            className={`rounded-2xl border p-6 shadow-[0_0_40px_rgba(200,16,46,0.2)] ${
+            className={`rounded-2xl border p-6 shadow-[0_0_40px_rgba(99,102,241,0.2)] ${
               isDarkMode
                 ? "border-[#2A2A46] bg-gradient-to-br from-[#111124] to-[#0B0B16]"
                 : "border-[#DBDEF0] bg-gradient-to-br from-[#FFFFFF] to-[#F3F5FC]"
@@ -420,7 +420,7 @@ export default function Landing() {
           <p className={`mt-4 ${isDarkMode ? "text-[#A0A0B8]" : "text-[#66668C]"}`}>Join thousands of Moroccan students building their future with AI.</p>
           <Link
             to="/auth"
-            className="cta-gradient inline-flex mt-8 rounded-xl px-8 py-3.5 text-base font-medium bg-gradient-to-r from-[#C8102E] to-[#A50D26] hover:brightness-110 hover:scale-[1.02] transition-all"
+            className="cta-gradient inline-flex mt-8 rounded-xl px-8 py-3.5 text-base font-medium bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] hover:brightness-110 hover:scale-[1.02] transition-all"
           >
             Start for free →
           </Link>

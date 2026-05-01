@@ -72,10 +72,10 @@ export default function Pathways() {
   return (
     <div className="space-y-12 max-w-6xl">
       {/* Profile summary */}
-      <Card className="glass glass-light dark:glass-dark p-6 md:p-8">
+      <Card className="p-6 md:p-8">
         <div className="grid md:grid-cols-[1fr_auto] gap-6 items-center">
           <div>
-            <p className="text-[11px] uppercase tracking-[0.06em] text-muted-foreground mb-1">{tr("Your career profile", "Votre profil de carriere")}</p>
+            <p className="text-[11px] uppercase tracking-[0.06em] text-[#A0A0B8] mb-1">{tr("Your career profile", "Votre profil de carriere")}</p>
             <h1 className="text-2xl font-semibold mb-3 text-foreground">
               {profile?.full_name ?? tr("Your", "Vos")} {tr("pathways", "parcours")}
             </h1>
@@ -84,7 +84,7 @@ export default function Pathways() {
             </p>
             <div className="flex flex-wrap gap-2">
               {result.topTraits.map((t) => (
-                <Badge key={t} variant="secondary" className="text-[11px] bg-transparent text-muted-foreground border border-border rounded-md">
+                <Badge key={t} variant="secondary" className="text-[11px] bg-transparent text-[#4A4A6A] border border-border rounded-md">
                   {t}
                 </Badge>
               ))}
@@ -194,31 +194,31 @@ function PathwayCard({ pathway: p }: { pathway: PathwayResult["pathways"][number
       </ul>
 
       <div className="border-t border-border pt-4">
-        <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground mb-2">{tr("Trajectory", "Trajectoire")}</p>
+        <p className="text-[11px] uppercase tracking-[0.08em] text-[#A0A0B8] mb-2">{tr("Trajectory", "Trajectoire")}</p>
         <div className="space-y-2 text-sm">
-          <p className="flex items-center gap-2"><span className="inline-block w-2 h-2 rounded-full bg-primary" /><span className="text-[13px] text-muted-foreground">Y1</span> <span className="text-sm text-foreground">{p.trajectory.Y1}</span></p>
-          <p className="flex items-center gap-2"><span className="inline-block w-2 h-2 rounded-full bg-muted-foreground" /><span className="text-[13px] text-muted-foreground">Y3</span> <span className="text-sm text-foreground">{p.trajectory.Y3}</span></p>
-          <p className="flex items-center gap-2"><span className="inline-block w-2 h-2 rounded-full bg-muted-foreground" /><span className="text-[13px] text-muted-foreground">Y5</span> <span className="text-sm text-foreground">{p.trajectory.Y5}</span></p>
+          <p className="flex items-center gap-2"><span className="inline-block w-2 h-2 rounded-full bg-primary" /><span className="text-[13px] text-[#A0A0B8]">Y1</span> <span className="text-sm text-foreground">{p.trajectory.Y1}</span></p>
+          <p className="flex items-center gap-2"><span className="inline-block w-2 h-2 rounded-full bg-[#A0A0B8]" /><span className="text-[13px] text-[#A0A0B8]">Y3</span> <span className="text-sm text-foreground">{p.trajectory.Y3}</span></p>
+          <p className="flex items-center gap-2"><span className="inline-block w-2 h-2 rounded-full bg-[#A0A0B8]" /><span className="text-[13px] text-[#A0A0B8]">Y5</span> <span className="text-sm text-foreground">{p.trajectory.Y5}</span></p>
         </div>
       </div>
 
       <div className="border-t border-border pt-4 grid grid-cols-2 gap-3 text-sm">
         <div>
-          <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground mb-1 flex items-center gap-1">
+          <p className="text-[11px] uppercase tracking-[0.08em] text-[#A0A0B8] mb-1 flex items-center gap-1">
             <MapPin className="w-3 h-3" /> {tr("Salary (MAD/mo)", "Salaire (MAD/mois)")}
           </p>
           <p className="text-sm text-foreground">{p.salaryRange.min.toLocaleString()}–{p.salaryRange.max.toLocaleString()}</p>
         </div>
         <div>
-          <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground mb-1 flex items-center gap-1">
+          <p className="text-[11px] uppercase tracking-[0.08em] text-[#A0A0B8] mb-1 flex items-center gap-1">
             <Users className="w-3 h-3" /> {tr("Top employers", "Principaux employeurs")}
           </p>
-          <p className="text-[13px] leading-tight text-muted-foreground">{p.topEmployers.join(' · ')}</p>
+          <p className="text-[13px] leading-tight text-[#A0A0B8]">{p.topEmployers.join(' · ')}</p>
         </div>
       </div>
 
       <div className="border-t border-border pt-4">
-        <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground mb-2">{tr("Skills gap", "Ecarts de competences")}</p>
+        <p className="text-[11px] uppercase tracking-[0.08em] text-[#A0A0B8] mb-2">{tr("Skills gap", "Ecarts de competences")}</p>
         <div className="flex flex-wrap gap-1.5">
           {p.skillsGap.map((s) => (
             <span key={s} className="text-xs px-2 py-1 rounded-full bg-transparent text-primary border border-primary">{s}</span>
