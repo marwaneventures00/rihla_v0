@@ -3,6 +3,7 @@ import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { NavLink } from "@/components/NavLink";
 import CarivaLogo from "@/components/CarivaLogo";
+import CarivaChatBot from "@/components/CarivaChatBot";
 import { useLanguage } from "@/lib/i18n";
 import {
   Sidebar,
@@ -253,6 +254,7 @@ export default function AppLayout({ requireRole }: { requireRole?: Role }) {
           <main className="flex-1 p-6 lg:p-8">
             <Outlet />
           </main>
+          {activeView === "student" && <CarivaChatBot />}
         </div>
       </div>
     </SidebarProvider>
