@@ -12,9 +12,9 @@ import { cn } from "@/lib/utils";
 import { useLanguage } from "@/lib/i18n";
 
 const outlookStyles: Record<Outlook, string> = {
-  Hot: "bg-accent-soft text-accent border-0",
-  Stable: "bg-secondary text-foreground border-0",
-  Declining: "bg-muted text-muted-foreground border-0",
+  Hot: "bg-primary text-primary-foreground border-0 rounded-md text-[10px]",
+  Stable: "bg-[#4A4A6A] text-white border-0 rounded-md text-[10px]",
+  Declining: "bg-muted text-muted-foreground border-0 rounded-md text-[10px]",
 };
 
 export default function Market() {
@@ -29,9 +29,9 @@ export default function Market() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-12">
       <div>
-        <h1 className="text-3xl font-bold mb-1">Labor market intelligence</h1>
+        <h1 className="text-2xl font-semibold mb-1">Labor market intelligence</h1>
         <p className="text-muted-foreground">{tr("Explore Morocco's job market in real terms — sectors, roles, employers and emerging trends.", "Explorez le marche de l'emploi marocain en pratique : secteurs, roles, employeurs et tendances emergentes.")}</p>
       </div>
 
@@ -46,22 +46,22 @@ export default function Market() {
         <TabsContent value="sectors" className="mt-6">
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {SECTORS.map((s) => (
-              <Card key={s.name} className="p-5 hover:shadow-elevated transition-shadow">
+              <Card key={s.name} className="p-6 transition-shadow">
                 <div className="flex items-start justify-between mb-3">
-                  <div className="w-10 h-10 rounded-lg bg-accent-soft flex items-center justify-center">
-                    <s.icon className="w-5 h-5 text-accent" />
+                  <div className="w-10 h-10 rounded-lg bg-[var(--color-background-tertiary)] flex items-center justify-center">
+                    <s.icon className="w-5 h-5 text-primary" />
                   </div>
                   <Badge className={outlookStyles[s.outlook]}>{s.outlook}</Badge>
                 </div>
-                <h3 className="font-semibold mb-1.5">{s.name}</h3>
-                <p className="text-sm text-muted-foreground line-clamp-3 mb-4">{s.description}</p>
+                <h3 className="text-[15px] font-medium mb-1.5">{s.name}</h3>
+                <p className="text-sm text-muted-foreground line-clamp-2 mb-4">{s.description}</p>
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
-                  className="text-accent hover:text-accent"
+                  className="w-full sm:w-auto"
                   onClick={() => exploreSector(s.name)}
                 >
-                  {tr("Explore", "Explorer")} <ArrowUpRight className="w-3.5 h-3.5" />
+                  {tr("Explore sector", "Explorer le secteur")} <ArrowUpRight className="w-3.5 h-3.5" />
                 </Button>
               </Card>
             ))}
@@ -109,18 +109,18 @@ function RolesTab({ prefill = "" }: { prefill?: string }) {
               <button onClick={() => setOpen(isOpen ? null : r.title)} className="w-full p-4 flex items-center gap-4 text-left hover:bg-secondary/40 transition-colors">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-semibold">{r.title}</span>
-                    <Badge variant="secondary" className="text-xs">{r.sector}</Badge>
-                    <span className={cn("text-xs px-2 py-0.5 rounded-full",
-                      r.level === "Entry" && "bg-accent-soft text-accent",
-                      r.level === "Mid" && "bg-secondary text-foreground",
-                      r.level === "Senior" && "bg-primary text-primary-foreground",
+                    <span className="text-[15px] font-bold text-foreground">{r.title}</span>
+                    <Badge variant="outline" className="text-[10px] border border-border bg-transparent">{r.sector}</Badge>
+                    <span className={cn("text-[10px] px-2 py-0.5 rounded-full border bg-transparent",
+                      r.level === "Entry" && "border-primary text-primary",
+                      r.level === "Mid" && "border-[#4A4A6A] text-[#4A4A6A]",
+                      r.level === "Senior" && "border-foreground text-foreground",
                     )}>{r.level}</span>
                   </div>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {r.salaryMin.toLocaleString()}–{r.salaryMax.toLocaleString()} MAD/mo
-                  </p>
                 </div>
+                <p className="text-sm font-bold text-primary ml-auto">
+                  {r.salaryMin.toLocaleString()}–{r.salaryMax.toLocaleString()} MAD/mo
+                </p>
                 {isOpen ? <ChevronUp className="w-4 h-4 shrink-0" /> : <ChevronDown className="w-4 h-4 shrink-0" />}
               </button>
               <div
@@ -130,7 +130,7 @@ function RolesTab({ prefill = "" }: { prefill?: string }) {
                 )}
               >
                 <div className="overflow-hidden">
-                  <div className="px-5 pb-5 pt-1 border-t border-border bg-secondary/20 space-y-5">
+                  <div className="px-5 pb-5 pt-3 border-t border-border bg-card space-y-5">
                     <section>
                       <h4 className="text-xs uppercase tracking-wide text-muted-foreground mb-1.5">{tr("Role overview", "Apercu du role")}</h4>
                       <p className="text-sm leading-relaxed">{detail.overview}</p>
@@ -151,7 +151,7 @@ function RolesTab({ prefill = "" }: { prefill?: string }) {
                         {detail.trajectory.map((step, i) => (
                           <div key={step.year} className="flex items-center gap-2">
                             <div className="px-3 py-2 rounded-md bg-card border border-border">
-                              <p className="text-[11px] font-semibold text-accent">{step.year}</p>
+                              <p className="text-[11px] font-semibold text-primary">{step.year}</p>
                               <p className="text-sm font-medium">{step.title}</p>
                             </div>
                             {i < detail.trajectory.length - 1 && <ArrowRight className="w-4 h-4 text-muted-foreground" />}
@@ -177,7 +177,7 @@ function RolesTab({ prefill = "" }: { prefill?: string }) {
                       <ul className="space-y-1.5">
                         {detail.howToGetThere.map((step, i) => (
                           <li key={i} className="text-sm flex gap-2">
-                            <span className="flex-shrink-0 w-5 h-5 rounded-full bg-accent-soft text-accent text-xs font-semibold flex items-center justify-center">{i + 1}</span>
+                            <span className="flex-shrink-0 w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-semibold flex items-center justify-center">{i + 1}</span>
                             <span className="leading-relaxed">{step}</span>
                           </li>
                         ))}
@@ -185,7 +185,7 @@ function RolesTab({ prefill = "" }: { prefill?: string }) {
                     </section>
 
                     <div className="pt-1">
-                      <Button asChild size="sm" className="bg-accent hover:bg-accent/90 text-accent-foreground">
+                      <Button asChild size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground">
                         <Link to="/pathways">{tr("View related pathways", "Voir les parcours associes")} <ArrowRight className="w-3.5 h-3.5 ml-1" /></Link>
                       </Button>
                     </div>
@@ -209,19 +209,19 @@ function EmployersTab() {
       {EMPLOYERS.map((e) => (
         <Card key={e.name} className="p-5">
           <div className="flex items-start justify-between mb-3">
-            <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center font-bold text-sm">
+            <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
               {e.name.split(" ").map((s) => s[0]).slice(0, 2).join("")}
             </div>
-            <Badge variant="secondary" className="text-xs">{e.size}</Badge>
+            <Badge variant="outline" className="text-xs">{e.size}</Badge>
           </div>
           <h3 className="font-semibold mb-0.5 leading-snug">{e.name}</h3>
           <p className="text-xs text-muted-foreground mb-3">{e.sector}</p>
           <div className="flex items-center justify-between">
-            <span className="flex items-center gap-1.5 text-xs">
-              <span className={cn("w-2 h-2 rounded-full", e.hiring ? "bg-accent animate-pulse" : "bg-muted-foreground/40")} />
+            <span className={cn("flex items-center gap-1.5 text-xs", e.hiring ? "text-[#1B6B3A]" : "text-muted-foreground")}>
+              <span className={cn("w-2 h-2 rounded-full", e.hiring ? "bg-[#1B6B3A]" : "bg-muted-foreground/40")} />
               {e.hiring ? tr("Actively hiring", "Recrute activement") : tr("Not hiring", "Ne recrute pas")}
             </span>
-            <Button variant="link" size="sm" className="h-auto p-0 text-xs" asChild>
+            <Button variant="outline" size="sm" className="h-8 text-xs" asChild>
               <a href={e.careersUrl} target="_blank" rel="noreferrer">
                 {tr("Learn more", "En savoir plus")}
               </a>
@@ -275,9 +275,9 @@ function TrendsTab() {
 
   return (
     <div className="space-y-6">
-      <div className="grid lg:grid-cols-3 gap-5">
+      <div className="grid lg:grid-cols-3 gap-4">
         <Card className="p-6">
-          <Badge className="bg-accent-soft text-accent border-0 mb-3">Tech & Digital</Badge>
+          <Badge className="bg-primary/10 text-primary border-0 mb-3">Tech & Digital</Badge>
           <h3 className="font-bold mb-1">{tr("Tech sector hiring up 24% YoY in Casablanca", "Le recrutement Tech progresse de 24% en glissement annuel a Casablanca")}</h3>
           <p className="text-sm text-muted-foreground mb-4">{tr("Quarterly job openings tracked across major tech employers.", "Offres d'emploi trimestrielles suivies chez les principaux employeurs tech.")}</p>
           <div className="h-40">
@@ -287,14 +287,14 @@ function TrendsTab() {
                 <XAxis dataKey="quarter" fontSize={11} tick={{ fill: "hsl(var(--muted-foreground))" }} />
                 <YAxis fontSize={11} tick={{ fill: "hsl(var(--muted-foreground))" }} />
                 <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
-                <Line type="monotone" dataKey="openings" stroke="hsl(var(--accent))" strokeWidth={2} dot={{ fill: "hsl(var(--accent))" }} />
+                <Line type="monotone" dataKey="openings" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ fill: "hsl(var(--primary))" }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
         </Card>
 
         <Card className="p-6">
-          <Badge className="bg-accent-soft text-accent border-0 mb-3">Consulting</Badge>
+          <Badge className="bg-primary/10 text-primary border-0 mb-3">Consulting</Badge>
           <h3 className="font-bold mb-1">{tr("Consulting firms recruit non-business profiles", "Les cabinets de conseil recrutent des profils hors business")}</h3>
           <p className="text-sm text-muted-foreground mb-4">{tr("Background distribution of analyst-level hires this year.", "Repartition des profils recrutes au niveau analyste cette annee.")}</p>
           <div className="h-40">
@@ -304,14 +304,14 @@ function TrendsTab() {
                 <XAxis dataKey="profile" fontSize={11} tick={{ fill: "hsl(var(--muted-foreground))" }} />
                 <YAxis fontSize={11} tick={{ fill: "hsl(var(--muted-foreground))" }} />
                 <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
-                <Bar dataKey="pct" fill="hsl(var(--accent))" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="pct" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </Card>
 
         <Card className="p-6">
-          <Badge className="bg-accent-soft text-accent border-0 mb-3">Workplace</Badge>
+          <Badge className="bg-primary/10 text-primary border-0 mb-3">Workplace</Badge>
           <h3 className="font-bold mb-1">{tr("Remote work adoption keeps climbing", "L'adoption du travail a distance continue de progresser")}</h3>
           <p className="text-sm text-muted-foreground mb-4">{tr("% of new postings offering hybrid or remote arrangements.", "% des nouvelles offres proposant des modalites hybrides ou a distance.")}</p>
           <div className="h-40">
@@ -321,7 +321,7 @@ function TrendsTab() {
                 <XAxis dataKey="month" fontSize={11} tick={{ fill: "hsl(var(--muted-foreground))" }} />
                 <YAxis fontSize={11} tick={{ fill: "hsl(var(--muted-foreground))" }} />
                 <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
-                <Line type="monotone" dataKey="pct" stroke="hsl(var(--accent))" strokeWidth={2} dot={{ fill: "hsl(var(--accent))" }} />
+                <Line type="monotone" dataKey="pct" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ fill: "hsl(var(--primary))" }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -368,7 +368,7 @@ function TrendsTab() {
                 }}
                 labelFormatter={(_, payload) => payload?.[0]?.payload?.sector ?? ""}
               />
-              <Scatter data={sectorDemand} fill="hsl(var(--accent))" fillOpacity={0.8}>
+              <Scatter data={sectorDemand} fill="hsl(var(--primary))" fillOpacity={0.8}>
                 <LabelList
                   dataKey="sector"
                   position="top"
@@ -380,8 +380,8 @@ function TrendsTab() {
           </ResponsiveContainer>
         </div>
 
-        <div className="mt-6 rounded-md p-4 border-l-4 border-l-accent bg-accent/5">
-          <p className="text-xs font-semibold uppercase tracking-wide mb-1 text-accent">{tr("Key insight", "Point cle")}</p>
+        <div className="mt-6 rounded-md p-4 border-l-[3px] border-l-primary bg-primary/5">
+          <p className="text-xs font-semibold uppercase tracking-wide mb-1 text-primary">{tr("Key insight", "Point cle")}</p>
           <p className="text-sm leading-relaxed text-foreground">
             {tr(
               "Tech & Digital and Consulting are the two fastest-growing sectors for graduate hiring in Morocco. Students with cross-disciplinary profiles (engineering + finance, tech + business) are seeing 40% higher interview rates.",
@@ -397,10 +397,10 @@ function TrendsTab() {
         <div className="grid sm:grid-cols-3 gap-4">
           {snapshot.map((s) => (
             <Card key={s.label} className="p-5">
-              <div className="w-10 h-10 rounded-lg bg-accent-soft flex items-center justify-center mb-3">
-                <s.icon className="w-5 h-5 text-accent" />
+              <div className="w-10 h-10 rounded-lg bg-[var(--color-background-tertiary)] flex items-center justify-center mb-3">
+                <s.icon className="w-5 h-5 text-primary" />
               </div>
-              <p className="text-3xl font-bold leading-none mb-1.5 text-accent">{s.value}</p>
+              <p className="text-3xl font-bold leading-none mb-1.5 text-primary">{s.value}</p>
               <p className="text-sm font-medium leading-snug mb-2">{s.label}</p>
               <p className="text-xs text-muted-foreground">Source: {s.source}</p>
             </Card>
