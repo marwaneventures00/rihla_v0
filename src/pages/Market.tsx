@@ -36,11 +36,31 @@ export default function Market() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="sectors">{tr("Sectors", "Secteurs")}</TabsTrigger>
-          <TabsTrigger value="roles">{tr("Roles", "Roles")}</TabsTrigger>
-          <TabsTrigger value="employers">{tr("Employers", "Employeurs")}</TabsTrigger>
-          <TabsTrigger value="trends">{tr("Trends", "Tendances")}</TabsTrigger>
+        <TabsList className="glass-pill h-auto rounded-full bg-transparent p-1.5 text-foreground/70">
+          <TabsTrigger
+            value="sectors"
+            className="rounded-full px-4 py-2 data-[state=active]:bg-accent-soft data-[state=active]:text-accent data-[state=active]:shadow-none"
+          >
+            {tr("Sectors", "Secteurs")}
+          </TabsTrigger>
+          <TabsTrigger
+            value="roles"
+            className="rounded-full px-4 py-2 data-[state=active]:bg-accent-soft data-[state=active]:text-accent data-[state=active]:shadow-none"
+          >
+            {tr("Roles", "Roles")}
+          </TabsTrigger>
+          <TabsTrigger
+            value="employers"
+            className="rounded-full px-4 py-2 data-[state=active]:bg-accent-soft data-[state=active]:text-accent data-[state=active]:shadow-none"
+          >
+            {tr("Employers", "Employeurs")}
+          </TabsTrigger>
+          <TabsTrigger
+            value="trends"
+            className="rounded-full px-4 py-2 data-[state=active]:bg-accent-soft data-[state=active]:text-accent data-[state=active]:shadow-none"
+          >
+            {tr("Trends", "Tendances")}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="sectors" className="mt-6">

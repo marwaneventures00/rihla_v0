@@ -15,7 +15,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  Briefcase, Mic, BookOpen, Clock, Sparkles, ChevronRight, RefreshCw,
+  Briefcase, Mic, Clock, Sparkles, ChevronRight, RefreshCw,
   Lightbulb, Building2, ExternalLink, ArrowLeft, CheckCircle2, AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -673,7 +673,7 @@ function ResourcesTab({ pathway, profile }: { pathway: PathwayResult | null; pro
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold">{tr("Arsenal", "Hub de ressources")}</h2>
+        <h2 className="text-2xl font-bold">{tr("Resources", "Ressources")}</h2>
         <p className="text-muted-foreground">{tr("Curated for your pathway and Moroccan market relevance.", "Selectionne selon votre parcours et la realite du marche marocain.")}</p>
       </div>
 
@@ -793,10 +793,25 @@ export default function Forge() {
       </div>
 
       <Tabs defaultValue="cases">
-        <TabsList>
-          <TabsTrigger value="cases"><Briefcase className="w-4 h-4" /> {tr("Cases", "Cas business")}</TabsTrigger>
-          <TabsTrigger value="interview"><Mic className="w-4 h-4" /> {tr("Simulate", "Preparation entretien")}</TabsTrigger>
-          <TabsTrigger value="resources"><BookOpen className="w-4 h-4" /> {tr("Arsenal", "Arsenal")}</TabsTrigger>
+        <TabsList className="glass-pill h-auto rounded-full bg-transparent p-1.5 text-foreground/70">
+          <TabsTrigger
+            value="cases"
+            className="rounded-full px-4 py-2 data-[state=active]:bg-accent-soft data-[state=active]:text-accent data-[state=active]:shadow-none"
+          >
+            {tr("Cases", "Cas business")}
+          </TabsTrigger>
+          <TabsTrigger
+            value="interview"
+            className="rounded-full px-4 py-2 data-[state=active]:bg-accent-soft data-[state=active]:text-accent data-[state=active]:shadow-none"
+          >
+            {tr("Simulate", "Preparation entretien")}
+          </TabsTrigger>
+          <TabsTrigger
+            value="resources"
+            className="rounded-full px-4 py-2 data-[state=active]:bg-accent-soft data-[state=active]:text-accent data-[state=active]:shadow-none"
+          >
+            {tr("Resources", "Ressources")}
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="cases" className="mt-6"><BusinessCasesTab /></TabsContent>
         <TabsContent value="interview" className="mt-6"><InterviewPrepTab profile={profile} defaultRole={defaultRole} /></TabsContent>
