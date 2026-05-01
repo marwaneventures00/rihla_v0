@@ -392,7 +392,10 @@ export default function PMO() {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-xl md:text-2xl font-bold text-foreground">Career PMO</h1>
-            <span className="text-[10px] uppercase tracking-wide px-2 py-1 rounded-full border" style={{ backgroundColor: "#B8860B33", color: "#F3D27A", borderColor: "#B8860B" }}>
+            <span
+              className="text-[10px] uppercase tracking-wide px-2 py-1 rounded-full border"
+              style={{ backgroundColor: "rgba(200, 16, 46, 0.12)", color: "#C8102E", borderColor: "rgba(200, 16, 46, 0.35)" }}
+            >
               Premium
             </span>
           </div>

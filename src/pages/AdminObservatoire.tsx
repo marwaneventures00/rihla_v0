@@ -774,7 +774,7 @@ export default function AdminObservatoire() {
             <h1 className="text-xl md:text-2xl font-bold">Observatoire des Diplômés</h1>
             <span
               className="text-[10px] uppercase tracking-wide px-2 py-1 rounded-full border"
-              style={{ backgroundColor: "#B8860B33", color: "#F3D27A", borderColor: "#B8860B" }}
+              style={{ backgroundColor: "rgba(200, 16, 46, 0.12)", color: "#C8102E", borderColor: "rgba(200, 16, 46, 0.35)" }}
             >
               New
             </span>
