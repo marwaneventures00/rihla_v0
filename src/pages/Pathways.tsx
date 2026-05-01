@@ -8,7 +8,7 @@ import { Loader2, MapPin, TrendingUp, Users, ArrowRight, RotateCcw } from "lucid
 import type { PathwayResult } from "@/lib/onboarding";
 import { useLanguage } from "@/lib/i18n";
 
-export default function Pathways() {
+export default function Compass() {
   const { language } = useLanguage();
   const tr = (en: string, fr: string) => (language === "fr" ? fr : en);
   const navigate = useNavigate();
@@ -75,9 +75,9 @@ export default function Pathways() {
       <Card className="p-8 shadow-card">
         <div className="grid md:grid-cols-[1fr_auto] gap-6 items-center">
           <div>
-            <p className="text-sm text-muted-foreground mb-1">{tr("Your career profile", "Votre profil de carriere")}</p>
+            <p className="text-sm text-muted-foreground mb-1">{tr("My Compass", "Votre profil de carriere")}</p>
             <h1 className="text-3xl font-bold mb-3">
-              {profile?.full_name ?? tr("Your", "Vos")} {tr("pathways", "parcours")}
+              {profile?.full_name ?? tr("Your", "Vos")} {tr("Compass", "Compass")}
             </h1>
             <p className="text-muted-foreground mb-4">
               {profile?.field_of_study} · {tr("Personalized for the Moroccan market", "Personnalise pour le marche marocain")}
@@ -101,9 +101,9 @@ export default function Pathways() {
         </div>
       </Card>
 
-      {/* Pathways */}
+      {/* Compass results */}
       <section>
-        <h2 className="text-xl font-bold mb-4">{tr("Recommended pathways", "Parcours recommandes")}</h2>
+        <h2 className="text-xl font-bold mb-4">{tr("Your Compass results", "Vos resultats Compass")}</h2>
         <div className="grid md:grid-cols-3 gap-5">
           {result.pathways.map((p) => (
             <PathwayCard key={p.title} pathway={p} />
@@ -166,7 +166,7 @@ function ScoreRing({ score }: { score: number }) {
   );
 }
 
-function PathwayCard({ pathway: p }: { pathway: PathwayResult["pathways"][number] }) {
+function PathwayCard({ pathway: p }: { pathway: PathwayResult["Compass"][number] }) {
   const { language } = useLanguage();
   const tr = (en: string, fr: string) => (language === "fr" ? fr : en);
   return (

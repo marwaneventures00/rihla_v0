@@ -138,7 +138,7 @@ export default function PMO() {
       supabase.from("interview_rounds").select("*").eq("user_id", uid).order("interview_date", { ascending: false }),
     ]);
     if (appErr || roundErr) {
-      toast.error("Failed to load Career PMO data");
+      toast.error("Failed to load Pipeline data");
     } else {
       setApplications(appRows ?? []);
       setRounds(roundRows ?? []);
@@ -391,7 +391,7 @@ export default function PMO() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl md:text-2xl font-bold text-foreground">Career PMO</h1>
+            <h1 className="text-xl md:text-2xl font-bold text-foreground">Pipeline</h1>
             <span
               className="text-[10px] uppercase tracking-wide px-2 py-1 rounded-full border"
               style={{ backgroundColor: "rgba(200, 16, 46, 0.12)", color: "#C8102E", borderColor: "rgba(200, 16, 46, 0.35)" }}
@@ -399,7 +399,7 @@ export default function PMO() {
               Premium
             </span>
           </div>
-          <p className="mt-1 text-sm" style={{ color: PMO_MUTED }}>Track every application. Win every interview.</p>
+          <p className="mt-1 text-sm" style={{ color: PMO_MUTED }}>Your career deal flow.</p>
         </div>
         <Button
           onClick={openCreateApplication}

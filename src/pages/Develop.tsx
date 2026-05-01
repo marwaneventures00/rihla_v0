@@ -30,8 +30,8 @@ type Profile = {
   institution_type: string | null;
 };
 
-async function callDevelopAI(action: string, payload: any) {
-  const { data, error } = await supabase.functions.invoke("develop-ai", {
+async function callForgeAI(action: string, payload: any) {
+  const { data, error } = await supabase.functions.invoke("Forge-ai", {
     body: { action, payload },
   });
   if (error) throw new Error(error.message);
@@ -58,7 +58,7 @@ function ScoreCircle({ value, color = "#6366F1" }: { value: number; color?: stri
 }
 
 // =====================================================================
-// BUSINESS CASES
+// Cases
 // =====================================================================
 
 const DIFFICULTIES = [
@@ -136,7 +136,7 @@ function BusinessCasesTab() {
   async function generate(starterTitle?: string) {
     setGenerating(true); setCaseData(null); setScore(null); setAnswer(""); setSeconds(0); setShowHints(false);
     try {
-      const result = await callDevelopAI("generate_case", {
+      const result = await callForgeAI("generate_case", {
         difficulty, sector, starter: starterTitle ?? null,
       });
       setCaseData(result);
@@ -157,7 +157,7 @@ function BusinessCasesTab() {
     if (!caseData || !answer.trim()) { toast.error(tr("Write your answer first.", "Ecrivez d'abord votre reponse.")); return; }
     setScoring(true);
     try {
-      const result = await callDevelopAI("score_case", {
+      const result = await callForgeAI("score_case", {
         case_json: caseData, answer, difficulty,
       });
       setScore(result);
@@ -319,7 +319,7 @@ function BusinessCasesTab() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold">{tr("Business Case Simulator", "Simulateur de cas business")}</h2>
+        <h2 className="text-2xl font-bold">{tr("Case Simulator", "Simulateur de cas business")}</h2>
         <p className="text-muted-foreground">{tr("Practice real consulting frameworks on Morocco-specific cases.", "Entrainez-vous avec de vrais cadres de conseil sur des cas adaptes au Maroc.")}</p>
       </div>
 
@@ -367,7 +367,7 @@ function BusinessCasesTab() {
 }
 
 // =====================================================================
-// INTERVIEW PREP
+// Simulate
 // =====================================================================
 
 const INTERVIEW_TYPES = [
@@ -409,7 +409,7 @@ function InterviewPrepTab({ profile, defaultRole }: { profile: Profile | null; d
   async function startInterview() {
     setGenerating(true); setFeedback(null); setAnswers({}); setIdx(0);
     try {
-      const result = await callDevelopAI("generate_interview", {
+      const result = await callForgeAI("generate_interview", {
         role, type, language,
         field_of_study: profile?.field_of_study, level: profile?.study_level,
         institution_type: profile?.institution_type, skills_gap: [],
@@ -433,7 +433,7 @@ function InterviewPrepTab({ profile, defaultRole }: { profile: Profile | null; d
     setScoring(true);
     try {
       const qa = questions.map((q) => ({ ...q, answer: answers[q.id] ?? "" }));
-      const result = await callDevelopAI("score_interview", {
+      const result = await callForgeAI("score_interview", {
         role, language, background: `${profile?.field_of_study ?? ""} - ${profile?.study_level ?? ""}`, qa,
       });
       setFeedback(result);
@@ -567,7 +567,7 @@ function InterviewPrepTab({ profile, defaultRole }: { profile: Profile | null; d
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold">{tr("Mock Interview Simulator", "Simulateur d'entretien blanc")}</h2>
+        <h2 className="text-2xl font-bold">{tr("Simulate", "Simulateur d'entretien blanc")}</h2>
         <p className="text-muted-foreground">{tr("Practice with AI. Get scored. Improve before the real thing.", "Entrainez-vous avec l'IA. Obtenez un score. Progressez avant le vrai entretien.")}</p>
       </div>
 
@@ -640,7 +640,7 @@ function ResourcesTab({ pathway, profile }: { pathway: PathwayResult | null; pro
   useEffect(() => {
     (async () => {
       try {
-        const result = await callDevelopAI("recommend_resources", {
+        const result = await callForgeAI("recommend_resources", {
           top_pathway: pathway?.pathways?.[0]?.title ?? "Generalist",
           skills_gap: skillsGap,
           study_level: profile?.study_level,
@@ -673,7 +673,7 @@ function ResourcesTab({ pathway, profile }: { pathway: PathwayResult | null; pro
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold">{tr("Resources hub", "Hub de ressources")}</h2>
+        <h2 className="text-2xl font-bold">{tr("Arsenal", "Hub de ressources")}</h2>
         <p className="text-muted-foreground">{tr("Curated for your pathway and Moroccan market relevance.", "Selectionne selon votre parcours et la realite du marche marocain.")}</p>
       </div>
 
@@ -763,7 +763,7 @@ function ResourcesTab({ pathway, profile }: { pathway: PathwayResult | null; pro
 // PAGE
 // =====================================================================
 
-export default function Develop() {
+export default function Forge() {
   const { language } = useLanguage();
   const tr = (en: string, fr: string) => (language === "fr" ? fr : en);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -788,15 +788,15 @@ export default function Develop() {
   return (
     <div className="space-y-6 max-w-6xl">
       <div>
-        <h1 className="text-3xl font-bold mb-1">{tr("Develop", "Developpement")}</h1>
-        <p className="text-muted-foreground">{tr("Build the skills that get you hired in Morocco.", "Developpez les competences qui vous font recruter au Maroc.")}</p>
+        <h1 className="text-3xl font-bold mb-1">{tr("Forge", "Forge")}</h1>
+        <p className="text-muted-foreground">{tr("Forge your edge in Morocco.", "Forgez votre avantage au Maroc.")}</p>
       </div>
 
       <Tabs defaultValue="cases">
         <TabsList>
-          <TabsTrigger value="cases"><Briefcase className="w-4 h-4" /> {tr("Business Cases", "Cas business")}</TabsTrigger>
-          <TabsTrigger value="interview"><Mic className="w-4 h-4" /> {tr("Interview Prep", "Preparation entretien")}</TabsTrigger>
-          <TabsTrigger value="resources"><BookOpen className="w-4 h-4" /> {tr("Resources", "Ressources")}</TabsTrigger>
+          <TabsTrigger value="cases"><Briefcase className="w-4 h-4" /> {tr("Cases", "Cas business")}</TabsTrigger>
+          <TabsTrigger value="interview"><Mic className="w-4 h-4" /> {tr("Simulate", "Preparation entretien")}</TabsTrigger>
+          <TabsTrigger value="resources"><BookOpen className="w-4 h-4" /> {tr("Arsenal", "Arsenal")}</TabsTrigger>
         </TabsList>
         <TabsContent value="cases" className="mt-6"><BusinessCasesTab /></TabsContent>
         <TabsContent value="interview" className="mt-6"><InterviewPrepTab profile={profile} defaultRole={defaultRole} /></TabsContent>

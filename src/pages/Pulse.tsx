@@ -6,7 +6,7 @@ export default function Pulse() {
 
   return (
     <div className="space-y-4 max-w-4xl px-1 md:px-0">
-      <h1 className="text-xl md:text-3xl font-bold">{tr("Weekly Pulse", "Pulse Hebdomadaire")}</h1>
+      <h1 className="text-xl md:text-3xl font-bold">{tr("Briefing", "Briefing")}</h1>
       <p className="text-[13px] md:text-sm text-muted-foreground">
         {tr(
           "Review your week and keep momentum with actionable next steps.",

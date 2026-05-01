@@ -31,8 +31,8 @@ export default function Market() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold mb-1">Labor market intelligence</h1>
-        <p className="text-muted-foreground">{tr("Explore Morocco's job market in real terms — sectors, roles, employers and emerging trends.", "Explorez le marche de l'emploi marocain en pratique : secteurs, roles, employeurs et tendances emergentes.")}</p>
+        <h1 className="text-3xl font-bold mb-1">Terrain</h1>
+        <p className="text-muted-foreground">{tr("Navigate Morocco's job market in real terms — sectors, roles, employers and emerging trends.", "Explorez le marche de l'emploi marocain en pratique : secteurs, roles, employeurs et tendances emergentes.")}</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>

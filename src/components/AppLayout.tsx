@@ -28,7 +28,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   LayoutDashboard,
-  Briefcase,
+  Compass,
+  Map,
+  Flame,
+  GitBranch,
+  Zap,
+  MessageCircle,
   User,
   Bell,
   LogOut,
@@ -37,6 +42,7 @@ import {
   Users,
   BarChart3,
   TrendingUp,
+  Telescope,
   Settings,
   ChevronDown,
   ShieldCheck,
@@ -145,15 +151,16 @@ export default function AppLayout({ requireRole }: { requireRole?: Role }) {
   }
 
   const STUDENT_ITEMS = [
-    { title: t("nav.pathways", "Pathways"), url: "/pathways", icon: LayoutDashboard },
-    { title: t("nav.market", "Job Market"), url: "/market", icon: Briefcase },
-    { title: t("nav.develop", "Develop"), url: "/develop", icon: GraduationCap },
-    { title: "Career PMO", url: "/pmo", icon: Briefcase },
-    { title: t("nav.meet", "Meet & Greet"), url: "/meet-and-greet", icon: Handshake },
-    { title: t("nav.profile", "My Profile"), url: "/profile", icon: User },
+    { title: t("nav.pathways", "Compass"), url: "/pathways", icon: Compass },
+    { title: t("nav.market", "Terrain"), url: "/market", icon: Map },
+    { title: t("nav.develop", "Forge"), url: "/develop", icon: Flame },
+    { title: "Pipeline", url: "/pmo", icon: GitBranch },
+    { title: "Briefing", url: "/pulse", icon: Zap },
+    { title: "Edge", url: "/profile", icon: TrendingUp },
+    { title: "Mentor", url: "/meet-and-greet", icon: MessageCircle },
   ];
   const ADMIN_ITEMS = [
-    { title: t("nav.dashboard", "Dashboard"), url: "/admin", icon: LayoutDashboard },
+    { title: t("nav.dashboard", "Command"), url: "/admin", icon: LayoutDashboard },
     { title: t("nav.students", "Students"), url: "/admin/students", icon: Users },
     { title: t("nav.analytics", "Analytics"), url: "/admin/analytics", icon: BarChart3 },
     ...(adminUniversityId
@@ -161,7 +168,7 @@ export default function AppLayout({ requireRole }: { requireRole?: Role }) {
           {
             title: "Observatoire",
             url: "/admin/observatoire",
-            icon: TrendingUp,
+            icon: Telescope,
             badge: "New",
           },
         ]

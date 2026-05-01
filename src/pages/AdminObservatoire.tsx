@@ -754,7 +754,7 @@ export default function AdminObservatoire() {
   if (!universityId) {
     return (
       <div className="max-w-2xl space-y-3">
-        <h1 className="text-2xl font-bold">Observatoire des Diplômés</h1>
+        <h1 className="text-2xl font-bold">Observatoire</h1>
         <p className="text-sm text-muted-foreground">
           This feature is available for university admins linked to a university record. Your admin account does not have a{" "}
           <span className="font-mono">university_id</span> yet.
@@ -771,7 +771,7 @@ export default function AdminObservatoire() {
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div className="space-y-2">
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-xl md:text-2xl font-bold">Observatoire des Diplômés</h1>
+            <h1 className="text-xl md:text-2xl font-bold">Observatoire</h1>
             <span
               className="text-[10px] uppercase tracking-wide px-2 py-1 rounded-full border"
               style={{ backgroundColor: "rgba(200, 16, 46, 0.12)", color: "#C8102E", borderColor: "rgba(200, 16, 46, 0.35)" }}
