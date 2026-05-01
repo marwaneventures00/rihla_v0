@@ -38,13 +38,13 @@
 
     --radius: 0.75rem;
 
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 240 30% 14%;
-    --sidebar-primary: 240 30% 14%;
+    --sidebar-background: 265 50% 16%;
+    --sidebar-foreground: 0 0% 96%;
+    --sidebar-primary: 265 62% 68%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 245 85% 96%;
-    --sidebar-accent-foreground: 245 79% 61%;
-    --sidebar-border: 240 20% 92%;
+    --sidebar-accent: 265 42% 24%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 265 35% 26%;
     --sidebar-ring: 265 55% 30%;
 
     --gradient-hero: linear-gradient(135deg, hsl(240 30% 14%) 0%, hsl(250 34% 20%) 60%, hsl(265 55% 30%) 130%);

@@ -118,7 +118,7 @@ export default function Profile() {
   const latestPathways = pathways[pathways.length - 1]?.result_json.pathways ?? [];
 
   return (
-    <div className="space-y-6 max-w-5xl">
+    <div className="space-y-6 mx-auto w-full max-w-6xl">
       <div>
         <h1 className="text-3xl font-bold mb-1">{tr("My profile & progress", "Mon profil et ma progression")}</h1>
         <p className="text-muted-foreground">{tr("Keep your information current and track your career-readiness journey.", "Gardez vos informations a jour et suivez votre progression de maturite carriere.")}</p>

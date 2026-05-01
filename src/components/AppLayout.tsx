@@ -147,11 +147,7 @@ export default function AppLayout({ requireRole }: { requireRole?: Role }) {
     navigate("/auth", { replace: true });
   }
 
-  if (loading || !activeView) {
-    return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin text-accent" /></div>;
-  }
-
-  const STUDENT_ITEMS = [
+  const STUDENT_ITEMS: NavItem[] = [
     { title: t("nav.pathways", "Compass"), url: "/pathways", icon: Compass },
     { title: t("nav.market", "Terrain"), url: "/market", icon: Map },
     { title: t("nav.develop", "Forge"), url: "/develop", icon: Flame },
@@ -160,7 +156,7 @@ export default function AppLayout({ requireRole }: { requireRole?: Role }) {
     { title: "Edge", url: "/profile", icon: TrendingUp },
     { title: "Meet & Greet", url: "/meet-and-greet", icon: MessageCircle },
   ];
-  const ADMIN_ITEMS = [
+  const ADMIN_ITEMS: NavItem[] = [
     { title: t("nav.dashboard", "Command"), url: "/admin", icon: LayoutDashboard },
     { title: t("nav.students", "Students"), url: "/admin/students", icon: Users },
     { title: t("nav.analytics", "Analytics"), url: "/admin/analytics", icon: BarChart3 },
@@ -181,12 +177,16 @@ export default function AppLayout({ requireRole }: { requireRole?: Role }) {
     .split(" ").map((s) => s[0]).join("").slice(0, 2).toUpperCase();
   const hasBoth = availableRoles.length > 1;
 
+  if (loading || !activeView) {
+    return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin text-accent" /></div>;
+  }
+
   return (
     <SidebarProvider defaultOpen={false}>
       <div className="min-h-screen flex w-full bg-background">
         <AppSidebar items={items} />
 
-        <div className="flex-1 flex flex-col min-w-0 md:pl-20">
+        <div className="flex-1 flex flex-col min-w-0 md:pl-24">
           <header className="sticky top-0 z-30 px-4 pt-4 pb-2 bg-transparent">
             <div className="flex justify-center">
               <div className="glass-pill rounded-full inline-flex items-center gap-1.5 px-2 py-1.5 max-w-full">
@@ -275,7 +275,7 @@ export default function AppLayout({ requireRole }: { requireRole?: Role }) {
             </div>
           </header>
 
-          <main className="flex-1 px-4 sm:px-6 lg:px-10 pb-8 pt-2">
+          <main className="flex-1 px-4 sm:px-6 lg:px-10 pb-8 pt-4 md:pt-6">
             <div className="mx-auto w-full max-w-[1320px]">
               <Outlet />
             </div>
@@ -295,7 +295,7 @@ type NavItem = {
 };
 
 function AppSidebar({ items }: { items: NavItem[] }) {
-  const { state } = useSidebar();
+  const { state, toggleSidebar } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
 
@@ -307,9 +307,14 @@ function AppSidebar({ items }: { items: NavItem[] }) {
     <Sidebar collapsible="icon">
       <SidebarHeader className={`${collapsed ? "px-2 py-4" : "px-4 py-5"} border-b border-sidebar-border transition-all duration-200`}>
         <div className={`flex items-center gap-2.5 ${collapsed ? "justify-center" : ""}`}>
-          <div className="shrink-0 w-9 h-9 rounded-lg bg-gradient-accent flex items-center justify-center text-accent-foreground">
+          <button
+            type="button"
+            onClick={toggleSidebar}
+            aria-label="Toggle sidebar"
+            className="shrink-0 w-9 h-9 rounded-lg bg-gradient-accent flex items-center justify-center text-accent-foreground hover:opacity-90 transition-opacity"
+          >
             <span className="text-sm font-semibold leading-none">C</span>
-          </div>
+          </button>
           {!collapsed && (
             <div className="min-w-0">
               <p className="font-bold leading-none">Cariva</p>

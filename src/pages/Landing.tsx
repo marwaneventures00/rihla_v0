@@ -17,7 +17,7 @@ const FEATURES = [
     gradient: "from-[#6366F1] to-[#3B82F6]",
     title: "Personalized career pathways",
     body: "Answer 3 questions. Get AI-generated career paths built for the Moroccan market — with fit scores, salary ranges, and a 90-day action plan.",
-    tag: "Powered by Claude AI",
+    tag: "Powered by AI",
   },
   {
     icon: TrendingUp,
@@ -227,7 +227,7 @@ export default function Landing() {
                 : "border-[#D4D6E5] text-[#48486A] bg-gradient-to-r from-[#FFFFFF] to-[#F2F4FB]"
             }`}
           >
-            ✦ Powered by Claude AI · AI-Native Platform
+            ✦ Powered by AI · AI-Native Platform
           </motion.div>
 
           <h1 className="mt-8 text-[40px] sm:text-[56px] lg:text-[72px] leading-[1.06] font-semibold tracking-tight">
@@ -442,7 +442,7 @@ export default function Landing() {
             </div>
             <div className="md:text-right">
               <span className={`inline-flex text-xs rounded-full border px-3 py-1 ${isDarkMode ? "border-[#2A2A45] bg-[#0E0E18] text-[#C7C7E4]" : "border-[#D9DCEE] bg-white text-[#5C5C7E]"}`}>
-                Powered by Claude AI
+                Powered by AI
               </span>
               <p className={`mt-2 ${isDarkMode ? "text-[#8A8AA5]" : "text-[#76769A]"}`}>© 2026 Cariva. All rights reserved.</p>
             </div>

@@ -142,11 +142,11 @@ export default function Auth() {
             Discover your career path.
           </h2>
           <p className="text-lg text-white/85">
-            AI-native career intelligence. Powered by Claude AI.
+            AI-native career intelligence. Powered by AI.
           </p>
         </div>
         <div className="relative z-10 text-sm text-white/70">
-          © {new Date().getFullYear()} Cariva — AI-native career intelligence. Powered by Claude AI.
+          © {new Date().getFullYear()} Cariva — AI-native career intelligence. Powered by AI.
         </div>
         {/* Decorative gradient orbs */}
         <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-accent/30 blur-3xl" />

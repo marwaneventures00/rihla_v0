@@ -16,6 +16,7 @@ export default function Compass() {
   const [result, setResult] = useState<PathwayResult | null>(null);
   const [profile, setProfile] = useState<{ full_name: string | null; field_of_study: string | null } | null>(null);
   const [animatedScore, setAnimatedScore] = useState(0);
+  const [selectedPathway, setSelectedPathway] = useState(0);
 
   useEffect(() => {
     (async () => {
@@ -37,7 +38,9 @@ export default function Compass() {
       }
 
       setProfile({ full_name: p.full_name, field_of_study: p.field_of_study });
-      setResult(r.result_json as unknown as PathwayResult);
+      const parsed = r.result_json as unknown as PathwayResult;
+      setResult(parsed);
+      setSelectedPathway(0);
       setLoading(false);
     })();
   }, [navigate]);
@@ -68,6 +71,8 @@ export default function Compass() {
   }
 
   if (!result) return null;
+  const topPathways = result.pathways.slice(0, 3);
+  const activePathway = topPathways[selectedPathway] ?? topPathways[0] ?? null;
 
   return (
     <div className="space-y-8 max-w-6xl">
@@ -111,12 +116,29 @@ export default function Compass() {
 
       {/* Compass results */}
       <section>
-        <h2 className="text-xl font-bold mb-4">{tr("Your Compass results", "Vos resultats Compass")}</h2>
-        <div className="grid md:grid-cols-3 gap-5">
-          {result.pathways.map((p) => (
-            <PathwayCard key={p.title} pathway={p} />
+        <h2 className="text-xl font-bold mb-4">{tr("Top 3 jobs for you", "Top 3 metiers pour vous")}</h2>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
+          {topPathways.map((p, idx) => (
+            <button
+              key={p.title}
+              type="button"
+              onClick={() => setSelectedPathway(idx)}
+              className={`text-left rounded-xl border p-3 transition ${
+                idx === selectedPathway
+                  ? "border-accent bg-accent-soft/40 shadow-sm"
+                  : "border-border bg-card hover:border-accent/40"
+              }`}
+            >
+              <p className="font-semibold text-sm leading-snug">{cleanPathwayTitle(p.title)}</p>
+              <p className="text-xs text-muted-foreground mt-1">{p.fitScore}% fit</p>
+            </button>
           ))}
         </div>
+        {activePathway && (
+          <div className="mt-5">
+            <PathwayCard pathway={activePathway} />
+          </div>
+        )}
       </section>
 
       {/* Action plan */}
@@ -180,15 +202,21 @@ function ScoreRing({ score }: { score: number }) {
   );
 }
 
-function PathwayCard({ pathway: p }: { pathway: PathwayResult["Compass"][number] }) {
+function cleanPathwayTitle(title: string) {
+  return title.replace(/\s*\([^)]*\)\s*/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function PathwayCard({ pathway: p }: { pathway: PathwayResult["pathways"][number] }) {
   const { language } = useLanguage();
   const tr = (en: string, fr: string) => (language === "fr" ? fr : en);
   return (
     <Card className="p-6 flex flex-col gap-4 hover:shadow-elevated transition-shadow">
       <div>
         <div className="flex items-start justify-between gap-2 mb-2">
-          <h3 className="font-bold text-lg leading-snug">{p.title}</h3>
-          <Badge className="bg-accent-soft text-accent border-0 shrink-0">{p.fitScore}%</Badge>
+          <h3 className="font-bold text-lg leading-snug">{cleanPathwayTitle(p.title)}</h3>
+          <Badge className="bg-accent-soft/80 text-accent border border-accent/15 shrink-0 px-2.5 py-1 text-xs font-semibold">
+            {p.fitScore}%
+          </Badge>
         </div>
         <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
           <div
@@ -239,10 +267,21 @@ function PathwayCard({ pathway: p }: { pathway: PathwayResult["Compass"][number]
         <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2">{tr("Skills gap", "Ecarts de competences")}</p>
         <div className="flex flex-wrap gap-1.5">
           {p.skillsGap.map((s) => (
-            <span key={s} className="text-xs px-2 py-1 rounded-full bg-secondary text-foreground border border-border">{s}</span>
+            <span
+              key={s}
+              className="text-[13px] leading-tight px-3 py-1.5 rounded-full bg-secondary/85 text-foreground border border-border/80"
+            >
+              {s}
+            </span>
           ))}
         </div>
       </div>
+
+      <Button asChild className="mt-1 bg-accent-soft text-accent hover:bg-accent-soft/80 border border-accent/20">
+        <a href={`/develop?tab=interview&role=${encodeURIComponent(cleanPathwayTitle(p.title))}`}>
+          {tr("Prepare this job in Forge", "Preparer ce metier dans Forge")} <ArrowRight className="w-4 h-4" />
+        </a>
+      </Button>
     </Card>
   );
 }

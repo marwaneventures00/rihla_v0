@@ -159,7 +159,7 @@ export default function MeetAndGreet() {
   }
 
   return (
-    <div className="space-y-6 max-w-5xl">
+    <div className="space-y-6 mx-auto w-full max-w-6xl">
       <div>
         <h1 className="text-3xl font-bold mb-1">{tr("Meet & greet", "Meet & greet")}</h1>
         <p className="text-muted-foreground">

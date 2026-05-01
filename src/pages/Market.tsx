@@ -229,9 +229,7 @@ function EmployersTab() {
       {EMPLOYERS.map((e) => (
         <Card key={e.name} className="p-5">
           <div className="flex items-start justify-between mb-3">
-            <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center font-bold text-sm">
-              {e.name.split(" ").map((s) => s[0]).slice(0, 2).join("")}
-            </div>
+            <EmployerLogo name={e.name} careersUrl={e.careersUrl} />
             <Badge variant="secondary" className="text-xs">{e.size}</Badge>
           </div>
           <h3 className="font-semibold mb-0.5 leading-snug">{e.name}</h3>
@@ -249,6 +247,38 @@ function EmployersTab() {
           </div>
         </Card>
       ))}
+    </div>
+  );
+}
+
+function EmployerLogo({ name, careersUrl }: { name: string; careersUrl: string }) {
+  const [failed, setFailed] = useState(false);
+  let domain = "";
+  try {
+    domain = new URL(careersUrl).hostname;
+  } catch {
+    domain = "";
+  }
+  const logoSrc = domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=64` : "";
+
+  if (!logoSrc || failed) {
+    return (
+      <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center font-bold text-sm">
+        {name.split(" ").map((s) => s[0]).slice(0, 2).join("")}
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-10 h-10 rounded-lg bg-secondary border border-border flex items-center justify-center overflow-hidden">
+      <img
+        src={logoSrc}
+        alt={`${name} logo`}
+        className="w-6 h-6 object-contain"
+        loading="lazy"
+        referrerPolicy="no-referrer"
+        onError={() => setFailed(true)}
+      />
     </div>
   );
 }

@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import {
   Select,
   SelectContent,
@@ -130,6 +129,10 @@ export default function PMO() {
   const [savingApplication, setSavingApplication] = useState(false);
   const [savingRound, setSavingRound] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [draggingAppId, setDraggingAppId] = useState<string | null>(null);
+  const [draggingStage, setDraggingStage] = useState<StageKey | null>(null);
+  const [dropStage, setDropStage] = useState<StageKey | null>(null);
+  const [rankById, setRankById] = useState<Record<string, number>>({});
 
   async function loadData(uid: string) {
     setLoading(true);
@@ -151,10 +154,23 @@ export default function PMO() {
       const { data } = await supabase.auth.getSession();
       const uid = data.session?.user.id ?? null;
       setUserId(uid);
+      if (uid) {
+        try {
+          const raw = localStorage.getItem(`cariva.pipeline.rank.v1.${uid}`);
+          if (raw) setRankById(JSON.parse(raw) as Record<string, number>);
+        } catch {
+          setRankById({});
+        }
+      }
       if (uid) await loadData(uid);
       else setLoading(false);
     })();
   }, []);
+
+  useEffect(() => {
+    if (!userId) return;
+    localStorage.setItem(`cariva.pipeline.rank.v1.${userId}`, JSON.stringify(rankById));
+  }, [rankById, userId]);
 
   useEffect(() => {
     const query = window.matchMedia("(max-width: 768px)");
@@ -295,6 +311,41 @@ export default function PMO() {
     else await loadData(userId);
   }
 
+  async function moveToStage(applicationId: string, stage: StageKey) {
+    if (!userId) return;
+    const { error } = await supabase
+      .from("job_applications")
+      .update({ status: stage })
+      .eq("id", applicationId)
+      .eq("user_id", userId);
+    if (error) {
+      toast.error("Could not move application");
+      return;
+    }
+    await loadData(userId);
+  }
+
+  function reorderWithinStage(stage: StageKey, sourceId: string, targetId: string) {
+    if (sourceId === targetId) return;
+    const stageItems = applications
+      .filter((app) => normalizeStatus(app.status) === stage)
+      .sort((a, b) => (rankById[a.id] ?? 0) - (rankById[b.id] ?? 0))
+      .map((app) => app.id);
+    const from = stageItems.indexOf(sourceId);
+    const to = stageItems.indexOf(targetId);
+    if (from < 0 || to < 0) return;
+    const next = [...stageItems];
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    setRankById((prev) => {
+      const updated = { ...prev };
+      next.forEach((id, idx) => {
+        updated[id] = idx + 1;
+      });
+      return updated;
+    });
+  }
+
   async function saveInterviewRound() {
     if (!userId || !selectedApp) return;
     if (!roundForm.round_type || !roundForm.interview_date) {
@@ -328,9 +379,9 @@ export default function PMO() {
     setSavingRound(false);
   }
 
-  function cardFor(app: JobApplication) {
-    const stage = normalizeStatus(app.status);
-    const stageColor = STAGES.find((s) => s.key === stage)?.left ?? "#6B7280";
+  function cardFor(app: JobApplication, stageForDrag?: StageKey) {
+    const normalizedStage = normalizeStatus(app.status);
+    const stageColor = STAGES.find((s) => s.key === normalizedStage)?.left ?? "#6B7280";
     const since = daysSince(app.application_date);
     const actionDays = daysFromNow(app.next_action_date);
 
@@ -339,6 +390,29 @@ export default function PMO() {
         key={app.id}
         className="rounded-[10px] border p-4 cursor-pointer"
         style={{ backgroundColor: PMO_CARD, borderColor: PMO_BORDER, borderLeftColor: stageColor, borderLeftWidth: 3 }}
+        draggable
+        onDragStart={(e) => {
+          e.dataTransfer.setData("text/plain", app.id);
+          e.dataTransfer.effectAllowed = "move";
+          setDraggingAppId(app.id);
+          setDraggingStage(stageForDrag ?? null);
+        }}
+        onDragEnd={() => {
+          setDraggingAppId(null);
+          setDraggingStage(null);
+          setDropStage(null);
+        }}
+        onDragOver={(e) => {
+          if (!draggingAppId || !stageForDrag || draggingStage !== stageForDrag) return;
+          e.preventDefault();
+          e.dataTransfer.dropEffect = "move";
+        }}
+        onDrop={(e) => {
+          if (!draggingAppId || !stageForDrag || draggingStage !== stageForDrag) return;
+          e.preventDefault();
+          e.stopPropagation();
+          reorderWithinStage(stageForDrag, draggingAppId, app.id);
+        }}
         onClick={() => { setSelectedApp(app); setIsAppSheetOpen(true); }}
       >
         <div className="flex items-start justify-between gap-2">
@@ -449,43 +523,70 @@ export default function PMO() {
             </div>
           ) : (
             <>
-              <div className="hidden md:block overflow-x-auto pb-2">
-                <div className="flex gap-3 min-w-max">
-                  {STAGES.map((stage) => (
-                    <div key={stage.key} className="w-[260px] shrink-0">
-                      <div className="mb-2 flex items-center justify-between">
-                        <p className="text-[12px] uppercase tracking-wide" style={{ color: PMO_MUTED }}>{stage.label}</p>
-                        <span className="text-[10px] px-2 py-1 rounded-full" style={{ backgroundColor: `${stage.pill}25`, color: stage.pill }}>
-                          {appsByStage[stage.key].length}
+              <div className="space-y-4">
+                {STAGES.map((stage, idx) => (
+                  <section
+                    key={stage.key}
+                    className="rounded-xl border p-4"
+                    style={{
+                      borderColor: dropStage === stage.key ? stage.pill : PMO_BORDER,
+                      backgroundColor: dropStage === stage.key ? `${stage.pill}14` : PMO_CARD,
+                    }}
+                    onDragOver={(e) => {
+                      if (!draggingAppId) return;
+                      e.preventDefault();
+                      e.dataTransfer.dropEffect = "move";
+                      setDropStage(stage.key);
+                    }}
+                    onDragLeave={() => {
+                      if (dropStage === stage.key) setDropStage(null);
+                    }}
+                    onDrop={async (e) => {
+                      e.preventDefault();
+                      const droppedId = e.dataTransfer.getData("text/plain") || draggingAppId;
+                      setDropStage(null);
+                      const sourceStage = draggingStage;
+                      setDraggingAppId(null);
+                      setDraggingStage(null);
+                      if (!droppedId) return;
+                      if (sourceStage === stage.key) return;
+                      await moveToStage(droppedId, stage.key);
+                    }}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="w-6 h-6 rounded-full text-[11px] font-semibold flex items-center justify-center"
+                          style={{ backgroundColor: `${stage.pill}30`, color: stage.pill }}
+                        >
+                          {idx + 1}
                         </span>
+                        <p className="text-[12px] uppercase tracking-wide" style={{ color: PMO_MUTED }}>
+                          {stage.label}
+                        </p>
                       </div>
-                      <div className="space-y-3">
-                        {appsByStage[stage.key].map((app) => cardFor(app))}
-                      </div>
+                      <span
+                        className="text-[10px] px-2 py-1 rounded-full"
+                        style={{ backgroundColor: `${stage.pill}25`, color: stage.pill }}
+                      >
+                        {appsByStage[stage.key].length}
+                      </span>
                     </div>
-                  ))}
-                </div>
-              </div>
-              <div className="md:hidden">
-                <Accordion type="multiple" className="space-y-2">
-                  {STAGES.map((stage) => (
-                    <AccordionItem key={stage.key} value={stage.key} className="rounded-lg border border-border bg-card px-3">
-                      <AccordionTrigger className="text-sm">
-                        <div className="flex w-full items-center justify-between pr-2">
-                          <span className="text-xs uppercase tracking-wide text-muted-foreground">{stage.label}</span>
-                          <span className="text-[10px] px-2 py-1 rounded-full" style={{ backgroundColor: `${stage.pill}25`, color: stage.pill }}>
-                            {appsByStage[stage.key].length}
-                          </span>
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <div className="space-y-3 pb-2">
-                          {appsByStage[stage.key].map((app) => cardFor(app))}
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
+
+                    {appsByStage[stage.key].length === 0 ? (
+                      <p className="mt-3 text-xs" style={{ color: PMO_MUTED }}>
+                        No applications in this step yet.
+                      </p>
+                    ) : (
+                      <div className="mt-3 grid gap-3 md:grid-cols-2">
+                        {appsByStage[stage.key]
+                          .slice()
+                          .sort((a, b) => (rankById[a.id] ?? 0) - (rankById[b.id] ?? 0))
+                          .map((app) => cardFor(app, stage.key))}
+                      </div>
+                    )}
+                  </section>
+                ))}
               </div>
 
               <button

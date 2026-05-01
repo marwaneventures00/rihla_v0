@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useSearchParams } from "react-router-dom";
 import { useLanguage } from "@/lib/i18n";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -89,7 +90,7 @@ type CaseScore = {
   what_a_top_candidate_said: string; next_case_suggestion: string;
 };
 
-function BusinessCasesTab() {
+function BusinessCasesTab({ targetRole }: { targetRole?: string }) {
   const { language } = useLanguage();
   const tr = (en: string, fr: string) => (language === "fr" ? fr : en);
   const [difficulty, setDifficulty] = useState("Consultant");
@@ -104,6 +105,7 @@ function BusinessCasesTab() {
   const [score, setScore] = useState<CaseScore | null>(null);
   const [revealModel, setRevealModel] = useState(false);
   const timerRef = useRef<number | null>(null);
+  const roleFocus = (targetRole ?? "").trim();
 
   // Load draft from localStorage
   useEffect(() => {
@@ -137,7 +139,7 @@ function BusinessCasesTab() {
     setGenerating(true); setCaseData(null); setScore(null); setAnswer(""); setSeconds(0); setShowHints(false);
     try {
       const result = await callForgeAI("generate_case", {
-        difficulty, sector, starter: starterTitle ?? null,
+        difficulty, sector, starter: starterTitle ?? null, target_role: roleFocus || null,
       });
       setCaseData(result);
       // Save to DB
@@ -318,6 +320,15 @@ function BusinessCasesTab() {
 
   return (
     <div className="space-y-6">
+      {roleFocus && (
+        <Card className="p-4 border border-accent/20 bg-accent-soft/25">
+          <p className="text-sm">
+            <span className="font-semibold text-accent">{tr("Role-focused cases enabled:", "Cas focalises sur le metier :")}</span>{" "}
+            {roleFocus}
+          </p>
+        </Card>
+      )}
+
       <div>
         <h2 className="text-2xl font-bold">{tr("Case Simulator", "Simulateur de cas business")}</h2>
         <p className="text-muted-foreground">{tr("Practice real consulting frameworks on Morocco-specific cases.", "Entrainez-vous avec de vrais cadres de conseil sur des cas adaptes au Maroc.")}</p>
@@ -348,6 +359,15 @@ function BusinessCasesTab() {
         <Button onClick={() => generate()} className="mt-6 bg-accent text-accent-foreground hover:bg-accent/90">
           {tr("Generate my case", "Generer mon cas")} <ChevronRight className="w-4 h-4" />
         </Button>
+        {roleFocus && (
+          <Button
+            onClick={() => generate(`${roleFocus} interview/case prep`)}
+            variant="outline"
+            className="mt-3"
+          >
+            {tr("Generate role-focused case", "Generer un cas cible metier")} <ChevronRight className="w-4 h-4" />
+          </Button>
+        )}
       </Card>
 
       <Card className="p-6">
@@ -405,6 +425,41 @@ function InterviewPrepTab({ profile, defaultRole }: { profile: Profile | null; d
   const [feedback, setFeedback] = useState<IFeedback | null>(null);
 
   useEffect(() => { setRole(defaultRole); }, [defaultRole]);
+
+  const normalizedRole = role.toLowerCase();
+  const personalizedPrepSteps = useMemo(() => {
+    const common = [
+      tr("Build a 90-second pitch: profile, strengths, and why this role in Morocco.", "Construisez un pitch de 90 secondes : profil, forces et pourquoi ce role au Maroc."),
+      tr("Prepare 3 STAR stories (leadership, problem solving, teamwork).", "Preparez 3 histoires STAR (leadership, problem solving, teamwork)."),
+      tr("Practice crisp answers in 2 minutes max per question.", "Entrainez-vous a repondre de facon concise (2 minutes max par question)."),
+    ];
+    if (normalizedRole.includes("consult")) {
+      return [
+        tr("Master case structure (issue tree, MECE, recommendation).", "Maitrisez la structure des cas (issue tree, MECE, recommandation)."),
+        tr("Train mental math and market sizing with Moroccan examples.", "Travaillez le calcul mental et le market sizing avec des exemples marocains."),
+        ...common,
+      ];
+    }
+    if (normalizedRole.includes("bank") || normalizedRole.includes("finance")) {
+      return [
+        tr("Review valuation and accounting basics (P&L, cash flow, multiples).", "Revisez les bases de valorisation et comptabilite (P&L, cash flow, multiples)."),
+        tr("Prepare deal/market discussion examples relevant to MENA.", "Preparez des exemples de discussion deal/marche pertinents pour la region MENA."),
+        ...common,
+      ];
+    }
+    if (normalizedRole.includes("marketing") || normalizedRole.includes("brand")) {
+      return [
+        tr("Prepare 2 campaign analyses: objective, KPI, channel mix, outcome.", "Preparez 2 analyses de campagne : objectif, KPI, mix canal, resultat."),
+        tr("Practice customer segmentation and growth ideas for Morocco.", "Entrainez-vous a la segmentation client et aux idees de croissance pour le Maroc."),
+        ...common,
+      ];
+    }
+    return [
+      tr("Map the top 5 skills expected for this role and your proof points.", "Mappez les 5 competences cles de ce role et vos preuves concretes."),
+      tr("Prepare role-specific examples from projects, internships, or campus work.", "Preparez des exemples lies au role depuis vos projets, stages ou activites campus."),
+      ...common,
+    ];
+  }, [normalizedRole, tr]);
 
   async function startInterview() {
     setGenerating(true); setFeedback(null); setAnswers({}); setIdx(0);
@@ -566,6 +621,25 @@ function InterviewPrepTab({ profile, defaultRole }: { profile: Profile | null; d
 
   return (
     <div className="space-y-6">
+      {defaultRole && (
+        <Card className="p-5 border-l-4 border-l-accent bg-accent-soft/30">
+          <p className="text-xs uppercase tracking-wide text-accent font-semibold mb-2">
+            {tr("Personalized prep plan", "Plan de preparation personnalise")}
+          </p>
+          <h3 className="font-semibold text-lg mb-2">
+            {tr("Target job:", "Metier cible :")} {defaultRole}
+          </h3>
+          <ul className="space-y-1.5 text-sm text-foreground/90">
+            {personalizedPrepSteps.map((step, i) => (
+              <li key={i} className="flex gap-2">
+                <span className="text-accent font-semibold">{i + 1}.</span>
+                <span>{step}</span>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
+
       <div>
         <h2 className="text-2xl font-bold">{tr("Simulate", "Simulateur d'entretien blanc")}</h2>
         <p className="text-muted-foreground">{tr("Practice with AI. Get scored. Improve before the real thing.", "Entrainez-vous avec l'IA. Obtenez un score. Progressez avant le vrai entretien.")}</p>
@@ -626,6 +700,44 @@ type AIRec = {
   priority_message: string;
   top_resources: { type: string; name: string; why_now: string; time_to_complete: string; direct_link: string }[];
 };
+
+function ResourceProviderLogo({ provider, link }: { provider: string; link: string }) {
+  const [failed, setFailed] = useState(false);
+  let domain = "";
+  try {
+    domain = new URL(link).hostname;
+  } catch {
+    domain = "";
+  }
+  const logoSrc = domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=64` : "";
+
+  if (!logoSrc || failed) {
+    return (
+      <div
+        className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+        style={{ backgroundColor: "var(--color-background-tertiary)", color: "var(--color-text-primary)" }}
+      >
+        {provider.split(" ").map((s) => s[0]).join("").slice(0, 2)}
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 overflow-hidden border border-border"
+      style={{ backgroundColor: "var(--color-background-tertiary)" }}
+    >
+      <img
+        src={logoSrc}
+        alt={`${provider} logo`}
+        className="w-6 h-6 object-contain"
+        loading="lazy"
+        referrerPolicy="no-referrer"
+        onError={() => setFailed(true)}
+      />
+    </div>
+  );
+}
 
 function ResourcesTab({ pathway, profile }: { pathway: PathwayResult | null; profile: Profile | null }) {
   const { language } = useLanguage();
@@ -707,11 +819,14 @@ function ResourcesTab({ pathway, profile }: { pathway: PathwayResult | null; pro
       ) : null}
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-2">
+      <div className="glass-pill inline-flex flex-wrap gap-2 rounded-full bg-transparent p-1.5">
         {RESOURCE_CATEGORIES.map((c) => (
           <button key={c} onClick={() => setFilter(c)}
-            className={`px-3 py-1.5 rounded-full text-sm border transition ${filter === c ? "border-border" : "border-border"}`}
-            style={filter === c ? { backgroundColor: "var(--color-background-tertiary)", color: "var(--color-text-primary)" } : undefined}
+            className={`px-3 py-1.5 rounded-full text-sm border transition ${
+              filter === c
+                ? "border-transparent bg-accent-soft text-accent"
+                : "border-border/50 bg-transparent text-foreground/80 hover:bg-background/40"
+            }`}
           >
             {c}
           </button>
@@ -726,12 +841,7 @@ function ResourcesTab({ pathway, profile }: { pathway: PathwayResult | null; pro
           <Card key={r.id} className="p-5 space-y-3">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div
-                  className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-                  style={{ backgroundColor: "var(--color-background-tertiary)", color: "var(--color-text-primary)" }}
-                >
-                  {r.provider.split(" ").map((s) => s[0]).join("").slice(0, 2)}
-                </div>
+                <ResourceProviderLogo provider={r.provider} link={r.link} />
                 <div>
                   <p className="font-semibold leading-tight">{r.name}</p>
                   <p className="text-xs text-muted-foreground">{r.provider}</p>
@@ -740,14 +850,16 @@ function ResourcesTab({ pathway, profile }: { pathway: PathwayResult | null; pro
               {isRecommended(r) && <Badge className="bg-accent text-accent-foreground shrink-0">{tr("Recommended", "Recommande")}</Badge>}
             </div>
             <div className="flex flex-wrap gap-2 text-xs">
-              <Badge variant="secondary"><Clock className="w-3 h-3" /> {r.duration}</Badge>
+              <Badge variant="secondary" className="inline-flex items-center gap-1"><Clock className="w-3 h-3" /> {r.duration}</Badge>
               {r.level && <Badge variant="outline">{r.level}</Badge>}
               {r.popular && <Badge className="bg-accent text-accent-foreground">{tr("Popular in Morocco", "Populaire au Maroc")}</Badge>}
             </div>
             <p className="text-xs"><strong>{tr("Skill:", "Competence :")} </strong>{r.skill}</p>
-            <p className="text-xs text-muted-foreground italic">🇲🇦 {r.moroccoNote}</p>
-            <a href={r.link} target="_blank" rel="noopener noreferrer">
-              <Button variant="outline" size="sm" className="w-full">
+            <a href={r.link} target="_blank" rel="noopener noreferrer" className="block pt-2">
+              <Button
+                size="sm"
+                className="w-full border border-border bg-secondary text-accent hover:bg-secondary/80"
+              >
                 {r.category === "Virtual Internships" ? tr("Start free", "Commencer gratuitement") : tr("Enroll free", "S'inscrire gratuitement")}
                 <ExternalLink className="w-3 h-3" />
               </Button>
@@ -766,6 +878,7 @@ function ResourcesTab({ pathway, profile }: { pathway: PathwayResult | null; pro
 export default function Forge() {
   const { language } = useLanguage();
   const tr = (en: string, fr: string) => (language === "fr" ? fr : en);
+  const [searchParams] = useSearchParams();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [pathway, setPathway] = useState<PathwayResult | null>(null);
 
@@ -783,7 +896,16 @@ export default function Forge() {
     })();
   }, []);
 
-  const defaultRole = pathway?.pathways?.[0]?.title ?? "Business Analyst";
+  const requestedRole = searchParams.get("role")?.trim() ?? "";
+  const tabParam = searchParams.get("tab");
+  const initialTab = tabParam === "cases" || tabParam === "interview" || tabParam === "resources" ? tabParam : "cases";
+  const [activeTab, setActiveTab] = useState<"cases" | "interview" | "resources">(initialTab);
+  const defaultRole = requestedRole || (pathway?.pathways?.[0]?.title ?? "Business Analyst");
+
+  useEffect(() => {
+    const nextTab = tabParam === "cases" || tabParam === "interview" || tabParam === "resources" ? tabParam : "cases";
+    setActiveTab(nextTab);
+  }, [tabParam]);
 
   return (
     <div className="space-y-6 max-w-6xl">
@@ -792,7 +914,17 @@ export default function Forge() {
         <p className="text-muted-foreground">{tr("Forge your edge in Morocco.", "Forgez votre avantage au Maroc.")}</p>
       </div>
 
-      <Tabs defaultValue="cases">
+      {requestedRole && (
+        <Card className="p-4 border border-accent/20 bg-accent-soft/25">
+          <p className="text-sm">
+            <span className="font-semibold text-accent">{tr("Personalized mode enabled:", "Mode personnalise active :")}</span>{" "}
+            {tr("you are preparing specifically for", "vous vous preparez specifiquement pour")}{" "}
+            <span className="font-semibold">{requestedRole}</span>.
+          </p>
+        </Card>
+      )}
+
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "cases" | "interview" | "resources")}>
         <TabsList className="glass-pill h-auto rounded-full bg-transparent p-1.5 text-foreground/70">
           <TabsTrigger
             value="cases"
@@ -813,7 +945,7 @@ export default function Forge() {
             {tr("Resources", "Ressources")}
           </TabsTrigger>
         </TabsList>
-        <TabsContent value="cases" className="mt-6"><BusinessCasesTab /></TabsContent>
+        <TabsContent value="cases" className="mt-6"><BusinessCasesTab targetRole={requestedRole || defaultRole} /></TabsContent>
         <TabsContent value="interview" className="mt-6"><InterviewPrepTab profile={profile} defaultRole={defaultRole} /></TabsContent>
         <TabsContent value="resources" className="mt-6"><ResourcesTab pathway={pathway} profile={profile} /></TabsContent>
       </Tabs>
