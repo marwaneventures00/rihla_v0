@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Session } from "@supabase/supabase-js";
 
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -24,6 +25,12 @@ export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [accessCode, setAccessCode] = useState("");
+  const [rememberMe, setRememberMe] = useState(true);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("cariva.rememberMe");
+    if (saved === "false") setRememberMe(false);
+  }, []);
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
@@ -98,8 +105,9 @@ export default function Auth() {
         });
       }
       toast.success("Account created. Let's set up your profile.");
-    } catch (err: any) {
-      toast.error(err?.message ?? "Signup failed");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Signup failed";
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -109,10 +117,12 @@ export default function Auth() {
     e.preventDefault();
     setLoading(true);
     try {
+      localStorage.setItem("cariva.rememberMe", rememberMe ? "true" : "false");
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
-    } catch (err: any) {
-      toast.error(err?.message ?? "Sign in failed");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Sign in failed";
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -218,6 +228,18 @@ export default function Auth() {
                   <Label htmlFor="password">Password</Label>
                   <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} minLength={6} required />
                 </div>
+                {mode === "signin" && (
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="remember-me-student"
+                      checked={rememberMe}
+                      onCheckedChange={(checked) => setRememberMe(checked === true)}
+                    />
+                    <Label htmlFor="remember-me-student" className="text-sm text-muted-foreground">
+                      Remember me
+                    </Label>
+                  </div>
+                )}
                 {mode === "signup" && (
                   <div>
                     <Label htmlFor="code">University access code</Label>
@@ -260,6 +282,16 @@ export default function Auth() {
                 <div>
                   <Label htmlFor="apassword">Password</Label>
                   <Input id="apassword" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="remember-me-admin"
+                    checked={rememberMe}
+                    onCheckedChange={(checked) => setRememberMe(checked === true)}
+                  />
+                  <Label htmlFor="remember-me-admin" className="text-sm text-muted-foreground">
+                    Remember me
+                  </Label>
                 </div>
                 <Button type="submit" variant="accent" className="w-full" disabled={loading}>
                   {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}

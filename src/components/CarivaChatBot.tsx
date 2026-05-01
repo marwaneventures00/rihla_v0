@@ -152,7 +152,7 @@ export default function CarivaChatBot() {
         <button
           type="button"
           onClick={openPanel}
-          aria-label="Open Cariva AI chat"
+          aria-label="Open Meet & Greet chat"
           className="fixed bottom-6 right-6 z-[1000] w-14 h-14 rounded-full flex items-center justify-center transition-transform hover:scale-105"
           style={{ backgroundColor: "#000000" }}
         >
@@ -176,7 +176,7 @@ export default function CarivaChatBot() {
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 rounded-full bg-white/20 text-white text-xs font-semibold flex items-center justify-center">C</div>
                 <div>
-                  <p className="text-sm font-semibold text-white leading-tight">Cariva AI</p>
+                  <p className="text-sm font-semibold text-white leading-tight">Meet &amp; Greet</p>
                   <p className="text-[11px] text-white/75 leading-tight">Career Advisor</p>
                 </div>
               </div>
