@@ -35,8 +35,8 @@ const FIELDS = [
   { name: "Other", value: 8 },
 ];
 
-// Navy / red palette
-const FIELD_COLORS = ["#6366F1", "#8B5CF6", "#4F46E5", "#A78BFA", "#7C83FF"];
+// Premium dark-purple palette (easy on the eyes)
+const FIELD_COLORS = ["#4F3A86", "#5B4598", "#6A52A8", "#7A66B6", "#8D7CC4"];
 
 const WAU = [
   40, 48, 55, 62, 70, 82, 95, 110, 128, 144, 162, 180,
@@ -195,11 +195,17 @@ export default function AdminDashboard() {
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={localizedPathways} layout="vertical" margin={{ left: 10 }}>
+                <defs>
+                  <linearGradient id="adminPathwaysBar" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="hsl(var(--accent))" stopOpacity="0.7" />
+                    <stop offset="100%" stopColor="hsl(var(--accent))" stopOpacity="1" />
+                  </linearGradient>
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
                 <XAxis type="number" fontSize={11} tick={{ fill: "hsl(var(--muted-foreground))" }} />
                 <YAxis dataKey="name" type="category" width={130} fontSize={11} tick={{ fill: "hsl(var(--muted-foreground))" }} />
                 <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
-                <Bar dataKey="count" fill="hsl(var(--accent))" radius={[0, 6, 6, 0]} />
+                <Bar dataKey="count" fill="url(#adminPathwaysBar)" radius={[0, 6, 6, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -230,6 +236,12 @@ export default function AdminDashboard() {
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={WAU}>
+                <defs>
+                  <linearGradient id="adminWauLine" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="hsl(var(--accent))" stopOpacity="0.68" />
+                    <stop offset="100%" stopColor="hsl(var(--accent))" stopOpacity="1" />
+                  </linearGradient>
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis dataKey="week" fontSize={11} tick={{ fill: "hsl(var(--muted-foreground))" }} />
                 <YAxis fontSize={11} tick={{ fill: "hsl(var(--muted-foreground))" }} />
@@ -237,7 +249,7 @@ export default function AdminDashboard() {
                 <Line
                   type="monotone"
                   dataKey="users"
-                  stroke="hsl(var(--accent))"
+                  stroke="url(#adminWauLine)"
                   strokeWidth={2.5}
                   dot={{ fill: "hsl(var(--accent))", r: 3 }}
                   activeDot={{ r: 5 }}

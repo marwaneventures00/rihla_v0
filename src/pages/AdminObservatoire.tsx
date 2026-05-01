@@ -950,11 +950,17 @@ export default function AdminObservatoire() {
               <div className="h-[200px] md:h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={ttfBars}>
+                    <defs>
+                      <linearGradient id="obsTtfBar" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stopColor="hsl(var(--accent))" stopOpacity="1" />
+                        <stop offset="100%" stopColor="hsl(var(--accent))" stopOpacity="0.62" />
+                      </linearGradient>
+                    </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                     <XAxis dataKey="name" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} />
                     <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} allowDecimals={false} />
                     <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
-                    <Bar dataKey="graduates" fill="#6366F1" radius={[6, 6, 0, 0]} />
+                    <Bar dataKey="graduates" fill="url(#obsTtfBar)" radius={[6, 6, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -971,6 +977,12 @@ export default function AdminObservatoire() {
               <div className="h-[260px] md:h-[320px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={fieldBars} layout="vertical" margin={{ left: 8, right: 16 }}>
+                    <defs>
+                      <linearGradient id="obsFieldBar" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="hsl(var(--accent))" stopOpacity="0.68" />
+                        <stop offset="100%" stopColor="hsl(var(--accent))" stopOpacity="1" />
+                      </linearGradient>
+                    </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                     <XAxis type="number" domain={[0, 100]} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} />
                     <YAxis type="category" dataKey="field" width={120} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} />
@@ -979,7 +991,7 @@ export default function AdminObservatoire() {
                       {fieldBars.map((entry) => {
                         const isBest = entry.field === bestField;
                         const isWorst = entry.field === worstField && fieldBars.length > 1;
-                        const fill = isBest ? "#22C55E" : isWorst ? "#EF4444" : "#6366F1";
+                        const fill = isBest ? "#22C55E" : isWorst ? "#EF4444" : "url(#obsFieldBar)";
                         return <Cell key={entry.field} fill={fill} />;
                       })}
                     </Bar>
@@ -996,13 +1008,23 @@ export default function AdminObservatoire() {
               <div className="h-[200px] md:h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={sectorBars}>
+                    <defs>
+                      <linearGradient id="obsSectorGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stopColor="hsl(var(--accent))" stopOpacity="1" />
+                        <stop offset="100%" stopColor="hsl(var(--accent))" stopOpacity="0.62" />
+                      </linearGradient>
+                      <linearGradient id="obsDemandGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stopColor="#b9bec9" stopOpacity="0.9" />
+                        <stop offset="100%" stopColor="#8f98ab" stopOpacity="0.72" />
+                      </linearGradient>
+                    </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                     <XAxis dataKey="sector" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} interval={0} angle={-15} textAnchor="end" height={70} />
                     <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} allowDecimals={false} />
                     <Legend />
                     <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
-                    <Bar dataKey="count" name="Graduates" fill="#6366F1" radius={[6, 6, 0, 0]} />
-                    <Bar dataKey="demand" name="Morocco demand" fill="#F3D27A" radius={[6, 6, 0, 0]} />
+                    <Bar dataKey="count" name="Graduates" fill="url(#obsSectorGrad)" radius={[6, 6, 0, 0]} />
+                    <Bar dataKey="demand" name="Morocco demand" fill="url(#obsDemandGrad)" radius={[6, 6, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -1174,11 +1196,17 @@ export default function AdminObservatoire() {
               <div className="h-[200px] md:h-[260px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={surveySeries}>
+                    <defs>
+                      <linearGradient id="obsSurveyLine" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="hsl(var(--accent))" stopOpacity="0.65" />
+                        <stop offset="100%" stopColor="hsl(var(--accent))" stopOpacity="1" />
+                      </linearGradient>
+                    </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                     <XAxis dataKey="month" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }} />
                     <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} allowDecimals={false} />
                     <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
-                    <Line type="monotone" dataKey="responses" stroke="#F3D27A" strokeWidth={2} dot={{ r: 2, fill: "#F3D27A" }} />
+                    <Line type="monotone" dataKey="responses" stroke="url(#obsSurveyLine)" strokeWidth={2.5} dot={{ r: 2, fill: "hsl(var(--accent))" }} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>

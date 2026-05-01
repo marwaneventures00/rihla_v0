@@ -157,11 +157,17 @@ export default function Profile() {
             {scoreHistory.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={scoreHistory}>
+                  <defs>
+                    <linearGradient id="profileReadinessLine" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="hsl(var(--accent))" stopOpacity="0.65" />
+                      <stop offset="100%" stopColor="hsl(var(--accent))" stopOpacity="1" />
+                    </linearGradient>
+                  </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis dataKey="week" fontSize={11} tick={{ fill: "hsl(var(--muted-foreground))" }} />
                   <YAxis domain={[0, 100]} fontSize={11} tick={{ fill: "hsl(var(--muted-foreground))" }} />
                   <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
-                  <Line type="monotone" dataKey="score" stroke="hsl(var(--accent))" strokeWidth={2} dot={{ fill: "hsl(var(--accent))", r: 4 }} />
+                  <Line type="monotone" dataKey="score" stroke="url(#profileReadinessLine)" strokeWidth={2.5} dot={{ fill: "hsl(var(--accent))", r: 4 }} />
                 </LineChart>
               </ResponsiveContainer>
             ) : (

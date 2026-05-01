@@ -283,11 +283,17 @@ function TrendsTab() {
           <div className="h-40">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={techData}>
+                <defs>
+                  <linearGradient id="marketTechLine" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="hsl(var(--accent))" stopOpacity="0.68" />
+                    <stop offset="100%" stopColor="hsl(var(--accent))" stopOpacity="1" />
+                  </linearGradient>
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis dataKey="quarter" fontSize={11} tick={{ fill: "hsl(var(--muted-foreground))" }} />
                 <YAxis fontSize={11} tick={{ fill: "hsl(var(--muted-foreground))" }} />
                 <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
-                <Line type="monotone" dataKey="openings" stroke="hsl(var(--accent))" strokeWidth={2} dot={{ fill: "hsl(var(--accent))" }} />
+                <Line type="monotone" dataKey="openings" stroke="url(#marketTechLine)" strokeWidth={2.5} dot={{ fill: "hsl(var(--accent))" }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -300,11 +306,17 @@ function TrendsTab() {
           <div className="h-40">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={consultingData}>
+                <defs>
+                  <linearGradient id="marketConsultingBar" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="hsl(var(--accent))" stopOpacity="1" />
+                    <stop offset="100%" stopColor="hsl(var(--accent))" stopOpacity="0.65" />
+                  </linearGradient>
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis dataKey="profile" fontSize={11} tick={{ fill: "hsl(var(--muted-foreground))" }} />
                 <YAxis fontSize={11} tick={{ fill: "hsl(var(--muted-foreground))" }} />
                 <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
-                <Bar dataKey="pct" fill="hsl(var(--accent))" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="pct" fill="url(#marketConsultingBar)" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -317,11 +329,17 @@ function TrendsTab() {
           <div className="h-40">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={remoteData}>
+                <defs>
+                  <linearGradient id="marketRemoteLine" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="hsl(var(--accent))" stopOpacity="0.68" />
+                    <stop offset="100%" stopColor="hsl(var(--accent))" stopOpacity="1" />
+                  </linearGradient>
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis dataKey="month" fontSize={11} tick={{ fill: "hsl(var(--muted-foreground))" }} />
                 <YAxis fontSize={11} tick={{ fill: "hsl(var(--muted-foreground))" }} />
                 <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
-                <Line type="monotone" dataKey="pct" stroke="hsl(var(--accent))" strokeWidth={2} dot={{ fill: "hsl(var(--accent))" }} />
+                <Line type="monotone" dataKey="pct" stroke="url(#marketRemoteLine)" strokeWidth={2.5} dot={{ fill: "hsl(var(--accent))" }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -336,6 +354,12 @@ function TrendsTab() {
         <div className="h-[320px]">
           <ResponsiveContainer width="100%" height="100%">
             <ScatterChart margin={{ left: 8, right: 16, top: 26, bottom: 8 }}>
+              <defs>
+                <linearGradient id="marketScatterFill" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="hsl(var(--accent))" stopOpacity="0.95" />
+                  <stop offset="100%" stopColor="hsl(var(--accent))" stopOpacity="0.58" />
+                </linearGradient>
+              </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis
                 type="number"
@@ -368,7 +392,7 @@ function TrendsTab() {
                 }}
                 labelFormatter={(_, payload) => payload?.[0]?.payload?.sector ?? ""}
               />
-              <Scatter data={sectorDemand} fill="hsl(var(--accent))" fillOpacity={0.8}>
+              <Scatter data={sectorDemand} fill="url(#marketScatterFill)" fillOpacity={0.9}>
                 <LabelList
                   dataKey="sector"
                   position="top"

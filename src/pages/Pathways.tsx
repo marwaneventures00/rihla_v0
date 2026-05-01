@@ -72,8 +72,16 @@ export default function Compass() {
   return (
     <div className="space-y-8 max-w-6xl">
       {/* Profile summary */}
-      <Card className="p-8 shadow-card">
-        <div className="grid md:grid-cols-[1fr_auto] gap-6 items-center">
+      <Card className="p-8 bg-card/42 backdrop-blur-md border border-border/70 shadow-elevated relative overflow-hidden">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(135deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.08) 45%, rgba(99,102,241,0.08) 100%)",
+          }}
+        />
+        <div className="relative z-10 grid md:grid-cols-[1fr_auto] gap-6 items-center">
           <div>
             <p className="text-sm text-muted-foreground mb-1">{tr("My Compass", "Votre profil de carriere")}</p>
             <h1 className="text-3xl font-bold mb-3">
@@ -148,10 +156,16 @@ function ScoreRing({ score }: { score: number }) {
   return (
     <div className="relative w-36 h-36 shrink-0">
       <svg className="w-full h-full -rotate-90" viewBox="0 0 140 140">
+        <defs>
+          <linearGradient id="compassScoreGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="hsl(var(--accent))" stopOpacity="0.7" />
+            <stop offset="100%" stopColor="hsl(var(--accent))" stopOpacity="1" />
+          </linearGradient>
+        </defs>
         <circle cx="70" cy="70" r={radius} stroke="hsl(var(--border))" strokeWidth="10" fill="none" />
         <circle
           cx="70" cy="70" r={radius}
-          stroke="hsl(var(--accent))" strokeWidth="10" fill="none"
+          stroke="url(#compassScoreGradient)" strokeWidth="10" fill="none"
           strokeDasharray={circumference}
           strokeDashoffset={offset}
           strokeLinecap="round"
@@ -178,8 +192,12 @@ function PathwayCard({ pathway: p }: { pathway: PathwayResult["Compass"][number]
         </div>
         <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
           <div
-            className="h-full bg-gradient-accent rounded-full transition-all duration-700"
-            style={{ width: `${p.fitScore}%` }}
+            className="h-full rounded-full transition-all duration-700"
+            style={{
+              width: `${p.fitScore}%`,
+              background: "linear-gradient(90deg, hsl(var(--accent) / 0.72) 0%, hsl(var(--accent)) 100%)",
+              boxShadow: "0 0 10px hsl(var(--accent) / 0.35)",
+            }}
           />
         </div>
       </div>

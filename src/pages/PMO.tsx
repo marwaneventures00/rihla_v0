@@ -387,7 +387,7 @@ export default function PMO() {
   }
 
   return (
-    <div className="min-h-full rounded-xl p-4 md:p-8" style={{ backgroundColor: PMO_BG, color: PMO_TEXT, fontFamily: "Inter, sans-serif" }}>
+    <div className="space-y-6" style={{ color: PMO_TEXT, fontFamily: "Inter, sans-serif" }}>
       <div className="flex items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">

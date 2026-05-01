@@ -182,77 +182,103 @@ export default function AppLayout({ requireRole }: { requireRole?: Role }) {
   const hasBoth = availableRoles.length > 1;
 
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={false}>
       <div className="min-h-screen flex w-full bg-background">
         <AppSidebar items={items} />
 
-        <div className="flex-1 flex flex-col min-w-0">
-          <header className="h-16 border-b border-border bg-card flex items-center px-4 gap-3 sticky top-0 z-10">
-            <SidebarTrigger />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm text-muted-foreground truncate">{profile?.institution_name ?? "—"}</p>
-            </div>
+        <div className="flex-1 flex flex-col min-w-0 md:pl-20">
+          <header className="sticky top-0 z-30 px-4 pt-4 pb-2 bg-transparent">
+            <div className="flex justify-center">
+              <div className="glass-pill rounded-full inline-flex items-center gap-1.5 px-2 py-1.5 max-w-full">
+                <SidebarTrigger className="h-9 w-9 rounded-full hover:bg-foreground/5" />
 
-            {hasBoth && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="gap-2">
-                    {activeView === "admin" ? <ShieldCheck className="w-4 h-4" /> : <GraduationCap className="w-4 h-4" />}
-                    <span className="hidden sm:inline">{activeView === "admin" ? t("app.adminView", "Admin view") : t("app.studentView", "Student view")}</span>
-                    <ChevronDown className="w-3.5 h-3.5 opacity-60" />
+                {profile?.institution_name && (
+                  <>
+                    <span className="hidden sm:inline-block text-sm font-medium text-foreground/80 truncate max-w-[160px] px-2">
+                      {profile.institution_name}
+                    </span>
+                    <span className="h-5 w-px bg-border/60 mx-0.5" />
+                  </>
+                )}
+
+                {hasBoth && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" className="gap-2 rounded-full hover:bg-foreground/5">
+                        {activeView === "admin" ? <ShieldCheck className="w-4 h-4" /> : <GraduationCap className="w-4 h-4" />}
+                        <span className="hidden sm:inline">{activeView === "admin" ? t("app.adminView", "Admin view") : t("app.studentView", "Student view")}</span>
+                        <ChevronDown className="w-3.5 h-3.5 opacity-60" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuLabel>{t("app.switchView", "Switch view")}</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => switchView("student")}>
+                        <GraduationCap className="w-4 h-4 mr-2" /> {t("app.studentView", "Student view")}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => switchView("admin")}>
+                        <ShieldCheck className="w-4 h-4 mr-2" /> {t("app.adminView", "Admin view")}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={toggleLanguage}
+                  aria-label="Toggle language"
+                  className="h-9 w-9 rounded-full hover:bg-foreground/5"
+                >
+                  <Languages className="w-4 h-4" />
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={toggleTheme}
+                  aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+                  className="h-9 w-9 rounded-full hover:bg-foreground/5"
+                >
+                  {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                </Button>
+
+                <button
+                  className="relative w-9 h-9 rounded-full hover:bg-foreground/5 flex items-center justify-center transition-colors"
+                  aria-label="Notifications"
+                >
+                  <Bell className="w-4 h-4" />
+                  <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-accent" />
+                </button>
+
+                <span className="h-5 w-px bg-border/60 mx-0.5" />
+
+                <div className="flex items-center gap-2 pl-1 pr-1">
+                  <div className="w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center text-sm font-semibold">
+                    {initials}
+                  </div>
+                  <div className="hidden md:block text-sm leading-tight">
+                    <p className="font-medium">{profile?.full_name ?? "User"}</p>
+                    <p className="text-[11px] text-muted-foreground capitalize">{activeView}</p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={signOut}
+                    aria-label={t("app.signOut", "Sign out")}
+                    className="h-9 w-9 rounded-full hover:bg-foreground/5"
+                  >
+                    <LogOut className="w-4 h-4" />
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>{t("app.switchView", "Switch view")}</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => switchView("student")}>
-                    <GraduationCap className="w-4 h-4 mr-2" /> {t("app.studentView", "Student view")}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => switchView("admin")}>
-                    <ShieldCheck className="w-4 h-4 mr-2" /> {t("app.adminView", "Admin view")}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={toggleLanguage}
-              aria-label="Toggle language"
-            >
-              <Languages className="w-4 h-4" />
-            </Button>
-
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={toggleTheme}
-              aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
-            >
-              {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            </Button>
-
-            <button className="relative w-9 h-9 rounded-full hover:bg-secondary flex items-center justify-center transition-colors" aria-label="Notifications">
-              <Bell className="w-4 h-4" />
-              <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-accent" />
-            </button>
-            <div className="flex items-center gap-2 pl-2 border-l border-border">
-              <div className="w-9 h-9 rounded-full bg-accent text-accent-foreground flex items-center justify-center text-sm font-semibold">
-                {initials}
+                </div>
               </div>
-              <div className="hidden sm:block text-sm">
-                <p className="font-medium leading-tight">{profile?.full_name ?? "User"}</p>
-                <p className="text-xs text-muted-foreground capitalize">{activeView}</p>
-              </div>
-              <Button variant="ghost" size="icon" onClick={signOut} aria-label={t("app.signOut", "Sign out")}>
-                <LogOut className="w-4 h-4" />
-              </Button>
             </div>
           </header>
 
-          <main className="flex-1 p-6 lg:p-8">
-            <Outlet />
+          <main className="flex-1 px-4 sm:px-6 lg:px-10 pb-8 pt-2">
+            <div className="mx-auto w-full max-w-[1320px]">
+              <Outlet />
+            </div>
           </main>
           {activeView === "student" && <CarivaChatBot />}
         </div>
@@ -273,12 +299,16 @@ function AppSidebar({ items }: { items: NavItem[] }) {
   const collapsed = state === "collapsed";
   const location = useLocation();
 
+  const activeClass = collapsed
+    ? "!bg-white/20 !text-white"
+    : "!bg-accent-soft !text-accent border-l-accent font-medium";
+
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="px-4 py-5 border-b border-sidebar-border">
-        <div className="flex items-center gap-2.5 overflow-hidden">
+      <SidebarHeader className={`${collapsed ? "px-2 py-4" : "px-4 py-5"} border-b border-sidebar-border transition-all duration-200`}>
+        <div className={`flex items-center gap-2.5 ${collapsed ? "justify-center" : ""}`}>
           <div className="shrink-0 w-9 h-9 rounded-lg bg-gradient-accent flex items-center justify-center text-accent-foreground">
-            <CarivaLogo className="w-6 h-6" />
+            <span className="text-sm font-semibold leading-none">C</span>
           </div>
           {!collapsed && (
             <div className="min-w-0">
@@ -295,12 +325,12 @@ function AppSidebar({ items }: { items: NavItem[] }) {
                 const active = location.pathname === item.url || (item.url !== "/admin" && location.pathname.startsWith(item.url));
                 return (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild isActive={active}>
+                    <SidebarMenuButton asChild isActive={active} tooltip={collapsed ? item.title : undefined}>
                       <NavLink
                         to={item.url}
                         end={item.url === "/admin"}
                         className="flex items-center gap-3 rounded-md transition-colors border-l-2 border-transparent"
-                        activeClassName="!bg-accent-soft !text-accent border-l-accent font-medium"
+                        activeClassName={activeClass}
                       >
                         <item.icon className="w-4 h-4 shrink-0" />
                         {!collapsed && (
