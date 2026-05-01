@@ -158,7 +158,7 @@ export default function AppLayout({ requireRole }: { requireRole?: Role }) {
     { title: "Pipeline", url: "/pmo", icon: GitBranch },
     { title: "Briefing", url: "/pulse", icon: Zap },
     { title: "Edge", url: "/profile", icon: TrendingUp },
-    { title: "Mentor", url: "/meet-and-greet", icon: MessageCircle },
+    { title: "Meet & Greet", url: "/meet-and-greet", icon: MessageCircle },
   ];
   const ADMIN_ITEMS = [
     { title: t("nav.dashboard", "Command"), url: "/admin", icon: LayoutDashboard },
