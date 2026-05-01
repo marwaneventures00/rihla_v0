@@ -182,13 +182,13 @@ export default function AppLayout({ requireRole }: { requireRole?: Role }) {
           <header className="h-16 border-b border-border bg-card flex items-center px-4 gap-3 sticky top-0 z-10">
             <SidebarTrigger />
             <div className="flex-1 min-w-0">
-              <p className="text-xs text-[#A0A0B8] truncate">{profile?.institution_name ?? "—"}</p>
+              <p className="text-sm text-muted-foreground truncate">{profile?.institution_name ?? "—"}</p>
             </div>
 
             {hasBoth && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="gap-2">
+                  <Button variant="outline" size="sm" className="gap-2">
                     {activeView === "admin" ? <ShieldCheck className="w-4 h-4" /> : <GraduationCap className="w-4 h-4" />}
                     <span className="hidden sm:inline">{activeView === "admin" ? t("app.adminView", "Admin view") : t("app.studentView", "Student view")}</span>
                     <ChevronDown className="w-3.5 h-3.5 opacity-60" />
@@ -208,29 +208,29 @@ export default function AppLayout({ requireRole }: { requireRole?: Role }) {
             )}
 
             <Button
-              variant="ghost"
+              variant="outline"
               size="icon"
               onClick={toggleLanguage}
               aria-label="Toggle language"
             >
-              <Languages className="w-4 h-4 text-[#A0A0B8] hover:text-white" />
+              <Languages className="w-4 h-4" />
             </Button>
 
             <Button
-              variant="ghost"
+              variant="outline"
               size="icon"
               onClick={toggleTheme}
               aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
             >
-              {isDarkMode ? <Sun className="w-4 h-4 text-[#A0A0B8] hover:text-white" /> : <Moon className="w-4 h-4 text-[#A0A0B8] hover:text-white" />}
+              {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </Button>
 
             <button className="relative w-9 h-9 rounded-full hover:bg-secondary flex items-center justify-center transition-colors" aria-label="Notifications">
-              <Bell className="w-4 h-4 text-[#A0A0B8] hover:text-white" />
-              <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-primary" />
+              <Bell className="w-4 h-4" />
+              <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-accent" />
             </button>
             <div className="flex items-center gap-2 pl-2 border-l border-border">
-              <div className="w-9 h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">
+              <div className="w-9 h-9 rounded-full bg-accent text-accent-foreground flex items-center justify-center text-sm font-semibold">
                 {initials}
               </div>
               <div className="hidden sm:block text-sm">
@@ -243,10 +243,8 @@ export default function AppLayout({ requireRole }: { requireRole?: Role }) {
             </div>
           </header>
 
-          <main className="flex-1 p-4 md:p-8 lg:px-10 lg:py-8">
-            <div className="w-full max-w-[1200px] mx-auto">
-              <Outlet />
-            </div>
+          <main className="flex-1 p-6 lg:p-8">
+            <Outlet />
           </main>
         </div>
       </div>
@@ -270,12 +268,12 @@ function AppSidebar({ items }: { items: NavItem[] }) {
     <Sidebar collapsible="icon">
       <SidebarHeader className="px-4 py-5 border-b border-sidebar-border">
         <div className="flex items-center gap-2.5 overflow-hidden">
-          <div className="shrink-0 w-9 h-9 rounded-lg border border-sidebar-border bg-transparent flex items-center justify-center text-white">
+          <div className="shrink-0 w-9 h-9 rounded-lg bg-gradient-accent flex items-center justify-center text-accent-foreground">
             <CarivaLogo className="w-6 h-6" />
           </div>
           {!collapsed && (
             <div className="min-w-0">
-              <p className="font-semibold leading-none text-white">Cariva</p>
+              <p className="font-bold leading-none">Cariva</p>
             </div>
           )}
         </div>
@@ -292,8 +290,8 @@ function AppSidebar({ items }: { items: NavItem[] }) {
                       <NavLink
                         to={item.url}
                         end={item.url === "/admin"}
-                        className="flex items-center gap-3 rounded-md transition-colors border-l-[3px] border-transparent"
-                        activeClassName="!bg-[rgba(200,16,46,0.08)] !text-white border-l-primary font-semibold"
+                        className="flex items-center gap-3 rounded-md transition-colors border-l-2 border-transparent"
+                        activeClassName="!bg-accent-soft !text-accent border-l-accent font-medium"
                       >
                         <item.icon className="w-4 h-4 shrink-0" />
                         {!collapsed && (

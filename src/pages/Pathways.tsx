@@ -70,13 +70,13 @@ export default function Pathways() {
   if (!result) return null;
 
   return (
-    <div className="space-y-12 max-w-6xl">
+    <div className="space-y-8 max-w-6xl">
       {/* Profile summary */}
-      <Card className="p-6 md:p-8">
+      <Card className="p-8 shadow-card">
         <div className="grid md:grid-cols-[1fr_auto] gap-6 items-center">
           <div>
-            <p className="text-[11px] uppercase tracking-[0.06em] text-[#A0A0B8] mb-1">{tr("Your career profile", "Votre profil de carriere")}</p>
-            <h1 className="text-2xl font-semibold mb-3 text-foreground">
+            <p className="text-sm text-muted-foreground mb-1">{tr("Your career profile", "Votre profil de carriere")}</p>
+            <h1 className="text-3xl font-bold mb-3">
               {profile?.full_name ?? tr("Your", "Vos")} {tr("pathways", "parcours")}
             </h1>
             <p className="text-muted-foreground mb-4">
@@ -84,7 +84,7 @@ export default function Pathways() {
             </p>
             <div className="flex flex-wrap gap-2">
               {result.topTraits.map((t) => (
-                <Badge key={t} variant="secondary" className="text-[11px] bg-transparent text-[#4A4A6A] border border-border rounded-md">
+                <Badge key={t} variant="secondary" className="text-sm bg-accent-soft text-accent border-0">
                   {t}
                 </Badge>
               ))}
@@ -103,8 +103,8 @@ export default function Pathways() {
 
       {/* Pathways */}
       <section>
-        <h2 className="text-base font-medium mb-4">{tr("Recommended pathways", "Parcours recommandes")}</h2>
-        <div className="grid md:grid-cols-3 gap-4">
+        <h2 className="text-xl font-bold mb-4">{tr("Recommended pathways", "Parcours recommandes")}</h2>
+        <div className="grid md:grid-cols-3 gap-5">
           {result.pathways.map((p) => (
             <PathwayCard key={p.title} pathway={p} />
           ))}
@@ -112,16 +112,16 @@ export default function Pathways() {
       </section>
 
       {/* Action plan */}
-      <Card className="p-6 md:p-8">
+      <Card className="p-8 shadow-card">
         <div className="flex items-center gap-3 mb-1">
-          <TrendingUp className="w-5 h-5 text-primary" />
-          <h2 className="text-base font-medium">{tr("Your 90-day action plan", "Votre plan d'action sur 90 jours")}</h2>
+          <TrendingUp className="w-5 h-5 text-accent" />
+          <h2 className="text-xl font-bold">{tr("Your 90-day action plan", "Votre plan d'action sur 90 jours")}</h2>
         </div>
         <p className="text-sm text-muted-foreground mb-6">{tr("Concrete steps to bridge your skills gap and start building momentum.", "Des actions concretes pour reduire vos ecarts de competences et prendre de l'elan.")}</p>
         <ol className="space-y-3">
           {result.actionPlan.map((a, i) => (
-            <li key={i} className="flex gap-4 p-4 rounded-lg border border-border hover:border-border transition-colors">
-              <div className="shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">
+            <li key={i} className="flex gap-4 p-4 rounded-lg border border-border hover:border-accent/40 transition-colors">
+              <div className="shrink-0 w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center text-sm font-bold">
                 {i + 1}
               </div>
               <p className="text-sm leading-relaxed pt-1">{a}</p>
@@ -151,7 +151,7 @@ function ScoreRing({ score }: { score: number }) {
         <circle cx="70" cy="70" r={radius} stroke="hsl(var(--border))" strokeWidth="10" fill="none" />
         <circle
           cx="70" cy="70" r={radius}
-          stroke="hsl(var(--primary))" strokeWidth="10" fill="none"
+          stroke="hsl(var(--accent))" strokeWidth="10" fill="none"
           strokeDasharray={circumference}
           strokeDashoffset={offset}
           strokeLinecap="round"
@@ -159,7 +159,7 @@ function ScoreRing({ score }: { score: number }) {
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-3xl font-bold text-primary">{score}</span>
+        <span className="text-3xl font-bold">{score}</span>
         <span className="text-xs text-muted-foreground">{tr("readiness", "maturite")}</span>
       </div>
     </div>
@@ -170,15 +170,15 @@ function PathwayCard({ pathway: p }: { pathway: PathwayResult["pathways"][number
   const { language } = useLanguage();
   const tr = (en: string, fr: string) => (language === "fr" ? fr : en);
   return (
-    <Card className="p-6 flex flex-col gap-5 hover:shadow-card transition-shadow">
+    <Card className="p-6 flex flex-col gap-4 hover:shadow-elevated transition-shadow">
       <div>
         <div className="flex items-start justify-between gap-2 mb-2">
-          <h3 className="text-[15px] font-medium leading-snug text-foreground">{p.title}</h3>
-          <Badge className="bg-primary text-primary-foreground border-0 shrink-0 rounded-md text-[10px]">{p.fitScore}%</Badge>
+          <h3 className="font-bold text-lg leading-snug">{p.title}</h3>
+          <Badge className="bg-accent-soft text-accent border-0 shrink-0">{p.fitScore}%</Badge>
         </div>
-        <div className="h-1 bg-secondary rounded-full overflow-hidden">
+        <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
           <div
-            className="h-full bg-primary rounded-full transition-all duration-700"
+            className="h-full bg-gradient-accent rounded-full transition-all duration-700"
             style={{ width: `${p.fitScore}%` }}
           />
         </div>
@@ -187,41 +187,41 @@ function PathwayCard({ pathway: p }: { pathway: PathwayResult["pathways"][number
       <ul className="space-y-1.5 text-sm text-muted-foreground">
         {p.whyItFits.map((w, i) => (
           <li key={i} className="flex gap-2">
-            <span className="text-primary shrink-0">•</span>
+            <span className="text-accent shrink-0">•</span>
             <span>{w}</span>
           </li>
         ))}
       </ul>
 
       <div className="border-t border-border pt-4">
-        <p className="text-[11px] uppercase tracking-[0.08em] text-[#A0A0B8] mb-2">{tr("Trajectory", "Trajectoire")}</p>
-        <div className="space-y-2 text-sm">
-          <p className="flex items-center gap-2"><span className="inline-block w-2 h-2 rounded-full bg-primary" /><span className="text-[13px] text-[#A0A0B8]">Y1</span> <span className="text-sm text-foreground">{p.trajectory.Y1}</span></p>
-          <p className="flex items-center gap-2"><span className="inline-block w-2 h-2 rounded-full bg-[#A0A0B8]" /><span className="text-[13px] text-[#A0A0B8]">Y3</span> <span className="text-sm text-foreground">{p.trajectory.Y3}</span></p>
-          <p className="flex items-center gap-2"><span className="inline-block w-2 h-2 rounded-full bg-[#A0A0B8]" /><span className="text-[13px] text-[#A0A0B8]">Y5</span> <span className="text-sm text-foreground">{p.trajectory.Y5}</span></p>
+        <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2">{tr("Trajectory", "Trajectoire")}</p>
+        <div className="space-y-1 text-sm">
+          <p><span className="font-semibold text-accent">Y1</span> · {p.trajectory.Y1}</p>
+          <p><span className="font-semibold text-accent">Y3</span> · {p.trajectory.Y3}</p>
+          <p><span className="font-semibold text-accent">Y5</span> · {p.trajectory.Y5}</p>
         </div>
       </div>
 
       <div className="border-t border-border pt-4 grid grid-cols-2 gap-3 text-sm">
         <div>
-          <p className="text-[11px] uppercase tracking-[0.08em] text-[#A0A0B8] mb-1 flex items-center gap-1">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1 flex items-center gap-1">
             <MapPin className="w-3 h-3" /> {tr("Salary (MAD/mo)", "Salaire (MAD/mois)")}
           </p>
-          <p className="text-sm text-foreground">{p.salaryRange.min.toLocaleString()}–{p.salaryRange.max.toLocaleString()}</p>
+          <p className="font-semibold">{p.salaryRange.min.toLocaleString()}–{p.salaryRange.max.toLocaleString()}</p>
         </div>
         <div>
-          <p className="text-[11px] uppercase tracking-[0.08em] text-[#A0A0B8] mb-1 flex items-center gap-1">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1 flex items-center gap-1">
             <Users className="w-3 h-3" /> {tr("Top employers", "Principaux employeurs")}
           </p>
-          <p className="text-[13px] leading-tight text-[#A0A0B8]">{p.topEmployers.join(' · ')}</p>
+          <p className="text-xs leading-tight">{p.topEmployers.join(' · ')}</p>
         </div>
       </div>
 
       <div className="border-t border-border pt-4">
-        <p className="text-[11px] uppercase tracking-[0.08em] text-[#A0A0B8] mb-2">{tr("Skills gap", "Ecarts de competences")}</p>
+        <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2">{tr("Skills gap", "Ecarts de competences")}</p>
         <div className="flex flex-wrap gap-1.5">
           {p.skillsGap.map((s) => (
-            <span key={s} className="text-xs px-2 py-1 rounded-full bg-transparent text-primary border border-primary">{s}</span>
+            <span key={s} className="text-xs px-2 py-1 rounded-full bg-secondary text-foreground border border-border">{s}</span>
           ))}
         </div>
       </div>
