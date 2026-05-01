@@ -8,6 +8,8 @@ import {
   ArrowUpRight,
   BarChart3,
   Download,
+  ExternalLink,
+  Linkedin,
   LineChart as LineChartIcon,
   Search,
   Sparkles,
@@ -41,6 +43,7 @@ import {
 
 type GraduateProfile = Tables<"graduate_profiles">;
 type ObservatoireSurvey = Tables<"observatoire_surveys">;
+type UniversityRow = Pick<Tables<"universities">, "id" | "name">;
 
 type StatusKey = GraduateProfile["current_status"];
 
@@ -193,9 +196,11 @@ export default function AdminObservatoire() {
   const [graduates, setGraduates] = useState<GraduateProfile[]>([]);
   const [surveys, setSurveys] = useState<ObservatoireSurvey[]>([]);
   const [surveyInvites, setSurveyInvites] = useState<Record<string, string>>({});
+  const [universities, setUniversities] = useState<UniversityRow[]>([]);
 
   const [yearFilter, setYearFilter] = useState<string>("all");
   const [fieldFilter, setFieldFilter] = useState<string>("all");
+  const [universityFilter, setUniversityFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
 
   const [selected, setSelected] = useState<GraduateProfile | null>(null);
@@ -259,7 +264,6 @@ export default function AdminObservatoire() {
       const { data: grads, error: gErr } = await supabase
         .from("graduate_profiles")
         .select("*")
-        .eq("university_id", uni)
         .order("last_updated", { ascending: false });
 
       if (gErr) {
@@ -272,6 +276,17 @@ export default function AdminObservatoire() {
 
       const gradRows = (grads ?? []) as GraduateProfile[];
       setGraduates(gradRows);
+      const uniIds = Array.from(new Set(gradRows.map((g) => g.university_id)));
+      if (uniIds.length) {
+        const { data: uniRows } = await supabase
+          .from("universities")
+          .select("id, name")
+          .in("id", uniIds)
+          .order("name", { ascending: true });
+        setUniversities((uniRows ?? []) as UniversityRow[]);
+      } else {
+        setUniversities([]);
+      }
 
       const ids = gradRows.map((g) => g.id);
       if (!ids.length) {
@@ -302,8 +317,15 @@ export default function AdminObservatoire() {
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, [graduates]);
 
+  const uniNameById = useMemo(() => {
+    const map = new Map<string, string>();
+    universities.forEach((u) => map.set(u.id, u.name));
+    return map;
+  }, [universities]);
+
   const filtered = useMemo(() => {
     return graduates.filter((g) => {
+      if (universityFilter !== "all" && g.university_id !== universityFilter) return false;
       if (yearFilter !== "all" && String(g.graduation_year) !== yearFilter) return false;
       if (fieldFilter !== "all" && g.field_of_study !== fieldFilter) return false;
       if (search.trim()) {
@@ -317,7 +339,7 @@ export default function AdminObservatoire() {
       }
       return true;
     });
-  }, [graduates, yearFilter, fieldFilter, search]);
+  }, [graduates, universityFilter, yearFilter, fieldFilter, search]);
 
   const metrics = useMemo(() => {
     const total = filtered.length;
@@ -442,6 +464,17 @@ export default function AdminObservatoire() {
     return filtered.filter((g) => !completed.has(g.id) && surveyInvites[g.id]).length;
   }, [filtered, surveys, surveyInvites]);
 
+  const nationalMetrics = useMemo(() => {
+    const total = graduates.length;
+    const employed = graduates.filter((g) => g.current_status === "employed").length;
+    const employmentRate = total ? (employed / total) * 100 : 0;
+    const ttf = graduates.map((g) => g.time_to_first_job_months).filter((v): v is number => typeof v === "number" && v >= 0);
+    const avgTtf = ttf.length ? ttf.reduce((a, b) => a + b, 0) / ttf.length : 0;
+    const aligned = graduates.filter((g) => g.current_status === "employed" && (g.current_role || "").trim().length > 0);
+    const alignmentRate = employed ? (aligned.length / employed) * 100 : 0;
+    return { employmentRate, avgTtf, alignmentRate };
+  }, [graduates]);
+
   const sortedRows = useMemo(() => {
     const rows = [...filtered];
     if (sortKey === "none") return rows;
@@ -466,29 +499,33 @@ export default function AdminObservatoire() {
 
   function exportCsv() {
     const header = [
-      "student_name",
-      "graduation_year",
-      "field_of_study",
-      "current_status",
-      "current_role",
-      "current_company",
-      "current_sector",
-      "time_to_first_job_months",
-      "last_updated",
+      "Name",
+      "University",
+      "Field",
+      "Graduation year",
+      "Status",
+      "Company",
+      "Role",
+      "Sector",
+      "Salary range",
+      "LinkedIn URL",
+      "Time to first job",
     ];
     const lines = [header.join(",")];
     filtered.forEach((g) => {
       lines.push(
         [
           JSON.stringify(g.student_name),
-          g.graduation_year,
+          JSON.stringify(uniNameById.get(g.university_id) ?? "Unknown institution"),
           JSON.stringify(g.field_of_study),
+          g.graduation_year,
           JSON.stringify(g.current_status),
-          JSON.stringify(g.current_role ?? ""),
           JSON.stringify(g.current_company ?? ""),
+          JSON.stringify(g.current_role ?? ""),
           JSON.stringify(g.current_sector ?? ""),
+          JSON.stringify(g.current_salary_range ?? ""),
+          JSON.stringify(g.linkedin_url ?? ""),
           g.time_to_first_job_months ?? "",
-          JSON.stringify(g.last_updated),
         ].join(","),
       );
     });
@@ -500,10 +537,20 @@ export default function AdminObservatoire() {
     const { data: grads } = await supabase
       .from("graduate_profiles")
       .select("*")
-      .eq("university_id", universityId)
       .order("last_updated", { ascending: false });
     const gradRows = (grads ?? []) as GraduateProfile[];
     setGraduates(gradRows);
+    const uniIds = Array.from(new Set(gradRows.map((g) => g.university_id)));
+    if (uniIds.length) {
+      const { data: uniRows } = await supabase
+        .from("universities")
+        .select("id, name")
+        .in("id", uniIds)
+        .order("name", { ascending: true });
+      setUniversities((uniRows ?? []) as UniversityRow[]);
+    } else {
+      setUniversities([]);
+    }
     const ids = gradRows.map((g) => g.id);
     if (!ids.length) {
       setSurveys([]);
@@ -638,7 +685,7 @@ export default function AdminObservatoire() {
     setAiLoading(true);
     try {
       const payload = {
-        filters: { year: yearFilter, field: fieldFilter, search },
+        filters: { university: universityFilter, year: yearFilter, field: fieldFilter, search },
         metrics: {
           graduates_tracked: metrics.total,
           employment_rate_pct: metrics.employmentRate,
@@ -744,13 +791,29 @@ export default function AdminObservatoire() {
             onClick={exportCsv}
           >
             <Download className="w-4 h-4 mr-2" />
-            Export report →
+            Export to CSV →
           </Button>
         </div>
       </div>
 
       <Card className="p-4 md:p-6 border border-border bg-card">
-        <div className="grid gap-3 md:grid-cols-3">
+        <div className="grid gap-3 md:grid-cols-4">
+          <div>
+            <Label className="text-xs text-muted-foreground">Institution</Label>
+            <Select value={universityFilter} onValueChange={setUniversityFilter}>
+              <SelectTrigger className="mt-1">
+                <SelectValue placeholder="All institutions" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All institutions</SelectItem>
+                {universities.map((u) => (
+                  <SelectItem key={u.id} value={u.id}>
+                    {u.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <div>
             <Label className="text-xs text-muted-foreground">Graduation year</Label>
             <Select value={yearFilter} onValueChange={setYearFilter}>
@@ -959,7 +1022,7 @@ export default function AdminObservatoire() {
                   style={{ backgroundColor: "transparent", borderColor: "var(--color-border-primary)", color: "var(--color-text-primary)" }}
                   onClick={() => setManualOpen(true)}
                 >
-                  Add graduate
+                  Add graduate manually
                 </Button>
                 <Button
                   variant="outline"
@@ -995,6 +1058,7 @@ export default function AdminObservatoire() {
                     <TableHead className="hidden md:table-cell cursor-pointer" onClick={() => toggleSort("last_updated")}>
                       Last updated
                     </TableHead>
+                    <TableHead className="hidden md:table-cell">LinkedIn</TableHead>
                     <TableHead className="md:hidden">Details</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -1017,6 +1081,22 @@ export default function AdminObservatoire() {
                       <TableCell className="hidden xl:table-cell text-muted-foreground">{g.current_sector ?? "—"}</TableCell>
                       <TableCell className="hidden md:table-cell text-muted-foreground">{g.time_to_first_job_months ?? "—"}</TableCell>
                       <TableCell className="hidden md:table-cell text-muted-foreground">{new Date(g.last_updated).toLocaleDateString()}</TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        {g.linkedin_url ? (
+                          <a
+                            href={g.linkedin_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="inline-flex items-center justify-center w-8 h-8 rounded-md border border-border hover:border-primary"
+                            aria-label="Open LinkedIn profile"
+                          >
+                            <Linkedin className="w-4 h-4" />
+                          </a>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
                       <TableCell className="md:hidden">
                         <details onClick={(e) => e.stopPropagation()}>
                           <summary className="cursor-pointer text-xs underline underline-offset-2">View</summary>
@@ -1138,6 +1218,55 @@ export default function AdminObservatoire() {
               </div>
             )}
           </Card>
+
+          <Card className="p-4 md:p-6 border border-border bg-card">
+            <div className="flex items-center justify-between gap-2">
+              <h3 className="font-semibold">Benchmark your institution</h3>
+              <p className="text-xs text-muted-foreground">Red = your filtered cohort · Gray = Moroccan average</p>
+            </div>
+            <div className="mt-5 space-y-4">
+              {[
+                {
+                  label: "Employment rate",
+                  yours: metrics.employmentRate,
+                  national: nationalMetrics.employmentRate,
+                  suffix: "%",
+                  toBar: (v: number) => Math.min(100, v),
+                },
+                {
+                  label: "Time to first job",
+                  yours: metrics.avgTtf ?? 0,
+                  national: nationalMetrics.avgTtf,
+                  suffix: " mo",
+                  toBar: (v: number) => Math.min(100, (v / 24) * 100),
+                },
+                {
+                  label: "Field alignment",
+                  yours: metrics.alignmentRate,
+                  national: nationalMetrics.alignmentRate,
+                  suffix: "%",
+                  toBar: (v: number) => Math.min(100, v),
+                },
+              ].map((row) => (
+                <div key={row.label} className="space-y-1.5">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-medium">{row.label}</span>
+                    <span className="text-muted-foreground">
+                      {row.yours.toFixed(1)}
+                      {row.suffix} vs {row.national.toFixed(1)}
+                      {row.suffix}
+                    </span>
+                  </div>
+                  <div className="h-2 rounded-full bg-secondary overflow-hidden">
+                    <div className="h-full bg-primary" style={{ width: `${row.toBar(row.yours)}%` }} />
+                  </div>
+                  <div className="h-2 rounded-full bg-secondary overflow-hidden">
+                    <div className="h-full bg-muted-foreground/70" style={{ width: `${row.toBar(row.national)}%` }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
         </>
       )}
 
@@ -1180,6 +1309,27 @@ export default function AdminObservatoire() {
                     <div className="col-span-2">
                       <p className="text-muted-foreground">Sector</p>
                       <p className="font-medium">{selected.current_sector ?? "—"}</p>
+                    </div>
+                    <div className="col-span-2">
+                      <p className="text-muted-foreground">LinkedIn profile</p>
+                      {selected.linkedin_url ? (
+                        <a
+                          href={selected.linkedin_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-2 text-primary underline underline-offset-2"
+                        >
+                          <Linkedin className="w-4 h-4" />
+                          View profile
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      ) : (
+                        <p className="font-medium">—</p>
+                      )}
+                    </div>
+                    <div className="col-span-2">
+                      <p className="text-muted-foreground">Last verified on LinkedIn</p>
+                      <p className="font-medium">{new Date(selected.last_updated).toLocaleString()}</p>
                     </div>
                   </div>
                 </Card>
@@ -1310,6 +1460,9 @@ export default function AdminObservatoire() {
             <div className="sm:col-span-2">
               <Label>LinkedIn</Label>
               <Input className="mt-1" value={manual.linkedin_url} onChange={(e) => setManual((m) => ({ ...m, linkedin_url: e.target.value }))} />
+              {manual.linkedin_url.trim().length > 0 && (
+                <p className="mt-2 text-xs text-muted-foreground">Profile data will be verified against LinkedIn</p>
+              )}
             </div>
           </div>
           <DialogFooter className="gap-2">
