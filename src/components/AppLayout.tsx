@@ -156,7 +156,7 @@ export default function AppLayout({ requireRole }: { requireRole?: Role }) {
     { title: t("nav.develop", "Forge"), url: "/develop", icon: Flame },
     { title: "Pipeline", url: "/pmo", icon: GitBranch },
     { title: "Briefing", url: "/pulse", icon: Zap },
-    { title: "Edge", url: "/profile", icon: TrendingUp },
+    { title: t("nav.profile", "Profile"), url: "/profile", icon: TrendingUp },
   ];
   const ADMIN_ITEMS: NavItem[] = [
     { title: t("nav.dashboard", "Command"), url: "/admin", icon: LayoutDashboard },
@@ -279,12 +279,13 @@ type NavItem = {
 };
 
 function MobileStudentNav({ pathname }: { pathname: string }) {
+  const { t } = useLanguage();
   const links = [
     { to: "/pathways", label: "Compass", icon: Compass },
     { to: "/market", label: "Terrain", icon: Map },
     { to: "/develop", label: "Forge", icon: Flame },
     { to: "/pmo", label: "Pipeline", icon: GitBranch },
-    { to: "/profile", label: "Edge", icon: User },
+    { to: "/profile", label: t("nav.profile", "Profile"), icon: User },
   ];
   return (
     <nav className="mobile-bottom-nav fixed bottom-0 inset-x-0 z-[90] h-16 md:hidden flex items-stretch justify-around pt-1 pb-safe">

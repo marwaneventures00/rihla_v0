@@ -92,17 +92,25 @@ export default function Auth() {
 
       const userId = data.user?.id;
       if (userId) {
-        await supabase.from("profiles").insert({
-          id: userId,
-          full_name: fullName,
-          university_id: uni.id,
-          institution_name: uni.name,
-        });
-        await supabase.from("user_roles").insert({
+        const trimmedName = fullName.trim();
+        const { error: profileError } = await supabase.from("profiles").upsert(
+          {
+            id: userId,
+            full_name: trimmedName.length > 0 ? trimmedName : null,
+            onboarding_completed: false,
+            university_id: uni.id,
+            institution_name: uni.name,
+          },
+          { onConflict: "id" },
+        );
+        if (profileError) throw profileError;
+
+        const { error: rolesError } = await supabase.from("user_roles").insert({
           user_id: userId,
           role: "student",
           university_id: uni.id,
         });
+        if (rolesError) throw rolesError;
       }
       toast.success("Account created. Let's set up your profile.");
     } catch (err: unknown) {
