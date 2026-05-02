@@ -47,7 +47,7 @@ export default function Auth() {
     const { data: profile } = await supabase
       .from("profiles")
       .select("onboarding_completed")
-      .eq("user_id", session.user.id)
+      .eq("id", session.user.id)
       .maybeSingle();
 
     if (!profile || !profile.onboarding_completed) {
@@ -93,7 +93,7 @@ export default function Auth() {
       const userId = data.user?.id;
       if (userId) {
         await supabase.from("profiles").insert({
-          user_id: userId,
+          id: userId,
           full_name: fullName,
           university_id: uni.id,
           institution_name: uni.name,

@@ -27,7 +27,7 @@ export default function Compass() {
       const uid = s.session.user.id;
 
       const [{ data: p }, { data: r }] = await Promise.all([
-        supabase.from("profiles").select("full_name, field_of_study, onboarding_completed").eq("user_id", uid).maybeSingle(),
+        supabase.from("profiles").select("full_name, field_of_study, onboarding_completed").eq("id", uid).maybeSingle(),
         supabase.from("pathway_results").select("result_json").eq("user_id", uid).order("created_at", { ascending: false }).limit(1).maybeSingle(),
       ]);
 

@@ -44,7 +44,7 @@ export default function Profile() {
       setUid(userId);
 
       const [{ data: p }, { data: a }, { data: pw }, { data: r }, { data: cs }, { data: is }] = await Promise.all([
-        supabase.from("profiles").select("full_name, field_of_study, study_level, institution_name, university_id").eq("user_id", userId).maybeSingle(),
+        supabase.from("profiles").select("full_name, field_of_study, study_level, institution_name, university_id").eq("id", userId).maybeSingle(),
         supabase.from("action_plan_items").select("id, action_text, completed").eq("user_id", userId).order("created_at"),
         supabase.from("pathway_results").select("id, result_json, created_at").eq("user_id", userId).order("created_at"),
         supabase.from("user_roles").select("role").eq("user_id", userId),
@@ -88,7 +88,7 @@ export default function Profile() {
       field_of_study: profile.field_of_study,
       study_level: profile.study_level,
       institution_name: profile.institution_name,
-    }).eq("user_id", uid);
+    }).eq("id", uid);
     setSaving(false);
     if (error) toast.error(error.message);
     else toast.success(tr("Profile saved", "Profil enregistre"));

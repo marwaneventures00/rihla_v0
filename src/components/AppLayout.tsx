@@ -93,7 +93,7 @@ export default function AppLayout({ requireRole }: { requireRole?: Role }) {
 
       const [{ data: roles }, { data: prof }] = await Promise.all([
         supabase.from("user_roles").select("role, university_id").eq("user_id", uid),
-        supabase.from("profiles").select("full_name, institution_name").eq("user_id", uid).maybeSingle(),
+        supabase.from("profiles").select("full_name, institution_name").eq("id", uid).maybeSingle(),
       ]);
       if (!mounted) return;
 

@@ -185,7 +185,7 @@ export default function Onboarding() {
         study_level: data.level,
         institution_name: data.institutionName,
         institution_type: data.institutionType,
-      }).eq("user_id", userId);
+      }).eq("id", userId);
 
       // Save onboarding responses
       await supabase.from("onboarding_responses").insert({

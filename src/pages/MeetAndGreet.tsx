@@ -10,13 +10,13 @@ import { toast } from "sonner";
 import { useLanguage } from "@/lib/i18n";
 
 type MyProfile = {
-  user_id: string;
+  id: string;
   institution_name: string | null;
   field_of_study: string | null;
 };
 
 type AlumniProfile = {
-  user_id: string;
+  id: string;
   full_name: string | null;
   institution_name: string | null;
   field_of_study: string | null;
@@ -56,8 +56,8 @@ export default function MeetAndGreet() {
 
     const { data: p, error: pErr } = await supabase
       .from("profiles")
-      .select("user_id, institution_name, field_of_study")
-      .eq("user_id", userId)
+      .select("id, institution_name, field_of_study")
+      .eq("id", userId)
       .maybeSingle();
 
     if (pErr || !p) {
@@ -74,7 +74,7 @@ export default function MeetAndGreet() {
   async function loadAlumni(profile: MyProfile) {
     const { count, error: countError } = await supabase
       .from("profiles")
-      .select("user_id", { count: "exact", head: true })
+      .select("id", { count: "exact", head: true })
       .eq("institution_name", profile.institution_name ?? "");
 
     if (countError) {
@@ -90,7 +90,7 @@ export default function MeetAndGreet() {
 
     let query = supabase
       .from("profiles")
-      .select("user_id, full_name, institution_name, field_of_study");
+      .select("id, full_name, institution_name, field_of_study");
 
     if (profile.institution_name) {
       query = query.eq("institution_name", profile.institution_name);
@@ -105,7 +105,7 @@ export default function MeetAndGreet() {
       return;
     }
 
-    setAlumni((data ?? []).filter((a) => a.user_id !== profile.user_id) as AlumniProfile[]);
+    setAlumni((data ?? []).filter((a) => a.id !== profile.id) as AlumniProfile[]);
   }
 
   async function loadConnections(userId: string) {
@@ -183,10 +183,10 @@ export default function MeetAndGreet() {
 
         <div className="space-y-3">
           {filteredAlumni.map((a) => {
-            const existing = connections.find((c) => c.alumni_id === a.user_id);
+            const existing = connections.find((c) => c.alumni_id === a.id);
             const requested = Boolean(existing);
             return (
-              <div key={a.user_id} className="p-4 rounded-lg border border-border flex items-start justify-between gap-4">
+              <div key={a.id} className="p-4 rounded-lg border border-border flex items-start justify-between gap-4">
                 <div>
                   <p className="font-semibold">{a.full_name ?? tr("Alumni member", "Membre alumni")}</p>
                   <p className="text-sm text-muted-foreground">{a.field_of_study ?? tr("Track not set", "Filiere non renseignee")}</p>
@@ -196,7 +196,7 @@ export default function MeetAndGreet() {
                   size="sm"
                   variant={requested ? "secondary" : "accent"}
                   disabled={requested}
-                  onClick={() => requestConnection(a.user_id)}
+                  onClick={() => requestConnection(a.id)}
                 >
                   <UserPlus className="w-4 h-4" />
                   {requested ? `${tr("Requested", "Demande")} (${existing?.status})` : tr("Add alumni", "Ajouter un alumni")}

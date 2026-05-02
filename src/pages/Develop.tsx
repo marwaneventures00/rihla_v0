@@ -888,7 +888,7 @@ export default function Forge() {
       if (!s.session) return;
       const uid = s.session.user.id;
       const [{ data: p }, { data: pw }] = await Promise.all([
-        supabase.from("profiles").select("field_of_study, study_level, institution_type").eq("user_id", uid).maybeSingle(),
+        supabase.from("profiles").select("field_of_study, study_level, institution_type").eq("id", uid).maybeSingle(),
         supabase.from("pathway_results").select("result_json").eq("user_id", uid).order("created_at", { ascending: false }).limit(1).maybeSingle(),
       ]);
       if (p) setProfile(p as Profile);
