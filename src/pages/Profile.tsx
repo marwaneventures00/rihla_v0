@@ -112,15 +112,15 @@ export default function Profile() {
     toast.success(tr("Admin role granted. Refresh to see admin nav.", "Role admin accorde. Actualisez pour voir la navigation admin."));
   }
 
-  if (loading) return <div className="flex justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-accent" /></div>;
+  if (loading) return <div className="flex justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>;
 
   const completed = actions.filter((a) => a.completed).length;
   const latestPathways = pathways[pathways.length - 1]?.result_json.pathways ?? [];
 
   return (
-    <div className="space-y-6 mx-auto w-full max-w-6xl">
+    <div className="space-y-8 mx-auto w-full max-w-[1100px]">
       <div>
-        <h1 className="text-3xl font-bold mb-1">{tr("My profile & progress", "Mon profil et ma progression")}</h1>
+        <h1 className="text-[var(--text-h1)] font-medium mb-2">{tr("My profile & progress", "Mon profil et ma progression")}</h1>
         <p className="text-muted-foreground">{tr("Keep your information current and track your career-readiness journey.", "Gardez vos informations a jour et suivez votre progression de maturite carriere.")}</p>
       </div>
 
@@ -128,7 +128,7 @@ export default function Profile() {
         {/* Profile form */}
         <Card className="p-6">
           <div className="flex items-center gap-4 mb-6">
-            <div className="w-16 h-16 rounded-full bg-accent text-accent-foreground flex items-center justify-center text-xl font-bold">
+            <div className="w-16 h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xl font-semibold">
               {(profile.full_name ?? "U").split(" ").map((s) => s[0]).join("").slice(0, 2).toUpperCase()}
             </div>
             <div>
@@ -143,7 +143,7 @@ export default function Profile() {
               <div><Label>{tr("Field of study", "Domaine d'etude")}</Label><Input value={profile.field_of_study ?? ""} onChange={(e) => setProfile((p) => ({ ...p, field_of_study: e.target.value }))} /></div>
               <div><Label>{tr("Level", "Niveau")}</Label><Input value={profile.study_level ?? ""} onChange={(e) => setProfile((p) => ({ ...p, study_level: e.target.value }))} /></div>
             </div>
-            <Button variant="accent" onClick={saveProfile} disabled={saving} className="w-full">
+            <Button onClick={saveProfile} disabled={saving} className="w-full">
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} {tr("Save changes", "Enregistrer les modifications")}
             </Button>
           </div>
@@ -157,17 +157,11 @@ export default function Profile() {
             {scoreHistory.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={scoreHistory}>
-                  <defs>
-                    <linearGradient id="profileReadinessLine" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="hsl(var(--accent))" stopOpacity="0.65" />
-                      <stop offset="100%" stopColor="hsl(var(--accent))" stopOpacity="1" />
-                    </linearGradient>
-                  </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis dataKey="week" fontSize={11} tick={{ fill: "hsl(var(--muted-foreground))" }} />
                   <YAxis domain={[0, 100]} fontSize={11} tick={{ fill: "hsl(var(--muted-foreground))" }} />
                   <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
-                  <Line type="monotone" dataKey="score" stroke="url(#profileReadinessLine)" strokeWidth={2.5} dot={{ fill: "hsl(var(--accent))", r: 4 }} />
+                  <Line type="monotone" dataKey="score" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ fill: "hsl(var(--primary))", r: 4 }} />
                 </LineChart>
               </ResponsiveContainer>
             ) : (
@@ -203,7 +197,7 @@ export default function Profile() {
             <p className="text-sm text-muted-foreground">{completed} {tr("of", "sur")} {actions.length} {tr("complete", "termines")}</p>
           </div>
           <div className="w-40 h-2 bg-secondary rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-accent transition-all" style={{ width: actions.length ? `${(completed / actions.length) * 100}%` : "0%" }} />
+            <div className="h-full bg-primary transition-all" style={{ width: actions.length ? `${(completed / actions.length) * 100}%` : "0%" }} />
           </div>
         </div>
         <ul className="space-y-2">
@@ -223,26 +217,26 @@ export default function Profile() {
           <h2 className="font-semibold mb-4">{tr("Practice history", "Historique d'entrainement")}</h2>
           <div className="grid md:grid-cols-2 gap-6">
             <div>
-              <p className="text-sm font-semibold mb-2 flex items-center gap-2"><Briefcase className="w-4 h-4 text-accent" /> {tr("Business cases", "Cas business")}</p>
+              <p className="text-sm font-semibold mb-2 flex items-center gap-2"><Briefcase className="w-4 h-4 text-primary" /> {tr("Business cases", "Cas business")}</p>
               {caseSessions.length === 0 ? <p className="text-xs text-muted-foreground">{tr("None yet.", "Aucun pour le moment.")}</p> : (
                 <ul className="space-y-2">
                   {caseSessions.map((c) => (
                     <li key={c.id} className="text-sm p-2 rounded border border-border flex justify-between">
                       <span className="truncate">{c.case_json?.title ?? "Case"}</span>
-                      <span className="font-semibold text-accent shrink-0 ml-2">{c.score_json?.overall_score ?? "—"}</span>
+                      <span className="font-semibold text-primary shrink-0 ml-2">{c.score_json?.overall_score ?? "—"}</span>
                     </li>
                   ))}
                 </ul>
               )}
             </div>
             <div>
-              <p className="text-sm font-semibold mb-2 flex items-center gap-2"><Mic className="w-4 h-4 text-accent" /> {tr("Mock interviews", "Entretiens blancs")}</p>
+              <p className="text-sm font-semibold mb-2 flex items-center gap-2"><Mic className="w-4 h-4 text-primary" /> {tr("Mock interviews", "Entretiens blancs")}</p>
               {interviewSessions.length === 0 ? <p className="text-xs text-muted-foreground">{tr("None yet.", "Aucun pour le moment.")}</p> : (
                 <ul className="space-y-2">
                   {interviewSessions.map((i) => (
                     <li key={i.id} className="text-sm p-2 rounded border border-border flex justify-between">
                       <span className="truncate">{i.role}</span>
-                      <span className="font-semibold text-accent shrink-0 ml-2">{i.feedback_json?.overall_score ?? "—"}</span>
+                      <span className="font-semibold text-primary shrink-0 ml-2">{i.feedback_json?.overall_score ?? "—"}</span>
                     </li>
                   ))}
                 </ul>
@@ -256,8 +250,8 @@ export default function Profile() {
       {!hasAdmin && universityId && (
         <Card className="p-6 border-dashed">
           <div className="flex items-start gap-4">
-            <div className="w-10 h-10 rounded-lg bg-accent-soft flex items-center justify-center shrink-0">
-              <ShieldCheck className="w-5 h-5 text-accent" />
+            <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
+              <ShieldCheck className="w-5 h-5 text-primary" />
             </div>
             <div className="flex-1">
               <h3 className="font-semibold">{tr("Demo: try the admin dashboard", "Demo : tester le tableau de bord admin")}</h3>

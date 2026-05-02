@@ -40,7 +40,7 @@ async function callForgeAI(action: string, payload: any) {
   return (data as any).result;
 }
 
-function ScoreCircle({ value, color = "#6366F1" }: { value: number; color?: string }) {
+function ScoreCircle({ value, color = "var(--red)" }: { value: number; color?: string }) {
   const r = 52; const c = 2 * Math.PI * r;
   const offset = c - (value / 100) * c;
   return (
@@ -910,14 +910,14 @@ export default function Forge() {
   return (
     <div className="space-y-6 max-w-6xl">
       <div>
-        <h1 className="text-3xl font-bold mb-1">{tr("Forge", "Forge")}</h1>
+        <h1 className="text-[var(--text-h1)] font-medium mb-2">{tr("Forge", "Forge")}</h1>
         <p className="text-muted-foreground">{tr("Forge your edge in Morocco.", "Forgez votre avantage au Maroc.")}</p>
       </div>
 
       {requestedRole && (
-        <Card className="p-4 border border-accent/20 bg-accent-soft/25">
+        <Card className="p-4 border border-primary/25 bg-[var(--red-subtle)]">
           <p className="text-sm">
-            <span className="font-semibold text-accent">{tr("Personalized mode enabled:", "Mode personnalise active :")}</span>{" "}
+            <span className="font-semibold text-primary">{tr("Personalized mode enabled:", "Mode personnalise active :")}</span>{" "}
             {tr("you are preparing specifically for", "vous vous preparez specifiquement pour")}{" "}
             <span className="font-semibold">{requestedRole}</span>.
           </p>

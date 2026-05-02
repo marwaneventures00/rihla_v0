@@ -232,12 +232,12 @@ export default function Onboarding() {
           </div>
           <div className="text-right">
             <p className="text-sm text-muted-foreground mb-1">{tr("Progress", "Progression")}</p>
-            <p className="text-sm font-semibold text-accent">{Math.round(progress)}%</p>
+            <p className="text-sm font-semibold text-primary">{Math.round(progress)}%</p>
           </div>
         </div>
         <Progress value={progress} className="mb-8 h-2" />
 
-        <Card className="p-8 shadow-card">
+        <Card className="p-8 border-border/80">
           {step === 1 && (
             <div className="space-y-6">
               <div>
@@ -264,7 +264,7 @@ export default function Onboarding() {
                       htmlFor={`level-${l}`}
                       className={cn(
                         "flex items-center justify-center h-12 rounded-md border cursor-pointer transition-colors text-sm font-medium",
-                        data.level === l ? "border-accent bg-accent-soft text-accent" : "border-border hover:border-accent/40"
+                        data.level === l ? "border-primary bg-[var(--red-subtle)] text-primary" : "border-border hover:border-primary/30"
                       )}
                     >
                       <RadioGroupItem id={`level-${l}`} value={l} className="sr-only" />
@@ -290,7 +290,7 @@ export default function Onboarding() {
                       htmlFor={`it-${t}`}
                       className={cn(
                         "flex items-center justify-center h-14 px-3 rounded-md border cursor-pointer text-sm text-center transition-colors",
-                        data.institutionType === t ? "border-accent bg-accent-soft text-accent" : "border-border hover:border-accent/40"
+                        data.institutionType === t ? "border-primary bg-[var(--red-subtle)] text-primary" : "border-border hover:border-primary/30"
                       )}
                     >
                       <RadioGroupItem id={`it-${t}`} value={t} className="sr-only" />
@@ -314,7 +314,7 @@ export default function Onboarding() {
                         key={s}
                         className={cn(
                           "flex items-center gap-3 p-3 rounded-md border cursor-pointer transition-colors",
-                          selected ? "border-accent bg-accent-soft" : "border-border hover:border-accent/40"
+                          selected ? "border-primary bg-[var(--red-subtle)]" : "border-border hover:border-primary/30"
                         )}
                       >
                         <Checkbox checked={selected} onCheckedChange={() => toggleSector(s)} />
@@ -338,7 +338,7 @@ export default function Onboarding() {
                       htmlFor={`we-${w}`}
                       className={cn(
                         "flex items-center justify-center h-12 px-3 rounded-md border cursor-pointer text-sm text-center transition-colors",
-                        data.workEnv === w ? "border-accent bg-accent-soft text-accent" : "border-border hover:border-accent/40"
+                        data.workEnv === w ? "border-primary bg-[var(--red-subtle)] text-primary" : "border-border hover:border-primary/30"
                       )}
                     >
                       <RadioGroupItem id={`we-${w}`} value={w} className="sr-only" />
@@ -361,7 +361,7 @@ export default function Onboarding() {
                       htmlFor={`g-${g}`}
                       className={cn(
                         "flex items-center justify-center h-14 px-3 rounded-md border cursor-pointer text-sm text-center transition-colors",
-                        data.geography === g ? "border-accent bg-accent-soft text-accent" : "border-border hover:border-accent/40"
+                        data.geography === g ? "border-primary bg-[var(--red-subtle)] text-primary" : "border-border hover:border-primary/30"
                       )}
                     >
                       <RadioGroupItem id={`g-${g}`} value={g} className="sr-only" />
@@ -374,7 +374,7 @@ export default function Onboarding() {
               <div>
                 <div className="flex items-center justify-between">
                   <Label>{tr("Ambition horizon", "Horizon d'ambition")}</Label>
-                  <span className="text-sm font-semibold text-accent">{data.ambition} / 5</span>
+                  <span className="text-sm font-semibold text-primary">{data.ambition} / 5</span>
                 </div>
                 <Slider
                   value={[data.ambition]}
@@ -416,8 +416,8 @@ export default function Onboarding() {
                           className={cn(
                             "h-12 rounded-md border text-sm font-semibold transition-all",
                             active
-                              ? "border-accent bg-accent text-accent-foreground shadow-card scale-[1.02]"
-                              : "border-border hover:border-accent/40 hover:bg-accent-soft"
+                              ? "border-primary bg-primary text-primary-foreground scale-[1.01]"
+                              : "border-border hover:border-primary/30 hover:bg-muted"
                           )}
                         >
                           {n}
@@ -440,7 +440,7 @@ export default function Onboarding() {
             </Button>
             {step < 3 ? (
               <Button
-                variant="accent"
+                variant="default"
                 onClick={() => setStep((s) => s + 1)}
                 disabled={(step === 1 && !step1Valid) || (step === 2 && !step2Valid)}
               >
@@ -464,15 +464,15 @@ function AnalyzingScreen() {
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-background">
       <Card className="max-w-md w-full p-10 text-center shadow-elevated">
-        <div className="mx-auto w-14 h-14 rounded-full bg-accent-soft flex items-center justify-center mb-4">
-          <Loader2 className="w-7 h-7 text-accent animate-spin" />
+        <div className="mx-auto w-14 h-14 rounded-full bg-muted flex items-center justify-center mb-4">
+          <Loader2 className="w-7 h-7 text-primary animate-spin" />
         </div>
         <h2 className="text-xl font-bold mb-2">{tr("Analyzing your profile...", "Analyse de votre profil...")}</h2>
         <p className="text-sm text-muted-foreground mb-6">
           {tr("Our career intelligence engine is matching your strengths to opportunities in the Moroccan job market.", "Notre moteur d'intelligence carriere associe vos points forts aux opportunites du marche marocain.")}
         </p>
         <div className="h-2 bg-secondary rounded-full overflow-hidden">
-          <div className="h-full bg-gradient-accent animate-pulse w-2/3 rounded-full" />
+          <div className="h-full bg-primary animate-pulse w-2/3 rounded-full" />
         </div>
       </Card>
     </div>

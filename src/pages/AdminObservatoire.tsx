@@ -173,6 +173,10 @@ function bucketMonths(m: number | null): string {
   return "24+";
 }
 
+function anonymizedGraduateLabel(g: GraduateProfile): string {
+  return `Alumni ${g.id.slice(0, 6).toUpperCase()}`;
+}
+
 type DevelopAiResponse = { error?: string; result?: unknown };
 
 function isRecord(v: unknown): v is Record<string, unknown> {
@@ -267,7 +271,7 @@ export default function AdminObservatoire() {
         .order("last_updated", { ascending: false });
 
       if (gErr) {
-        toast.error("Could not load Observatoire data");
+        toast.error(`Could not load Observatoire data: ${gErr.message}`);
         setGraduates([]);
         setSurveys([]);
         setLoading(false);
@@ -302,7 +306,7 @@ export default function AdminObservatoire() {
         .order("survey_date", { ascending: false });
 
       if (sErr) {
-        toast.error("Could not load survey responses");
+        toast.error(`Could not load survey responses: ${sErr.message}`);
         setSurveys([]);
       } else {
         setSurveys((surv ?? []) as ObservatoireSurvey[]);
@@ -419,6 +423,42 @@ export default function AdminObservatoire() {
     return rows;
   }, [filtered]);
 
+  const alumniJourneySnapshot = useMemo(() => {
+    const employerCounts = new Map<string, number>();
+    const firstJobBuckets = new Map<string, number>();
+    const fieldToSectorCounts = new Map<string, number>();
+
+    filtered.forEach((g) => {
+      const company = (g.current_company ?? "").trim();
+      if (company) employerCounts.set(company, (employerCounts.get(company) ?? 0) + 1);
+
+      const bucket = bucketMonths(g.time_to_first_job_months);
+      firstJobBuckets.set(bucket, (firstJobBuckets.get(bucket) ?? 0) + 1);
+
+      const field = g.field_of_study.trim();
+      const sector = (g.current_sector ?? "").trim() || "Unknown";
+      const key = `${field} -> ${sector}`;
+      fieldToSectorCounts.set(key, (fieldToSectorCounts.get(key) ?? 0) + 1);
+    });
+
+    const topEmployers = Array.from(employerCounts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([name, count]) => ({ name, count }));
+
+    const topFirstJobBuckets = Array.from(firstJobBuckets.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([bucket, count]) => ({ bucket, count }));
+
+    const topFieldToSector = Array.from(fieldToSectorCounts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([path, count]) => ({ path, count }));
+
+    return { topEmployers, topFirstJobBuckets, topFieldToSector };
+  }, [filtered]);
+
   const surveySeries = useMemo(() => {
     const months: { key: string; label: string; responses: number }[] = [];
     const now = new Date();
@@ -499,7 +539,7 @@ export default function AdminObservatoire() {
 
   function exportCsv() {
     const header = [
-      "Name",
+      "Graduate ID",
       "University",
       "Field",
       "Graduation year",
@@ -515,7 +555,7 @@ export default function AdminObservatoire() {
     filtered.forEach((g) => {
       lines.push(
         [
-          JSON.stringify(g.student_name),
+          JSON.stringify(anonymizedGraduateLabel(g)),
           JSON.stringify(uniNameById.get(g.university_id) ?? "Unknown institution"),
           JSON.stringify(g.field_of_study),
           g.graduation_year,
@@ -903,6 +943,58 @@ export default function AdminObservatoire() {
             />
           </div>
 
+          <Card className="p-4 md:p-6 border border-border bg-card">
+            <div className="flex flex-col gap-1 mb-4">
+              <h3 className="font-semibold">Where alumni work now & path followed</h3>
+              <p className="text-xs text-muted-foreground">
+                A quick narrative view of employer outcomes and the path alumni followed from study field to sector.
+              </p>
+            </div>
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="space-y-2">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Top employers</p>
+                {alumniJourneySnapshot.topEmployers.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No employer data in current filter.</p>
+                ) : (
+                  alumniJourneySnapshot.topEmployers.map((e) => (
+                    <div key={e.name} className="text-sm flex items-center justify-between rounded-md border border-border px-3 py-2">
+                      <span className="truncate pr-2">{e.name}</span>
+                      <span className="text-muted-foreground">{e.count}</span>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">First job speed</p>
+                {alumniJourneySnapshot.topFirstJobBuckets.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No time-to-job data in current filter.</p>
+                ) : (
+                  alumniJourneySnapshot.topFirstJobBuckets.map((b) => (
+                    <div key={b.bucket} className="text-sm flex items-center justify-between rounded-md border border-border px-3 py-2">
+                      <span>{b.bucket} months</span>
+                      <span className="text-muted-foreground">{b.count}</span>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Most common alumni paths</p>
+                {alumniJourneySnapshot.topFieldToSector.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No pathway data in current filter.</p>
+                ) : (
+                  alumniJourneySnapshot.topFieldToSector.map((p) => (
+                    <div key={p.path} className="text-sm flex items-center justify-between rounded-md border border-border px-3 py-2">
+                      <span className="truncate pr-2">{p.path}</span>
+                      <span className="text-muted-foreground">{p.count}</span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </Card>
+
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
             <Card className="p-4 md:p-6 border border-border bg-card">
               <div className="flex items-center justify-between mb-3">
@@ -1062,7 +1154,7 @@ export default function AdminObservatoire() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="cursor-pointer" onClick={() => toggleSort("student_name")}>
-                      Name
+                      Graduate ID
                     </TableHead>
                     <TableHead className="hidden md:table-cell cursor-pointer" onClick={() => toggleSort("graduation_year")}>
                       Year
@@ -1094,7 +1186,7 @@ export default function AdminObservatoire() {
                         setSheetOpen(true);
                       }}
                     >
-                      <TableCell className="font-medium">{g.student_name}</TableCell>
+                      <TableCell className="font-medium">{anonymizedGraduateLabel(g)}</TableCell>
                       <TableCell className="hidden md:table-cell text-muted-foreground">{g.graduation_year}</TableCell>
                       <TableCell className="hidden lg:table-cell text-muted-foreground">{g.field_of_study}</TableCell>
                       <TableCell className="text-xs">{STATUS_LABEL[g.current_status as StatusKey]}</TableCell>
@@ -1165,7 +1257,7 @@ export default function AdminObservatoire() {
                     pendingSurveys.map((g) => (
                       <div key={g.id} className="flex items-center justify-between border border-border rounded-lg px-3 py-2">
                         <div>
-                          <p className="text-sm font-medium">{g.student_name}</p>
+                          <p className="text-sm font-medium">{anonymizedGraduateLabel(g)}</p>
                           <p className="text-xs text-muted-foreground">
                             {g.field_of_study} · {g.graduation_year}
                           </p>
@@ -1305,7 +1397,7 @@ export default function AdminObservatoire() {
         >
           <div className="h-full overflow-y-auto p-4 md:p-6">
             <SheetHeader>
-              <SheetTitle>{selected?.student_name ?? "Graduate"}</SheetTitle>
+              <SheetTitle>{selected ? anonymizedGraduateLabel(selected) : "Graduate"}</SheetTitle>
             </SheetHeader>
 
             {selected && (

@@ -32,7 +32,12 @@ function nowIso() {
   return new Date().toISOString();
 }
 
-export default function CarivaChatBot() {
+type CarivaChatBotProps = {
+  /** Lift FAB when mobile bottom nav is visible */
+  dockAboveMobileNav?: boolean;
+};
+
+export default function CarivaChatBot({ dockAboveMobileNav = false }: CarivaChatBotProps) {
   const [open, setOpen] = useState(false);
   const [minimized, setMinimized] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -163,15 +168,9 @@ export default function CarivaChatBot() {
 
       {open && (
         <div
-          className={`fixed right-6 bottom-6 z-[1000] border overflow-hidden ${minimized ? "h-16" : "h-[520px]"} w-[380px] max-w-[calc(100vw-24px)] max-sm:inset-0 max-sm:w-auto max-sm:h-auto max-sm:rounded-none`}
-          style={{
-            background: "var(--color-background-secondary)",
-            borderColor: "var(--color-border-primary)",
-            borderRadius: minimized ? 16 : 16,
-            boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
-          }}
+          className={`fixed z-[1000] border border-border overflow-hidden bg-card ${minimized ? "h-16" : "h-[520px]"} w-[380px] max-w-[calc(100vw-24px)] max-sm:inset-0 max-sm:w-auto max-sm:h-auto max-sm:rounded-none rounded-2xl ${dockAboveMobileNav ? "bottom-24 right-6 max-md:bottom-24" : "bottom-6 right-6"}`}
         >
-          <div className="px-3 py-2 flex items-start justify-between gap-2" style={{ backgroundColor: "#000000" }}>
+          <div className="px-3 py-2 flex items-start justify-between gap-2 bg-primary text-primary-foreground">
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 rounded-full bg-white/20 text-white text-xs font-semibold flex items-center justify-center">C</div>
@@ -200,15 +199,15 @@ export default function CarivaChatBot() {
                 {messages.map((m) => (
                   <div key={m.id} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"} gap-2`}>
                     {m.role === "assistant" && (
-                      <div className="w-6 h-6 rounded-full bg-black text-white text-[11px] font-semibold flex items-center justify-center mt-1">C</div>
+                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-[11px] font-semibold flex items-center justify-center mt-1">C</div>
                     )}
                     <div className="max-w-[80%]">
                       <div
                         className="px-3 py-2 text-sm whitespace-pre-wrap"
                         style={
                           m.role === "user"
-                            ? { background: "#000000", color: "white", borderRadius: "16px 16px 4px 16px" }
-                            : { background: "var(--color-background-tertiary)", color: "var(--color-text-primary)", borderRadius: "16px 16px 16px 4px" }
+                            ? { background: "var(--red)", color: "white", borderRadius: "16px 16px 4px 16px" }
+                            : { background: "var(--bg-2)", color: "var(--text-0)", borderRadius: "16px 16px 16px 4px" }
                         }
                       >
                         {m.content}
@@ -220,7 +219,7 @@ export default function CarivaChatBot() {
 
                 {loading && (
                   <div className="flex justify-start gap-2">
-                    <div className="w-6 h-6 rounded-full bg-black text-white text-[11px] font-semibold flex items-center justify-center mt-1">C</div>
+                    <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-[11px] font-semibold flex items-center justify-center mt-1">C</div>
                     <div className="px-3 py-2 rounded-[16px] bg-muted flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground animate-bounce" />
                       <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground animate-bounce [animation-delay:120ms]" />
@@ -263,7 +262,7 @@ export default function CarivaChatBot() {
                     type="button"
                     onClick={() => void sendMessage()}
                     disabled={!input.trim() || loading}
-                    className="h-11 w-11 p-0 rounded-full bg-black hover:bg-zinc-800"
+                    className="h-11 w-11 p-0 rounded-full bg-primary hover:opacity-90"
                     aria-label="Send message"
                   >
                     <ArrowUp className="w-4 h-4" />

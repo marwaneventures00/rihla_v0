@@ -3,6 +3,36 @@
 
 begin;
 
+create extension if not exists pgcrypto;
+
+create table if not exists public.universities (
+  id uuid primary key default gen_random_uuid(),
+  name text not null unique,
+  access_code text not null unique,
+  admin_email text,
+  license_active boolean not null default true,
+  student_count integer not null default 0,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.graduate_profiles (
+  id uuid primary key default gen_random_uuid(),
+  university_id uuid not null references public.universities(id) on delete cascade,
+  student_name text not null,
+  graduation_year integer not null,
+  field_of_study text not null,
+  current_status text not null,
+  "current_role" text,
+  current_company text,
+  current_sector text,
+  current_salary_range text,
+  time_to_first_job_months integer,
+  location text,
+  linkedin_url text unique,
+  last_updated timestamptz not null default now(),
+  created_at timestamptz not null default now()
+);
+
 insert into public.universities (name, access_code, admin_email, license_active, student_count)
 select x.name, x.access_code, null, true, 1000
 from (
@@ -29,10 +59,12 @@ with uni as (
     'UIR'
   )
 ),
-seed_rows as (
-  select *
-  from (
-    values
+seed_rows(
+  student_name, university_name, graduation_year, field_of_study, current_status,
+  role_title_tmp, current_company, current_sector, current_salary_range,
+  time_to_first_job_months, location, linkedin_url
+) as (
+  values
       ('Yasmine Alaoui','ESCA Ecole de Management',2020,'Business Administration','employed','Business Analyst','OCP Group','Industry','12000-22000',2,'Casablanca, Morocco','https://www.linkedin.com/in/yasmine-alaoui-morocco'),
       ('Mehdi Bennis','ESCA Ecole de Management',2021,'Finance','employed','Financial Analyst','Attijariwafa Bank','Banking','12000-22000',4,'Rabat, Morocco','https://www.linkedin.com/in/mehdi-bennis-morocco'),
       ('Sara El Idrissi','ESCA Ecole de Management',2022,'Marketing','seeking',null,null,null,null,8,'Casablanca, Morocco','https://www.linkedin.com/in/sara-el-idrissi-morocco'),
@@ -88,11 +120,6 @@ seed_rows as (
       ('Rania Boussaid','UIR',2022,'Computer Science','employed','Software Consultant','HPS','Technology','12000-22000',5,'Rabat, Morocco','https://www.linkedin.com/in/rania-boussaid-morocco'),
       ('Abdelilah Nouri','UIR',2023,'Engineering','entrepreneurship','Founder','SmartGrid Morocco','Startup','12000-22000',12,'Rabat, Morocco','https://www.linkedin.com/in/abdelilah-nouri-morocco'),
       ('Ghita Aabid','UIR',2024,'Computer Science','employed','Graduate Engineer','Capgemini Morocco','Technology','6000-12000',2,'Casablanca, Morocco','https://www.linkedin.com/in/ghita-aabid-morocco')
-  ) as t(
-    student_name, university_name, graduation_year, field_of_study, current_status,
-    current_role, current_company, current_sector, current_salary_range,
-    time_to_first_job_months, location, linkedin_url
-  )
 )
 insert into public.graduate_profiles (
   university_id,
@@ -100,7 +127,7 @@ insert into public.graduate_profiles (
   graduation_year,
   field_of_study,
   current_status,
-  current_role,
+  "current_role",
   current_company,
   current_sector,
   current_salary_range,
@@ -112,11 +139,11 @@ insert into public.graduate_profiles (
 )
 select
   u.id,
-  s.student_name,
+  'Alumni ' || lpad(row_number() over (order by s.linkedin_url)::text, 3, '0'),
   s.graduation_year,
   s.field_of_study,
   s.current_status,
-  s.current_role,
+  s.role_title_tmp,
   s.current_company,
   s.current_sector,
   s.current_salary_range,

@@ -14,7 +14,7 @@ export default function CarivaLogo({ className = "w-5 h-5", withTile = false }: 
   if (!withTile) return logo;
 
   return (
-    <div className="w-9 h-9 rounded-lg bg-gradient-accent flex items-center justify-center text-accent-foreground">
+    <div className="w-9 h-9 rounded-lg bg-primary text-primary-foreground flex items-center justify-center">
       {logo}
     </div>
   );

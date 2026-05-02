@@ -35,8 +35,7 @@ const FIELDS = [
   { name: "Other", value: 8 },
 ];
 
-// Premium dark-purple palette (easy on the eyes)
-const FIELD_COLORS = ["#4F3A86", "#5B4598", "#6A52A8", "#7A66B6", "#8D7CC4"];
+const FIELD_COLORS = ["#2A2A36", "#3D3D4A", "#52525E", "#6B6B78", "#858592"];
 
 const WAU = [
   40, 48, 55, 62, 70, 82, 95, 110, 128, 144, 162, 180,
@@ -177,7 +176,7 @@ export default function AdminDashboard() {
         {localizedStats.map((s) => (
           <Card key={s.label} className="p-5">
             <p className="text-sm text-muted-foreground">{s.label}</p>
-            <p className="text-3xl font-bold mt-2 text-accent">
+            <p className="text-3xl font-bold mt-2 text-primary">
               {s.value}
             </p>
             <div className="flex items-center gap-1 mt-2 text-xs text-emerald-600 font-medium">
@@ -195,17 +194,11 @@ export default function AdminDashboard() {
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={localizedPathways} layout="vertical" margin={{ left: 10 }}>
-                <defs>
-                  <linearGradient id="adminPathwaysBar" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="hsl(var(--accent))" stopOpacity="0.7" />
-                    <stop offset="100%" stopColor="hsl(var(--accent))" stopOpacity="1" />
-                  </linearGradient>
-                </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
                 <XAxis type="number" fontSize={11} tick={{ fill: "hsl(var(--muted-foreground))" }} />
                 <YAxis dataKey="name" type="category" width={130} fontSize={11} tick={{ fill: "hsl(var(--muted-foreground))" }} />
                 <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
-                <Bar dataKey="count" fill="url(#adminPathwaysBar)" radius={[0, 6, 6, 0]} />
+                <Bar dataKey="count" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -236,12 +229,6 @@ export default function AdminDashboard() {
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={WAU}>
-                <defs>
-                  <linearGradient id="adminWauLine" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="hsl(var(--accent))" stopOpacity="0.68" />
-                    <stop offset="100%" stopColor="hsl(var(--accent))" stopOpacity="1" />
-                  </linearGradient>
-                </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis dataKey="week" fontSize={11} tick={{ fill: "hsl(var(--muted-foreground))" }} />
                 <YAxis fontSize={11} tick={{ fill: "hsl(var(--muted-foreground))" }} />
@@ -249,9 +236,9 @@ export default function AdminDashboard() {
                 <Line
                   type="monotone"
                   dataKey="users"
-                  stroke="url(#adminWauLine)"
-                  strokeWidth={2.5}
-                  dot={{ fill: "hsl(var(--accent))", r: 3 }}
+                  stroke="hsl(var(--primary))"
+                  strokeWidth={2}
+                  dot={{ fill: "hsl(var(--primary))", r: 3 }}
                   activeDot={{ r: 5 }}
                 />
               </LineChart>
@@ -385,7 +372,7 @@ export default function AdminDashboard() {
 function StatusBadge({ status }: { status: Status }) {
   const styles: Record<Status, string> = {
     Completed: "bg-emerald-50 text-emerald-700 border border-emerald-200",
-    "In progress": "bg-accent-soft text-accent border border-accent/25",
+    "In progress": "bg-[var(--red-subtle)] text-primary border border-primary/25",
     "Not started": "bg-secondary text-muted-foreground border border-border",
   };
   return (

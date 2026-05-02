@@ -131,38 +131,32 @@ export default function Auth() {
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
       {/* Left: hero */}
-      <div className="relative hidden lg:flex flex-col justify-between p-12 text-primary-foreground bg-gradient-hero overflow-hidden">
-        <div className="relative z-10">
-          <div className="flex items-baseline gap-3">
-            <h1 className="text-3xl font-bold tracking-tight text-white">Cariva</h1>
+      <div className="relative hidden lg:flex flex-col justify-between p-12 bg-[var(--bg-1)] dark:bg-[var(--bg-0)] border-r border-border text-foreground">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-primary" aria-hidden />
+            <h1 className="font-cariva-brand text-3xl font-medium tracking-tight">Cariva</h1>
           </div>
         </div>
-        <div className="relative z-10 max-w-md">
-          <h2 className="text-5xl font-bold leading-tight mb-6 text-white">
+        <div className="max-w-md">
+          <h2 className="text-4xl xl:text-5xl font-semibold leading-tight mb-6 text-foreground tracking-tight">
             Discover your career path.
           </h2>
-          <p className="text-lg text-white/85">
-            AI-native career intelligence. Powered by AI.
-          </p>
+          <p className="text-lg text-muted-foreground">AI-native career intelligence. Powered by AI.</p>
         </div>
-        <div className="relative z-10 text-sm text-white/70">
-          © {new Date().getFullYear()} Cariva — AI-native career intelligence. Powered by AI.
-        </div>
-        {/* Decorative gradient orbs */}
-        <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-accent/30 blur-3xl" />
-        <div className="absolute bottom-0 -left-20 w-80 h-80 rounded-full bg-primary-foreground/10 blur-3xl" />
+        <div className="text-sm text-muted-foreground">© {new Date().getFullYear()} Cariva — AI-native career intelligence. Powered by AI.</div>
       </div>
 
       {/* Right: forms */}
       <div className="flex items-center justify-center p-6 sm:p-12">
-        <Card className="w-full max-w-md p-8 shadow-elevated">
+        <Card className="w-full max-w-md p-8 border-border/80">
           <div className="lg:hidden mb-6 flex items-center justify-between gap-2">
-            <h1 className="text-2xl font-bold">Cariva</h1>
+            <h1 className="font-cariva-brand text-2xl font-medium tracking-tight">Cariva</h1>
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={toggleLanguage}
-                className="text-sm text-muted-foreground hover:text-accent transition-colors"
+                className="text-sm text-muted-foreground hover:text-primary transition-colors"
                 aria-label="Toggle language"
               >
                 <Languages className="w-4 h-4" />
@@ -170,7 +164,7 @@ export default function Auth() {
               <button
                 type="button"
                 onClick={() => navigate("/")}
-                className="text-sm text-muted-foreground hover:text-accent transition-colors"
+                className="text-sm text-muted-foreground hover:text-primary transition-colors"
               >
                 {t("auth.backHome", "Back to home")}
               </button>
@@ -182,7 +176,7 @@ export default function Auth() {
               <button
                 type="button"
                 onClick={toggleLanguage}
-                className="text-sm text-muted-foreground hover:text-accent transition-colors"
+                className="text-sm text-muted-foreground hover:text-primary transition-colors"
                 aria-label="Toggle language"
               >
                 <Languages className="w-4 h-4" />
@@ -190,7 +184,7 @@ export default function Auth() {
               <button
                 type="button"
                 onClick={() => navigate("/")}
-                className="text-sm text-muted-foreground hover:text-accent transition-colors"
+                className="text-sm text-muted-foreground hover:text-primary transition-colors"
               >
                 {t("auth.backHome", "Back to home")}
               </button>
@@ -262,7 +256,7 @@ export default function Auth() {
 
               <button
                 type="button"
-                className="w-full text-sm text-muted-foreground mt-4 hover:text-accent transition-colors"
+                className="w-full text-sm text-muted-foreground mt-4 hover:text-primary transition-colors"
                 onClick={() => setMode(mode === "signup" ? "signin" : "signup")}
               >
                 {mode === "signup" ? "Already have an account? Sign in" : "New here? Create an account"}

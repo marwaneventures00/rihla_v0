@@ -1,34 +1,41 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useMemo, type ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { motion, useInView, useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { Check, GraduationCap, Languages, Sparkles, TrendingUp } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
 
+const PARTNER_UNIVERSITIES = [
+  "UM6P",
+  "UIR",
+  "ENCG Settat",
+  "ISCAE",
+  "ESSEC",
+  "ESCA",
+  "Centrale Casablanca",
+] as const;
+
 const STATS = [
-  { value: 38, suffix: "%", label: "Youth unemployment in Morocco" },
-  { value: 34, suffix: "%", label: "Cite education-job mismatch as #1 barrier" },
-  { value: 3, suffix: "", label: "AI-powered modules" },
-  { value: 90, suffix: "", label: "Day personalized action plan" },
+  { value: "38%", label: "Youth unemployment in Morocco" },
+  { value: "34%", label: "Cite education-job mismatch as #1 barrier" },
+  { value: "3", label: "AI-powered modules" },
+  { value: "90", label: "Day personalized action plan" },
 ];
 
 const FEATURES = [
   {
     icon: Sparkles,
-    gradient: "from-[#6366F1] to-[#3B82F6]",
     title: "Personalized career pathways",
     body: "Answer 3 questions. Get AI-generated career paths built for the Moroccan market — with fit scores, salary ranges, and a 90-day action plan.",
     tag: "Powered by AI",
   },
   {
     icon: TrendingUp,
-    gradient: "from-[#3B82F6] to-[#22D3EE]",
     title: "Real Moroccan job market data",
     body: "Explore 12 sectors, 80+ roles, and 30 top employers. Understand what the market actually wants — before you graduate.",
     tag: "Updated monthly",
   },
   {
     icon: GraduationCap,
-    gradient: "from-[#8B5CF6] to-[#C8102E]",
     title: "Close your skills gap",
     body: "Practice with AI mock interviews, solve Morocco-specific business cases, and get matched to the exact Coursera courses your pathway needs.",
     tag: "Business cases · Interviews · Courses",
@@ -36,22 +43,10 @@ const FEATURES = [
 ];
 
 const STEPS = [
-  {
-    title: "Tell us about yourself",
-    body: "Academic background + personality profile in a guided flow.",
-  },
-  {
-    title: "AI builds your pathways",
-    body: "Claude analyzes your profile and maps the best-fit outcomes.",
-  },
-  {
-    title: "Explore and develop",
-    body: "Use market intelligence and practice modules to close your gaps.",
-  },
-  {
-    title: "Land your dream job",
-    body: "Move from uncertainty to confidence with a clear plan.",
-  },
+  { title: "Tell us about yourself", body: "Academic background + personality profile in a guided flow." },
+  { title: "AI builds your pathways", body: "Claude analyzes your profile and maps the best-fit outcomes." },
+  { title: "Explore and develop", body: "Use market intelligence and practice modules to close your gaps." },
+  { title: "Land your dream job", body: "Move from uncertainty to confidence with a clear plan." },
 ];
 
 const QUOTES = [
@@ -74,378 +69,314 @@ function AnimatedSection({ children, className = "" }: { children: ReactNode; cl
   return (
     <motion.section
       className={className}
-      initial={reduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
+      initial={reduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 28 }}
       whileInView={reduceMotion ? { opacity: 1, y: 0 } : { opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.2 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
+      viewport={{ once: true, amount: 0.15 }}
+      transition={{ duration: 0.55, ease: "easeOut" }}
     >
       {children}
     </motion.section>
   );
 }
 
-function CountUp({ target, suffix = "" }: { target: number; suffix?: string }) {
-  const ref = useRef<HTMLSpanElement | null>(null);
-  const isInView = useInView(ref, { once: true, amount: 0.8 });
-  const reduceMotion = useReducedMotion();
-  const [value, setValue] = useState(0);
-
-  useEffect(() => {
-    if (!isInView) return;
-    if (reduceMotion) {
-      setValue(target);
-      return;
-    }
-
-    const duration = 1200;
-    const start = performance.now();
-    let raf = 0;
-    const tick = (now: number) => {
-      const progress = Math.min(1, (now - start) / duration);
-      setValue(Math.round(target * (1 - Math.pow(1 - progress, 3))));
-      if (progress < 1) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [isInView, reduceMotion, target]);
-
-  return (
-    <span ref={ref}>
-      {value}
-      {suffix}
-    </span>
-  );
-}
-
 export default function Landing() {
   const reduceMotion = useReducedMotion();
   const { t, toggleLanguage } = useLanguage();
-  const heroWords = useMemo(() => ["Your", "career,", "personalized", "by", "AI."], []);
-  const isDarkMode = true;
+  const heroLine = useMemo(() => "Superintelligence for careers", []);
 
   return (
-    <div className={`min-h-screen overflow-hidden transition-colors ${isDarkMode ? "bg-[#050508] text-white" : "bg-[#F6F7FB] text-[#141424]"}`}>
-      <style>{`
-        .mesh-bg-dark {
-          background:
-            radial-gradient(1200px 600px at 10% 0%, rgba(99,102,241,0.12), transparent 60%),
-            radial-gradient(900px 500px at 90% 100%, rgba(139,92,246,0.1), transparent 60%),
-            linear-gradient(180deg, #050508 0%, #0D0D1A 100%);
-          animation: meshShift 24s ease-in-out infinite alternate;
-        }
-        .mesh-bg-light {
-          background:
-            radial-gradient(1200px 600px at 10% 0%, rgba(99,102,241,0.12), transparent 60%),
-            radial-gradient(900px 500px at 90% 100%, rgba(200,16,46,0.08), transparent 60%),
-            linear-gradient(180deg, #F6F7FB 0%, #EEF0F8 100%);
-          animation: meshShift 24s ease-in-out infinite alternate;
-        }
-        .grid-overlay-dark {
-          background-image:
-            linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-          background-size: 44px 44px;
-        }
-        .grid-overlay-light {
-          background-image:
-            linear-gradient(rgba(20,20,36,0.05) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(20,20,36,0.05) 1px, transparent 1px);
-          background-size: 44px 44px;
-        }
-        .orb {
-          position: absolute;
-          border-radius: 9999px;
-          filter: blur(90px);
-          pointer-events: none;
-          animation: orbFloat 26s ease-in-out infinite alternate;
-        }
-        .orb2 { animation-duration: 30s; animation-delay: -7s; }
-        .orb3 { animation-duration: 22s; animation-delay: -4s; }
-        .shimmer {
-          position: relative;
-          overflow: hidden;
-        }
-        .shimmer::after {
-          content: "";
-          position: absolute;
-          inset: 0;
-          transform: translateX(-100%);
-          background: linear-gradient(110deg, transparent, rgba(255,255,255,0.25), transparent);
-          animation: shimmer 3s linear infinite;
-        }
-        .cta-gradient {
-          background-size: 140% 140%;
-          animation: ctaShift 5s ease infinite;
-        }
-        @keyframes meshShift {
-          0% { filter: hue-rotate(0deg); transform: scale(1); }
-          100% { filter: hue-rotate(8deg); transform: scale(1.03); }
-        }
-        @keyframes orbFloat {
-          0% { transform: translate(0px, 0px) scale(1); }
-          100% { transform: translate(24px, -20px) scale(1.06); }
-        }
-        @keyframes shimmer {
-          100% { transform: translateX(100%); }
-        }
-        @keyframes ctaShift {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .mesh-bg-dark, .mesh-bg-light, .orb, .shimmer::after, .cta-gradient { animation: none !important; }
-        }
-      `}</style>
-
-      <section className={`relative min-h-screen flex items-center justify-center px-6 py-20 ${isDarkMode ? "mesh-bg-dark" : "mesh-bg-light"}`}>
-        <div className={`absolute inset-0 ${isDarkMode ? "grid-overlay-dark" : "grid-overlay-light"}`} />
-        <div className="orb w-[600px] h-[600px] bg-[#6366F1]/20 top-[-160px] left-[-120px]" />
-        <div className="orb orb2 w-[400px] h-[400px] bg-[#3B82F6]/20 bottom-[-120px] right-[-100px]" />
-        <div className="orb orb3 w-[300px] h-[300px] bg-[#8B5CF6]/15 top-[30%] right-[20%]" />
-
-        <div className="relative z-10 max-w-5xl text-center">
-          <div className="absolute -top-12 right-0">
+    <div className="min-h-screen bg-white text-zinc-950 antialiased">
+      {/* Floating frosted top bar — centered, clipped so controls stay inside the glass */}
+      <div className="sticky top-0 z-50 flex justify-center px-4 pt-3 sm:px-6 sm:pt-4">
+        <header className="app-topbar flex h-14 w-full max-w-6xl min-w-0 items-center justify-between gap-2 overflow-hidden rounded-2xl px-3 sm:px-6 md:grid md:grid-cols-[auto_minmax(0,1fr)_auto] md:items-center md:gap-4 md:px-6">
+          <Link to="/" className="shrink-0 justify-self-start text-[15px] font-semibold tracking-tight text-zinc-900">
+            Cariva
+          </Link>
+          <nav className="hidden min-w-0 justify-self-stretch overflow-x-auto md:flex md:items-center md:justify-center">
+            <div className="flex shrink-0 items-center gap-5 text-[13px] text-zinc-600 lg:gap-8">
+              <a href="#product" className="whitespace-nowrap transition-colors hover:text-zinc-900">
+                Product
+              </a>
+              <a href="#how" className="whitespace-nowrap transition-colors hover:text-zinc-900">
+                How it works
+              </a>
+              <a href="#stories" className="whitespace-nowrap transition-colors hover:text-zinc-900">
+                Stories
+              </a>
+              <a href="#institutions" className="whitespace-nowrap transition-colors hover:text-zinc-900">
+                Universities
+              </a>
+            </div>
+          </nav>
+          <div className="flex shrink-0 items-center justify-self-end gap-2 sm:gap-3">
             <button
               type="button"
               onClick={toggleLanguage}
-              className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/30 px-3 py-1.5 text-xs text-[#C9C9E8] hover:bg-black/45 transition-colors"
+              className="inline-flex h-8 items-center gap-1.5 rounded-md border border-zinc-200/80 bg-white/40 px-2.5 text-xs text-zinc-600 transition-colors hover:bg-white/70"
               aria-label="Toggle language"
             >
-              <Languages className="w-3.5 h-3.5" />
+              <Languages className="h-3.5 w-3.5" />
               {t("lang.switch", "FR")}
             </button>
+            <Link to="/auth" className="text-[13px] font-medium text-zinc-600 transition-colors hover:text-zinc-900">
+              Log in
+            </Link>
           </div>
+        </header>
+      </div>
 
+      {/* Hero — playful accents, student-forward */}
+      <section className="relative overflow-hidden border-b border-zinc-200 px-5 pb-24 pt-14 sm:px-8 sm:pb-28 sm:pt-20">
+        <div
+          className="pointer-events-none absolute -left-24 top-20 h-72 w-72 rounded-full bg-primary/10 blur-3xl"
+          aria-hidden
+        />
+        <div
+          className="pointer-events-none absolute -right-16 bottom-0 h-64 w-64 rounded-full bg-amber-400/15 blur-3xl"
+          aria-hidden
+        />
+        <div className="relative mx-auto max-w-3xl text-center">
+          <motion.h1
+            initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.55, ease: "easeOut" }}
+            className="text-balance text-[2.25rem] font-semibold leading-[1.12] tracking-tight text-zinc-900 sm:text-[2.5rem] sm:leading-[1.1] lg:text-[2.75rem]"
+          >
+            {heroLine}
+          </motion.h1>
+          <motion.p
+            initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: reduceMotion ? 0 : 0.08 }}
+            className="mx-auto mt-7 max-w-2xl text-pretty text-base font-normal leading-relaxed text-zinc-700 sm:text-lg sm:leading-relaxed"
+          >
+            Cariva maps your skills, decodes the job market, and builds your personal path to the career you want.
+          </motion.p>
           <motion.div
             initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className={`inline-flex shimmer items-center rounded-full border px-4 py-2 text-xs sm:text-sm ${
-              isDarkMode
-                ? "border-[#2A2A4A] text-[#C9C9E8] bg-gradient-to-r from-[#17172A] to-[#101021]"
-                : "border-[#D4D6E5] text-[#48486A] bg-gradient-to-r from-[#FFFFFF] to-[#F2F4FB]"
-            }`}
+            transition={{ duration: 0.5, delay: reduceMotion ? 0 : 0.16 }}
+            className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row"
           >
-            ✦ Powered by AI · AI-Native Platform
-          </motion.div>
-
-          <h1 className="mt-8 text-[40px] sm:text-[56px] lg:text-[72px] leading-[1.06] font-semibold tracking-tight">
-            {heroWords.map((word, i) => (
-              <motion.span
-                key={word + i}
-                initial={reduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: reduceMotion ? 0 : 0.2 + i * 0.1 }}
-                className="inline-block mr-3"
+            <motion.div className="w-full sm:w-auto" whileHover={reduceMotion ? {} : { scale: 1.03 }} whileTap={reduceMotion ? {} : { scale: 0.98 }}>
+              <Link
+                to="/auth"
+                className="inline-flex w-full items-center justify-center rounded-full bg-primary px-8 py-3.5 text-sm font-semibold text-primary-foreground shadow-md shadow-primary/25 transition-opacity hover:opacity-95 sm:w-auto"
               >
-                {word}
-              </motion.span>
-            ))}
-          </h1>
-
-          <motion.p
-            initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: reduceMotion ? 0 : 0.8 }}
-            className={`mt-8 mx-auto max-w-3xl text-lg sm:text-xl ${isDarkMode ? "text-[#A0A0B8]" : "text-[#67678A]"}`}
-          >
-            Cariva maps your skills, decodes the job market, and builds your personal path to the career you want. Built for Moroccan students. Trusted by universities.
-          </motion.p>
-
-          <motion.div
-            initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: reduceMotion ? 0 : 1 }}
-            className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4"
-          >
+                {t("landing.cta.start", "Get started free →")}
+              </Link>
+            </motion.div>
             <Link
               to="/auth"
-              className="cta-gradient rounded-xl px-7 py-3.5 text-sm sm:text-base font-medium bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] hover:brightness-110 hover:scale-[1.02] transition-all"
-            >
-              {t("landing.cta.start", "Get started free →")}
-            </Link>
-            <Link
-              to="/auth"
-              className={`rounded-xl px-7 py-3.5 text-sm sm:text-base font-medium border transition-all ${
-                isDarkMode
-                  ? "border-white/35 text-white hover:bg-white hover:text-[#0A0A14]"
-                  : "border-[#AEB2C9] text-[#1C1C34] hover:bg-[#1C1C34] hover:text-white"
-              }`}
+              className="inline-flex w-full items-center justify-center rounded-full border-2 border-dashed border-zinc-300 bg-white px-8 py-3 text-sm font-medium text-zinc-800 transition-colors hover:border-primary/40 hover:bg-zinc-50 sm:w-auto"
             >
               {t("landing.cta.universities", "For universities")}
             </Link>
           </motion.div>
-
-          <p className={`mt-6 text-xs sm:text-sm ${isDarkMode ? "text-[#666680]" : "text-[#7A7A9E]"}`}>
-            Trusted by leading Moroccan universities · Powered by frontier AI
-          </p>
         </div>
+
+        <motion.div
+          initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.55, delay: reduceMotion ? 0 : 0.24 }}
+          className="relative mx-auto mt-14 max-w-6xl"
+        >
+          <div className="rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-6 sm:rounded-2xl sm:px-8 sm:py-7">
+            <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-4 sm:gap-x-10 md:gap-x-12">
+              {PARTNER_UNIVERSITIES.map((name) => (
+                <span
+                  key={name}
+                  className="whitespace-nowrap text-center text-[12px] font-semibold tracking-tight text-zinc-600 sm:text-[13px]"
+                >
+                  {name}
+                </span>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+
+        <p className="relative z-[1] mx-auto mt-10 max-w-2xl text-center text-xs text-zinc-500 sm:text-sm">
+          Trusted by leading Moroccan universities · Powered by frontier AI
+        </p>
       </section>
 
-      <AnimatedSection className={`border-y px-6 py-12 ${isDarkMode ? "border-[#1E1E35] bg-[#0A0A14]" : "border-[#DDE0EF] bg-[#EEF0F8]"}`}>
-        <div className="max-w-6xl mx-auto grid grid-cols-2 lg:grid-cols-4 gap-8">
+      <AnimatedSection id="stats" className="border-b border-zinc-200 px-5 py-16 sm:px-8">
+        <div className="mx-auto grid max-w-6xl grid-cols-2 gap-10 lg:grid-cols-4 lg:gap-8">
           {STATS.map((s) => (
             <div key={s.label} className="text-center lg:text-left">
-              <p className="text-3xl sm:text-4xl font-semibold bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent">
-                <CountUp target={s.value} suffix={s.suffix} />
-              </p>
-              <p className={`mt-2 text-sm ${isDarkMode ? "text-[#A0A0B8]" : "text-[#65658B]"}`}>{s.label}</p>
+              <p className="text-3xl font-semibold tracking-tight text-zinc-900 sm:text-4xl">{s.value}</p>
+              <p className="mt-2 text-sm leading-snug text-zinc-600">{s.label}</p>
             </div>
           ))}
         </div>
       </AnimatedSection>
 
-      <AnimatedSection className="px-6 py-24">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl font-semibold text-center">Everything you need to launch your career</h2>
-          <p className={`text-center mt-4 ${isDarkMode ? "text-[#A0A0B8]" : "text-[#65658B]"}`}>Three AI-powered modules working together</p>
-          <div className="mt-12 grid md:grid-cols-3 gap-5">
+      <AnimatedSection id="product" className="px-5 py-20 sm:px-8 sm:py-28">
+        <div className="mx-auto max-w-6xl">
+          <h2 className="text-center text-3xl font-semibold tracking-tight text-zinc-900 sm:text-4xl">
+            Everything you need to launch your career
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-center text-zinc-600">Three AI-powered modules working together</p>
+          <div className="mt-14 grid gap-6 md:grid-cols-3">
             {FEATURES.map((f) => (
-              <motion.article
-                whileHover={reduceMotion ? {} : { scale: 1.02 }}
+              <article
                 key={f.title}
-                className={`group rounded-2xl border p-6 hover:shadow-[0_0_36px_rgba(99,102,241,0.22)] transition-all ${
-                  isDarkMode ? "bg-[#0F0F1A] border-[#1E1E35]" : "bg-white border-[#E3E6F3]"
-                }`}
+                className="group flex flex-col rounded-2xl border border-zinc-200 bg-white p-6 shadow-[0_1px_0_rgba(0,0,0,0.04)] transition-all hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-md"
               >
-                <div className={`inline-flex p-3 rounded-xl bg-gradient-to-r ${f.gradient}`}>
-                  <f.icon className="w-5 h-5" />
+                <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-200 bg-primary/5 text-primary transition-colors group-hover:bg-primary/10">
+                  <f.icon className="h-5 w-5" strokeWidth={1.75} />
                 </div>
-                <h3 className="mt-5 text-xl font-semibold">{f.title}</h3>
-                <p className={`mt-3 leading-relaxed ${isDarkMode ? "text-[#A0A0B8]" : "text-[#66668C]"}`}>{f.body}</p>
-                <p className={`mt-6 text-xs ${isDarkMode ? "text-[#C9C9E8]" : "text-[#58587E]"}`}>{f.tag}</p>
-              </motion.article>
+                <h3 className="mt-5 text-lg font-semibold text-zinc-900">{f.title}</h3>
+                <p className="mt-3 flex-1 text-sm leading-relaxed text-zinc-600">{f.body}</p>
+                <p className="mt-6 text-xs font-medium text-zinc-500">{f.tag}</p>
+              </article>
             ))}
           </div>
         </div>
       </AnimatedSection>
 
-      <AnimatedSection className="px-6 py-24">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl font-semibold text-center">From lost to launched. In minutes.</h2>
-          <div className="mt-12 grid md:grid-cols-4 gap-6 md:gap-4 relative">
-            <div className={`hidden md:block absolute left-0 right-0 top-5 h-px bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] ${isDarkMode ? "opacity-100" : "opacity-70"}`} />
+      <AnimatedSection id="how" className="border-y border-zinc-200 bg-zinc-50/50 px-5 py-20 sm:px-8 sm:py-28">
+        <div className="mx-auto max-w-6xl">
+          <h2 className="text-center text-3xl font-semibold tracking-tight text-zinc-900 sm:text-4xl">
+            From lost to launched. In minutes.
+          </h2>
+          <div className="mt-14 grid gap-10 md:grid-cols-4 md:gap-6">
             {STEPS.map((step, i) => (
               <div key={step.title} className="relative md:text-center">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white flex items-center justify-center font-semibold mx-0 md:mx-auto">
+                <div className="mx-0 flex h-10 w-10 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground shadow-md shadow-primary/20 md:mx-auto">
                   {i + 1}
                 </div>
-                <h3 className="mt-4 font-semibold text-lg">{step.title}</h3>
-                <p className={`mt-2 text-sm ${isDarkMode ? "text-[#A0A0B8]" : "text-[#66668C]"}`}>{step.body}</p>
+                <h3 className="mt-4 text-base font-semibold text-zinc-900">{step.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-zinc-600">{step.body}</p>
               </div>
             ))}
           </div>
         </div>
       </AnimatedSection>
 
-      <AnimatedSection className="px-6 py-24">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl font-semibold text-center">Built for Morocco's generation of achievers</h2>
-          <div className="mt-12 grid md:grid-cols-3 gap-5">
+      <AnimatedSection id="stories" className="px-5 py-20 sm:px-8 sm:py-28">
+        <div className="mx-auto max-w-6xl">
+          <h2 className="text-center text-3xl font-semibold tracking-tight text-zinc-900 sm:text-4xl">
+            Built for Morocco&apos;s generation of achievers
+          </h2>
+          <div className="mt-14 grid gap-6 md:grid-cols-3">
             {QUOTES.map((q) => (
-              <motion.article
-                whileHover={reduceMotion ? {} : { scale: 1.02 }}
+              <blockquote
                 key={q.author}
-                className={`rounded-2xl border p-6 hover:shadow-[0_0_36px_rgba(139,92,246,0.2)] transition-all ${
-                  isDarkMode ? "bg-[#0F0F1A] border-[#1E1E35]" : "bg-white border-[#E3E6F3]"
-                }`}
+                className="rounded-xl border border-zinc-200 bg-white p-6 shadow-[0_1px_0_rgba(0,0,0,0.04)]"
               >
-                <p className={`leading-relaxed ${isDarkMode ? "text-[#FFFFFF]" : "text-[#1E1E38]"}`}>"{q.text}"</p>
-                <p className={`mt-5 text-sm ${isDarkMode ? "text-[#A0A0B8]" : "text-[#66668C]"}`}>— {q.author}</p>
-              </motion.article>
-            ))}
-          </div>
-          <div className="mt-10 flex flex-wrap justify-center gap-3">
-            {["ESCA", "UM6P", "UIR"].map((logo) => (
-              <span key={logo} className={`px-4 py-2 rounded-full border text-sm ${isDarkMode ? "border-[#2A2A45] bg-[#0E0E18] text-[#8E8EA8]" : "border-[#D9DCEE] bg-white text-[#66668C]"}`}>
-                {logo}
-              </span>
+                <p className="text-sm leading-relaxed text-zinc-800">&ldquo;{q.text}&rdquo;</p>
+                <footer className="mt-5 text-sm text-zinc-500">— {q.author}</footer>
+              </blockquote>
             ))}
           </div>
         </div>
       </AnimatedSection>
 
-      <AnimatedSection className="px-6 py-24">
-        <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-10 items-center">
+      <AnimatedSection id="institutions" className="border-t border-zinc-200 px-5 py-20 sm:px-8 sm:py-28">
+        <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-2">
           <div>
-            <p className="text-[#6366F1] tracking-[0.15em] text-xs font-semibold">FOR INSTITUTIONS</p>
-            <h2 className="mt-3 text-3xl sm:text-4xl font-semibold">Give your students an unfair advantage</h2>
-            <p className={`mt-5 leading-relaxed ${isDarkMode ? "text-[#A0A0B8]" : "text-[#66668C]"}`}>
-              Cariva gives your institution a full career intelligence dashboard — cohort readiness scores, skills gap analysis, sector demand trends. The data your accreditors want to see.
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">For institutions</p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-zinc-900 sm:text-4xl">
+              Give your students an unfair advantage
+            </h2>
+            <p className="mt-5 text-sm leading-relaxed text-zinc-600 sm:text-base">
+              Cariva gives your institution a full career intelligence dashboard — cohort readiness scores, skills gap
+              analysis, sector demand trends. The data your accreditors want to see.
             </p>
             <Link
               to="/auth"
-              className="inline-flex mt-7 rounded-xl px-6 py-3 text-sm font-medium bg-[#6366F1] hover:bg-[#5558EB] transition-colors"
+              className="mt-8 inline-flex rounded-md bg-zinc-900 px-6 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90"
             >
               Request a demo →
             </Link>
-            <ul className={`mt-7 space-y-3 ${isDarkMode ? "text-[#D8D8EA]" : "text-[#2F2F52]"}`}>
-              {[
-                "University-level analytics dashboard",
-                "Student career readiness scores",
-                "Skills gap heatmap by department",
-              ].map((item) => (
-                <li key={item} className="flex items-center gap-3">
-                  <Check className="w-4 h-4 text-[#8B5CF6]" /> {item}
-                </li>
-              ))}
+            <ul className="mt-8 space-y-3 text-sm text-zinc-800">
+              {["University-level analytics dashboard", "Student career readiness scores", "Skills gap heatmap by department"].map(
+                (item) => (
+                  <li key={item} className="flex items-start gap-3">
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-zinc-900" strokeWidth={2} />
+                    {item}
+                  </li>
+                ),
+              )}
             </ul>
           </div>
-          <motion.div
-            whileHover={reduceMotion ? {} : { scale: 1.02 }}
-            className={`rounded-2xl border p-6 shadow-[0_0_40px_rgba(99,102,241,0.2)] ${
-              isDarkMode
-                ? "border-[#2A2A46] bg-gradient-to-br from-[#111124] to-[#0B0B16]"
-                : "border-[#DBDEF0] bg-gradient-to-br from-[#FFFFFF] to-[#F3F5FC]"
-            }`}
-          >
+            <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-6">
             <div className="grid grid-cols-2 gap-4">
-              {[
-                "25 universities",
-                "8,000+ students",
-              ].map((item) => (
-                <div key={item} className={`rounded-xl border p-4 text-sm ${isDarkMode ? "border-[#1E1E35] bg-[#0F0F1A] text-[#D2D2E5]" : "border-[#E0E3F2] bg-white text-[#3A3A5C]"}`}>
+              {["25 universities", "8,000+ students"].map((item) => (
+                <div key={item} className="rounded-lg border border-zinc-200 bg-white p-4 text-sm text-zinc-700">
                   {item}
                 </div>
               ))}
             </div>
-          </motion.div>
+          </div>
         </div>
       </AnimatedSection>
 
-      <AnimatedSection className="px-6 py-24">
-        <div className={`max-w-5xl mx-auto rounded-3xl border p-10 text-center ${isDarkMode ? "border-[#2A2A45] bg-gradient-to-r from-[#111126] to-[#0A0A14]" : "border-[#DBDEF0] bg-gradient-to-r from-[#FFFFFF] to-[#F3F5FC]"}`}>
-          <h2 className="text-3xl sm:text-4xl font-semibold">Your career starts with clarity.</h2>
-          <p className={`mt-4 ${isDarkMode ? "text-[#A0A0B8]" : "text-[#66668C]"}`}>Join thousands of Moroccan students building their future with AI.</p>
+      <AnimatedSection className="px-5 py-20 sm:px-8 sm:py-24">
+        <div className="mx-auto max-w-3xl rounded-2xl border border-zinc-200 bg-gradient-to-b from-white to-zinc-50/80 px-8 py-14 text-center shadow-sm sm:px-12">
+          <p className="text-2xl" aria-hidden>
+            🚀
+          </p>
+          <h2 className="mt-2 text-3xl font-semibold tracking-tight text-zinc-900 sm:text-4xl">Ready when you are.</h2>
+          <p className="mx-auto mt-4 max-w-lg text-sm text-zinc-600 sm:text-base">
+            Join thousands of Moroccan students building their future with AI — no stress, just next steps.
+          </p>
           <Link
             to="/auth"
-            className="cta-gradient inline-flex mt-8 rounded-xl px-8 py-3.5 text-base font-medium bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] hover:brightness-110 hover:scale-[1.02] transition-all"
+            className="mt-8 inline-flex rounded-full bg-primary px-8 py-3 text-sm font-semibold text-primary-foreground shadow-md shadow-primary/25 transition-opacity hover:opacity-95"
           >
             Start for free →
           </Link>
-          <p className={`mt-4 text-sm ${isDarkMode ? "text-[#7A7A94]" : "text-[#76769A]"}`}>Free via your university · No credit card required</p>
+          <p className="mt-4 text-xs text-zinc-500 sm:text-sm">Free via your university · No credit card required</p>
         </div>
       </AnimatedSection>
 
-      <footer className={`px-6 py-10 border-t ${isDarkMode ? "border-[#1B1B32] bg-[#050508]" : "border-[#DDE0EF] bg-[#F6F7FB]"}`}>
-        <div className="max-w-6xl mx-auto border-t border-transparent pt-2 [border-image:linear-gradient(to_right,transparent,#3A3A64,transparent)_1]">
-          <div className="grid md:grid-cols-3 gap-6 items-center text-sm">
-            <div>
-              <p className={`font-semibold ${isDarkMode ? "text-white" : "text-[#141424]"}`}>Cariva</p>
-              <p className={`mt-1 ${isDarkMode ? "text-[#A0A0B8]" : "text-[#66668C]"}`}>AI-native career intelligence</p>
-            </div>
-            <div className={`flex flex-wrap gap-4 md:justify-center ${isDarkMode ? "text-[#B6B6CF]" : "text-[#5E5E82]"}`}>
-              {["Product", "For Universities", "About", "Contact"].map((l) => (
-                <span key={l}>{l}</span>
-              ))}
-            </div>
-            <div className="md:text-right">
-              <span className={`inline-flex text-xs rounded-full border px-3 py-1 ${isDarkMode ? "border-[#2A2A45] bg-[#0E0E18] text-[#C7C7E4]" : "border-[#D9DCEE] bg-white text-[#5C5C7E]"}`}>
-                Powered by AI
-              </span>
-              <p className={`mt-2 ${isDarkMode ? "text-[#8A8AA5]" : "text-[#76769A]"}`}>© 2026 Cariva. All rights reserved.</p>
-            </div>
+      <footer className="border-t border-zinc-200 bg-white px-5 py-12 sm:px-8">
+        <div className="mx-auto grid max-w-6xl gap-10 md:grid-cols-4">
+          <div className="md:col-span-1">
+            <p className="text-[15px] font-semibold text-zinc-900">Cariva</p>
+            <p className="mt-2 text-sm text-zinc-600">AI-native career intelligence</p>
+          </div>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">Product</p>
+            <ul className="mt-3 space-y-2 text-sm text-zinc-600">
+              <li>
+                <a href="#product" className="hover:text-zinc-900">
+                  Pathways
+                </a>
+              </li>
+              <li>
+                <a href="#product" className="hover:text-zinc-900">
+                  Market data
+                </a>
+              </li>
+              <li>
+                <a href="#how" className="hover:text-zinc-900">
+                  How it works
+                </a>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">Company</p>
+            <ul className="mt-3 space-y-2 text-sm text-zinc-600">
+              <li>
+                <span>For universities</span>
+              </li>
+              <li>
+                <span>About</span>
+              </li>
+              <li>
+                <span>Contact</span>
+              </li>
+            </ul>
+          </div>
+          <div className="md:text-right">
+            <span className="inline-flex rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-xs text-zinc-600">
+              Powered by AI
+            </span>
+            <p className="mt-4 text-xs text-zinc-500">© {new Date().getFullYear()} Cariva. All rights reserved.</p>
           </div>
         </div>
       </footer>

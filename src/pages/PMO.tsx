@@ -24,18 +24,18 @@ type StageKey = "wishlist" | "applied" | "round_1" | "round_2" | "final" | "offe
 const PMO_BG = "var(--color-background-tertiary)";
 const PMO_CARD = "var(--color-background-secondary)";
 const PMO_BORDER = "var(--color-border-tertiary)";
-const PMO_CTA = "hsl(var(--accent))";
-const PMO_STAGE = "#6366F1";
+const PMO_CTA = "var(--red)";
+const PMO_STAGE = "#7C3AED";
 const PMO_TEXT = "var(--color-text-primary)";
 const PMO_MUTED = "var(--color-text-secondary)";
 
 const STAGES: { key: StageKey; label: string; pill: string; left: string }[] = [
   { key: "wishlist", label: "Wishlist", pill: "#6B7280", left: "#6B7280" },
   { key: "applied", label: "Applied", pill: "#3B82F6", left: "#3B82F6" },
-  { key: "round_1", label: "Round 1", pill: "#EAB308", left: "#EAB308" },
-  { key: "round_2", label: "Round 2", pill: "#F97316", left: "#F97316" },
+  { key: "round_1", label: "Round 1", pill: "#D97706", left: "#D97706" },
+  { key: "round_2", label: "Round 2", pill: "#EA580C", left: "#EA580C" },
   { key: "final", label: "Final", pill: PMO_STAGE, left: PMO_STAGE },
-  { key: "offer", label: "Offer", pill: "#22C55E", left: "#22C55E" },
+  { key: "offer", label: "Offer", pill: "#16A34A", left: "#16A34A" },
 ];
 
 const ROUND_TYPES = ["Screening", "Technical", "Case", "Behavioral", "Panel", "Final"];
