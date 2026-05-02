@@ -133,19 +133,32 @@ Deno.serve(async (req) => {
       .from('pathway_results')
       .insert({ user_id: userData.user.id, result_json: result });
 
-    if (insertErr) console.error('Insert error:', insertErr);
+    if (insertErr) {
+      console.error('pathway_results insert error:', insertErr);
+      return new Response(JSON.stringify({ error: 'Failed to save pathway results' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     const actions = (result as any)?.actionPlan ?? [];
     if (Array.isArray(actions) && actions.length > 0) {
-      await supabase.from('action_plan_items').insert(
-        actions.map((a: string) => ({ user_id: userData.user.id, action_text: a }))
+      const { error: planErr } = await supabase.from('action_plan_items').insert(
+        actions.map((a: string) => ({ user_id: userData.user.id, action_text: a })),
       );
+      if (planErr) {
+        console.error('action_plan_items insert error:', planErr);
+      }
     }
 
-    await supabase
+    const { error: profileError } = await supabase
       .from('profiles')
       .update({ onboarding_completed: true })
       .eq('user_id', userData.user.id);
+
+    if (profileError) {
+      console.error('Profile update error:', profileError);
+    }
 
     return new Response(JSON.stringify({ result }), {
       status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },

@@ -14,6 +14,7 @@ const Index = () => {
         return;
       }
       const uid = data.session.user.id;
+      // profiles.user_id is the FK to auth.users.id (same as auth.uid() for the signed-in user)
       const [{ data: profile }, { data: roles }] = await Promise.all([
         supabase.from("profiles").select("onboarding_completed").eq("user_id", uid).maybeSingle(),
         supabase.from("user_roles").select("role").eq("user_id", uid),
@@ -22,8 +23,12 @@ const Index = () => {
       const isStudent = roles?.some((r) => r.role === "student");
       const stored = localStorage.getItem("cariva.activeView");
       const view = stored === "admin" && isAdmin ? "admin" : stored === "student" && isStudent ? "student" : isAdmin ? "admin" : "student";
-      if (view === "admin") navigate("/admin", { replace: true });
-      else navigate(profile?.onboarding_completed ? "/pathways" : "/onboarding", { replace: true });
+      if (view === "admin") {
+        navigate("/admin", { replace: true });
+        return;
+      }
+      const onboardingDone = profile?.onboarding_completed === true;
+      navigate(onboardingDone ? "/pathways" : "/onboarding", { replace: true });
     })();
   }, [navigate]);
 

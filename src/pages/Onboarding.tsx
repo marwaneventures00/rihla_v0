@@ -11,7 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
-import { ArrowLeft, ArrowRight, Loader2, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, Loader2, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   defaultOnboarding,
@@ -111,7 +111,8 @@ export default function Onboarding() {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [data, setData] = useState<OnboardingState>(defaultOnboarding);
-  const [submitting, setSubmitting] = useState(false);
+  /** form = wizard; loading = waiting for edge function; success = brief confirmation before redirect */
+  const [uiPhase, setUiPhase] = useState<"form" | "loading" | "success">("form");
 
   // load persisted state
   useEffect(() => {
@@ -132,6 +133,15 @@ export default function Onboarding() {
       if (!s.session) navigate("/auth", { replace: true });
     });
   }, [navigate]);
+
+  useEffect(() => {
+    if (uiPhase !== "success") return;
+    const id = window.setTimeout(() => {
+      localStorage.removeItem(STORAGE_KEY);
+      navigate("/pathways", { replace: true });
+    }, 1600);
+    return () => clearTimeout(id);
+  }, [uiPhase, navigate]);
 
   const update = <K extends keyof OnboardingState>(key: K, value: OnboardingState[K]) =>
     setData((d) => ({ ...d, [key]: value }));
@@ -159,11 +169,12 @@ export default function Onboarding() {
       toast.error(tr("Please answer all questions", "Veuillez repondre a toutes les questions"));
       return;
     }
-    setSubmitting(true);
+    setUiPhase("loading");
     try {
       const { data: session } = await supabase.auth.getSession();
       if (!session.session) {
-        navigate("/auth");
+        setUiPhase("form");
+        navigate("/auth", { replace: true });
         return;
       }
       const userId = session.session.user.id;
@@ -203,18 +214,17 @@ export default function Onboarding() {
       if (fnErr) throw fnErr;
       if ((fnData as any)?.error) throw new Error((fnData as any).error);
 
-      localStorage.removeItem(STORAGE_KEY);
       toast.success(tr("Your career pathways are ready!", "Vos parcours de carriere sont prets !"));
-      navigate("/pathways", { replace: true });
+      setUiPhase("success");
     } catch (err: any) {
       console.error(err);
+      setUiPhase("form");
       toast.error(err?.message ?? tr("Something went wrong. Please try again.", "Une erreur est survenue. Veuillez reessayer."));
-    } finally {
-      setSubmitting(false);
     }
   }
 
-  if (submitting) return <AnalyzingScreen />;
+  if (uiPhase === "loading") return <AnalyzingScreen />;
+  if (uiPhase === "success") return <PathwaysReadyScreen />;
 
   const progress = (step / 3) * 100;
 
@@ -447,7 +457,7 @@ export default function Onboarding() {
                 {tr("Continue", "Continuer")} <ArrowRight className="w-4 h-4" />
               </Button>
             ) : (
-              <Button variant="hero" onClick={handleSubmit} disabled={!step3Valid}>
+              <Button variant="hero" onClick={handleSubmit} disabled={!step3Valid || uiPhase !== "form"}>
                 <Sparkles className="w-4 h-4" /> {tr("Generate my pathways", "Generer mes parcours")}
               </Button>
             )}
@@ -474,6 +484,24 @@ function AnalyzingScreen() {
         <div className="h-2 bg-secondary rounded-full overflow-hidden">
           <div className="h-full bg-primary animate-pulse w-2/3 rounded-full" />
         </div>
+      </Card>
+    </div>
+  );
+}
+
+function PathwaysReadyScreen() {
+  const { language } = useLanguage();
+  const tr = (en: string, fr: string) => (language === "fr" ? fr : en);
+  return (
+    <div className="min-h-screen flex items-center justify-center px-4 bg-background">
+      <Card className="max-w-md w-full p-10 text-center shadow-elevated">
+        <div className="mx-auto w-14 h-14 rounded-full bg-[var(--red-subtle)] flex items-center justify-center mb-4">
+          <CheckCircle2 className="w-8 h-8 text-primary" />
+        </div>
+        <h2 className="text-xl font-bold mb-2">{tr("You're all set", "Tout est pret")}</h2>
+        <p className="text-sm text-muted-foreground">
+          {tr("Taking you to your pathways…", "Redirection vers vos parcours…")}
+        </p>
       </Card>
     </div>
   );

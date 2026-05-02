@@ -2,8 +2,17 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+const supabaseKey =
+  (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined) ||
+  (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined);
+
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error('Missing VITE_SUPABASE_URL or VITE_SUPABASE_PUBLISHABLE_KEY / VITE_SUPABASE_ANON_KEY');
+}
+
+const SUPABASE_URL = supabaseUrl;
+const SUPABASE_PUBLISHABLE_KEY = supabaseKey;
 const REMEMBER_ME_KEY = 'cariva.rememberMe';
 
 const authStorage: Storage = {
