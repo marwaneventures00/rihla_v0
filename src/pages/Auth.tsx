@@ -1,26 +1,39 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import type { Session } from "@supabase/supabase-js";
 
-import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Loader2, Languages } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
+
+const inter = { fontFamily: "Inter, system-ui, sans-serif" } as const;
+
+const VALUE_BULLETS = [
+  "Personalized career path in under 5 minutes",
+  "Real-time Moroccan job market intelligence",
+  "AI-powered interview and case prep",
+] as const;
+
+const inputClassName =
+  "h-auto min-h-[48px] w-full rounded-[10px] border-[1.5px] border-[#E5E5E5] bg-white px-4 py-3 text-[15px] font-sans text-[#0A0A0A] placeholder:text-[#6B6B6B]/70 shadow-none focus-visible:border-[#0A0A0A] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[rgba(0,0,0,0.06)] focus-visible:ring-offset-0";
+
+const labelClassName = "mb-1.5 block text-[13px] font-medium text-[#0A0A0A]";
+
+const primaryBtnClassName =
+  "inline-flex w-full items-center justify-center rounded-full border-0 bg-[#C8102E] py-3.5 text-[15px] font-semibold text-white shadow-none transition-all duration-200 ease-in-out hover:-translate-y-px hover:bg-[#A50D26] hover:shadow-[0_4px_16px_rgba(200,16,46,0.3)] disabled:pointer-events-none disabled:opacity-50";
 
 export default function Auth() {
   const navigate = useNavigate();
-  const { t, toggleLanguage } = useLanguage();
+  const { t } = useLanguage();
   const [tab, setTab] = useState<"student" | "admin">("student");
   const [mode, setMode] = useState<"signin" | "signup">("signup");
   const [loading, setLoading] = useState(false);
 
-  // form state
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -61,7 +74,6 @@ export default function Auth() {
     e.preventDefault();
     setLoading(true);
     try {
-      // Validate university access code
       const { data: uni, error: uniErr } = await supabase
         .from("universities")
         .select("id, name, license_active")
@@ -137,79 +149,98 @@ export default function Auth() {
   }
 
   return (
-    <div className="min-h-screen grid lg:grid-cols-2">
+    <div className="min-h-screen bg-[#FAFAF8] grid lg:grid-cols-2">
       {/* Left: hero */}
-      <div className="relative hidden lg:flex flex-col justify-between p-12 bg-[var(--bg-1)] dark:bg-[var(--bg-0)] border-r border-border text-foreground">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-primary" aria-hidden />
-            <h1 className="font-cariva-brand text-3xl font-medium tracking-tight">Cariva</h1>
-          </div>
+      <div className="relative hidden min-h-screen flex-col border-r border-[#E5E5E5] p-12 text-[#0A0A0A] lg:flex">
+        <div className="shrink-0">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-2.5 text-[#0A0A0A] no-underline outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2"
+          >
+            <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#C8102E]" aria-hidden />
+            <span className="font-serif text-4xl font-bold tracking-tight lg:text-[2.75rem] lg:leading-none">
+              Cariva
+            </span>
+            <span className="sr-only">Back to home</span>
+          </Link>
         </div>
-        <div className="max-w-md">
-          <h2 className="text-4xl xl:text-5xl font-semibold leading-tight mb-6 text-foreground tracking-tight">
+
+        <div className="mt-12 flex min-h-0 max-w-md flex-1 flex-col justify-center">
+          <h2
+            className="font-black leading-[1.1] tracking-[-0.02em] text-[#0A0A0A]"
+            style={{ ...inter, fontSize: "clamp(36px, 4vw, 56px)" }}
+          >
             Discover your career path.
           </h2>
-          <p className="text-lg text-muted-foreground">AI-native career intelligence. Powered by AI.</p>
+          <p
+            className="mt-4 max-w-[360px] text-base leading-[1.6] text-[#6B6B6B]"
+            style={inter}
+          >
+            AI-native career intelligence built for Moroccan students.
+          </p>
+          <ul className="mt-6 flex flex-col gap-3" style={inter}>
+            {VALUE_BULLETS.map((line) => (
+              <li key={line} className="flex items-start gap-2 text-left text-[14px] text-[#0A0A0A]">
+                <span className="mt-[5px] shrink-0 text-[8px] leading-none text-[#C8102E]" aria-hidden>
+                  ●
+                </span>
+                <span>{line}</span>
+              </li>
+            ))}
+          </ul>
         </div>
-        <div className="text-sm text-muted-foreground">© {new Date().getFullYear()} Cariva — AI-native career intelligence. Powered by AI.</div>
+
+        <div className="mt-auto shrink-0 pt-12">
+          <blockquote className="text-[15px] italic leading-snug text-[#0A0A0A]" style={inter}>
+            &ldquo;Cariva helped me land my first internship at a Big 4 firm.&rdquo;
+          </blockquote>
+          <p className="mt-2 text-[13px] text-[#6B6B6B]" style={inter}>
+            — Yasmine B., ESCA · Class of 2025
+          </p>
+        </div>
+
+        <div className="mt-10 shrink-0 text-sm text-[#6B6B6B]" style={inter}>
+          © {new Date().getFullYear()} Cariva — AI-native career intelligence.
+        </div>
       </div>
 
       {/* Right: forms */}
-      <div className="flex items-center justify-center p-6 sm:p-12">
-        <Card className="w-full max-w-md p-8 border-border/80">
-          <div className="lg:hidden mb-6 flex items-center justify-between gap-2">
-            <h1 className="font-cariva-brand text-2xl font-medium tracking-tight">Cariva</h1>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={toggleLanguage}
-                className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                aria-label="Toggle language"
-              >
-                <Languages className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => navigate("/")}
-                className="text-sm text-muted-foreground hover:text-primary transition-colors"
-              >
-                {t("auth.backHome", "Back to home")}
-              </button>
-            </div>
-          </div>
-
-          <div className="hidden lg:flex justify-end mb-4">
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={toggleLanguage}
-                className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                aria-label="Toggle language"
-              >
-                <Languages className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => navigate("/")}
-                className="text-sm text-muted-foreground hover:text-primary transition-colors"
-              >
-                {t("auth.backHome", "Back to home")}
-              </button>
-            </div>
+      <div className="flex min-h-screen flex-col items-center justify-center bg-white px-6 py-12 sm:px-12">
+        <div className="w-full max-w-[420px] rounded-[20px] bg-white px-10 py-12 shadow-[0_8px_40px_rgba(0,0,0,0.08)]">
+          <div className="mb-6 lg:hidden">
+            <Link
+              to="/"
+              className="inline-flex items-center gap-2.5 text-[#0A0A0A] no-underline outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2"
+            >
+              <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#C8102E]" aria-hidden />
+              <span className="font-serif text-3xl font-bold tracking-tight">Cariva</span>
+              <span className="sr-only">Back to home</span>
+            </Link>
           </div>
 
           <Tabs value={tab} onValueChange={(v) => setTab(v as "student" | "admin")}>
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="student">{t("auth.student", "Student")}</TabsTrigger>
-              <TabsTrigger value="admin">{t("auth.universityAdmin", "University admin")}</TabsTrigger>
+            <TabsList className="mb-6 flex h-auto w-full gap-0 rounded-full bg-[#F5F5F5] p-1">
+              <TabsTrigger
+                value="student"
+                className="flex-1 rounded-full border-0 bg-transparent py-2.5 text-sm font-normal text-[#6B6B6B] shadow-none transition-all data-[state=active]:bg-white data-[state=active]:font-semibold data-[state=active]:text-[#0A0A0A] data-[state=active]:shadow-[0_1px_4px_rgba(0,0,0,0.1)]"
+                style={inter}
+              >
+                {t("auth.student", "Student")}
+              </TabsTrigger>
+              <TabsTrigger
+                value="admin"
+                className="flex-1 rounded-full border-0 bg-transparent py-2.5 text-sm font-normal text-[#6B6B6B] shadow-none transition-all data-[state=active]:bg-white data-[state=active]:font-semibold data-[state=active]:text-[#0A0A0A] data-[state=active]:shadow-[0_1px_4px_rgba(0,0,0,0.1)]"
+                style={inter}
+              >
+                {t("auth.universityAdmin", "University admin")}
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="student">
-              <h2 className="text-xl font-semibold mb-1">
+              <h2 className="mb-1 text-xl font-semibold text-[#0A0A0A]" style={inter}>
                 {mode === "signup" ? t("auth.getStarted", "Get started") : t("auth.welcomeBack", "Welcome back")}
               </h2>
-              <p className="text-sm text-muted-foreground mb-6">
+              <p className="mb-6 text-sm text-[#6B6B6B]" style={inter}>
                 {mode === "signup"
                   ? "Create your student account with your university's access code."
                   : "Sign in to continue your career journey."}
@@ -218,17 +249,38 @@ export default function Auth() {
               <form onSubmit={mode === "signup" ? handleStudentSignup : handleSignIn} className="space-y-4">
                 {mode === "signup" && (
                   <div>
-                    <Label htmlFor="name">Full name</Label>
-                    <Input id="name" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+                    <Label htmlFor="name" className={labelClassName} style={inter}>
+                      Full name
+                    </Label>
+                    <Input id="name" className={inputClassName} value={fullName} onChange={(e) => setFullName(e.target.value)} required />
                   </div>
                 )}
                 <div>
-                  <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                  <Label htmlFor="email" className={labelClassName} style={inter}>
+                    Email
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    className={inputClassName}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
                 </div>
                 <div>
-                  <Label htmlFor="password">Password</Label>
-                  <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} minLength={6} required />
+                  <Label htmlFor="password" className={labelClassName} style={inter}>
+                    Password
+                  </Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    className={inputClassName}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    minLength={6}
+                    required
+                  />
                 </div>
                 {mode === "signin" && (
                   <div className="flex items-center gap-2">
@@ -237,34 +289,40 @@ export default function Auth() {
                       checked={rememberMe}
                       onCheckedChange={(checked) => setRememberMe(checked === true)}
                     />
-                    <Label htmlFor="remember-me-student" className="text-sm text-muted-foreground">
+                    <Label htmlFor="remember-me-student" className="text-sm font-normal text-[#6B6B6B]" style={inter}>
                       Remember me
                     </Label>
                   </div>
                 )}
                 {mode === "signup" && (
                   <div>
-                    <Label htmlFor="code">University access code</Label>
+                    <Label htmlFor="code" className={labelClassName} style={inter}>
+                      University access code
+                    </Label>
                     <Input
                       id="code"
+                      className={inputClassName}
                       value={accessCode}
                       onChange={(e) => setAccessCode(e.target.value)}
                       placeholder="e.g. ESCA2026"
                       required
                     />
-                    <p className="text-xs text-muted-foreground mt-1">Try <code className="font-mono">ESCA2026</code> for the demo university.</p>
+                    <p className="mt-1 text-xs text-[#6B6B6B]" style={inter}>
+                      Try <code className="font-mono">ESCA2026</code> for the demo university.
+                    </p>
                   </div>
                 )}
 
-                <Button type="submit" variant="accent" className="w-full" disabled={loading}>
-                  {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                <button type="submit" className={primaryBtnClassName} disabled={loading} style={inter}>
+                  {loading && <Loader2 className="mr-2 inline h-4 w-4 animate-spin align-middle" />}
                   {mode === "signup" ? t("auth.createAccount", "Create account") : t("auth.signIn", "Sign in")}
-                </Button>
+                </button>
               </form>
 
               <button
                 type="button"
-                className="w-full text-sm text-muted-foreground mt-4 hover:text-primary transition-colors"
+                className="mt-4 w-full text-sm text-[#6B6B6B] no-underline transition-colors hover:text-[#0A0A0A] hover:underline"
+                style={inter}
                 onClick={() => setMode(mode === "signup" ? "signin" : "signup")}
               >
                 {mode === "signup" ? "Already have an account? Sign in" : "New here? Create an account"}
@@ -272,18 +330,38 @@ export default function Auth() {
             </TabsContent>
 
             <TabsContent value="admin">
-              <h2 className="text-xl font-semibold mb-1">University login</h2>
-              <p className="text-sm text-muted-foreground mb-6">
+              <h2 className="mb-1 text-xl font-semibold text-[#0A0A0A]" style={inter}>
+                University login
+              </h2>
+              <p className="mb-6 text-sm text-[#6B6B6B]" style={inter}>
                 Admin dashboards arrive in the next phase. For now, please sign in with your credentials.
               </p>
               <form onSubmit={handleSignIn} className="space-y-4">
                 <div>
-                  <Label htmlFor="aemail">Email</Label>
-                  <Input id="aemail" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                  <Label htmlFor="aemail" className={labelClassName} style={inter}>
+                    Email
+                  </Label>
+                  <Input
+                    id="aemail"
+                    type="email"
+                    className={inputClassName}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
                 </div>
                 <div>
-                  <Label htmlFor="apassword">Password</Label>
-                  <Input id="apassword" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                  <Label htmlFor="apassword" className={labelClassName} style={inter}>
+                    Password
+                  </Label>
+                  <Input
+                    id="apassword"
+                    type="password"
+                    className={inputClassName}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
                 </div>
                 <div className="flex items-center gap-2">
                   <Checkbox
@@ -291,18 +369,18 @@ export default function Auth() {
                     checked={rememberMe}
                     onCheckedChange={(checked) => setRememberMe(checked === true)}
                   />
-                  <Label htmlFor="remember-me-admin" className="text-sm text-muted-foreground">
+                  <Label htmlFor="remember-me-admin" className="text-sm font-normal text-[#6B6B6B]" style={inter}>
                     Remember me
                   </Label>
                 </div>
-                <Button type="submit" variant="accent" className="w-full" disabled={loading}>
-                  {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                <button type="submit" className={primaryBtnClassName} disabled={loading} style={inter}>
+                  {loading && <Loader2 className="mr-2 inline h-4 w-4 animate-spin align-middle" />}
                   {t("auth.signIn", "Sign in")}
-                </Button>
+                </button>
               </form>
             </TabsContent>
           </Tabs>
-        </Card>
+        </div>
       </div>
     </div>
   );

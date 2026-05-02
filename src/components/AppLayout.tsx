@@ -1,5 +1,5 @@
 import { useEffect, useState, type ComponentType } from "react";
-import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import { Outlet, useNavigate, useLocation, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { NavLink } from "@/components/NavLink";
 import CarivaChatBot from "@/components/CarivaChatBot";
@@ -48,9 +48,6 @@ import {
   Settings,
   ChevronDown,
   ShieldCheck,
-  Moon,
-  Sun,
-  Languages,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -70,14 +67,12 @@ export default function AppLayout({ requireRole }: { requireRole?: Role }) {
   const [adminUniversityId, setAdminUniversityId] = useState<string | null>(null);
   const [activeView, setActiveView] = useState<Role | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const { t, toggleLanguage } = useLanguage();
+  const { t } = useLanguage();
 
   useEffect(() => {
     const saved = localStorage.getItem(THEME_KEY);
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     const useDark = saved ? saved === "dark" : prefersDark;
-    setIsDarkMode(useDark);
     document.documentElement.classList.toggle("dark", useDark);
   }, []);
 
@@ -137,13 +132,6 @@ export default function AppLayout({ requireRole }: { requireRole?: Role }) {
     navigate(next === "admin" ? "/admin" : "/pathways", { replace: true });
   }
 
-  function toggleTheme() {
-    const next = !isDarkMode;
-    setIsDarkMode(next);
-    document.documentElement.classList.toggle("dark", next);
-    localStorage.setItem(THEME_KEY, next ? "dark" : "light");
-  }
-
   async function signOut() {
     await supabase.auth.signOut();
     toast.success("Signed out");
@@ -191,12 +179,20 @@ export default function AppLayout({ requireRole }: { requireRole?: Role }) {
         <AppSidebar items={items} profile={profile} activeView={activeView} />
 
         <div className="flex min-h-0 flex-1 flex-col">
-          <div className="sticky top-0 z-[100] flex shrink-0 justify-center px-3 pt-3 md:px-6 md:pt-3">
-            <header className="app-topbar flex h-14 w-full max-w-[1100px] min-w-0 items-center justify-between gap-2 overflow-hidden rounded-xl px-2 sm:gap-3 sm:px-4 md:px-5">
+          <header className="app-topbar fixed left-1/2 top-4 z-50 flex h-14 w-[calc(100%-48px)] max-w-[1200px] -translate-x-1/2 items-center justify-between gap-2 overflow-hidden rounded-2xl px-6 min-w-0">
               <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
               {!showMobileStudentNav && (
                 <SidebarTrigger className="h-8 w-8 shrink-0 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground" />
               )}
+              <Link
+                to={activeView === "admin" ? "/admin" : "/pathways"}
+                className="flex shrink-0 items-center gap-2"
+              >
+                <span className="h-2 w-2 shrink-0 rounded-full bg-[#C8102E]" aria-hidden />
+                <span className="font-serif text-[17px] font-bold leading-none tracking-tight text-foreground">
+                  Cariva
+                </span>
+              </Link>
               {profile?.institution_name && (
                 <span className="hidden min-w-0 truncate text-[13px] text-muted-foreground sm:inline md:max-w-[min(280px,40vw)]">
                   {profile.institution_name}
@@ -228,20 +224,6 @@ export default function AppLayout({ requireRole }: { requireRole?: Role }) {
                 </DropdownMenu>
               )}
 
-              <Button variant="ghost" size="icon" onClick={toggleLanguage} aria-label="Toggle language" className="h-8 w-8 rounded-md text-muted-foreground">
-                <Languages className="w-4 h-4" />
-              </Button>
-
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleTheme}
-                aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
-                className="h-8 w-8 rounded-md text-muted-foreground"
-              >
-                {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-              </Button>
-
               <button type="button" className="relative h-8 w-8 rounded-md text-muted-foreground hover:bg-muted flex items-center justify-center" aria-label="Notifications">
                 <Bell className="w-4 h-4" />
                 <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-primary" />
@@ -253,10 +235,9 @@ export default function AppLayout({ requireRole }: { requireRole?: Role }) {
                 <LogOut className="w-4 h-4" />
               </Button>
               </div>
-            </header>
-          </div>
+          </header>
 
-          <main className={`flex-1 w-full px-4 py-6 sm:px-6 md:px-10 md:py-8 lg:px-12 ${showMobileStudentNav ? "pb-24" : ""}`}>
+          <main className={`mt-[88px] flex-1 w-full px-4 py-6 sm:px-6 md:px-10 md:py-8 lg:px-12 ${showMobileStudentNav ? "pb-24" : ""}`}>
             <div className="mx-auto w-full max-w-[1100px]">
               <Outlet />
             </div>
