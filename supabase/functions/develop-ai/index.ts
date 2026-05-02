@@ -1,13 +1,10 @@
-// Cariva v1.0 - Gemini API
+// Cariva v1.0 - Anthropic Claude API
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
-
-const GEMINI_MODEL = 'gemini-2.0-flash'; // v2
-const MAX_TOKENS = 2000;
 
 type Action =
   | 'generate_case'
@@ -182,40 +179,33 @@ ${JSON.stringify(p)}`;
   }
 }
 
-async function callGemini(action: Action, payload: any): Promise<any> {
-  const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
-  if (!GEMINI_API_KEY) throw new Error('GEMINI_API_KEY not configured');
+async function callAnthropic(action: Action, payload: any): Promise<any> {
+  const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
+  if (!ANTHROPIC_API_KEY) throw new Error('ANTHROPIC_API_KEY not configured');
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
-
-  const res = await fetch(url, {
+  const aiRes = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
-    headers: { 'content-type': 'application/json' },
+    headers: {
+      'x-api-key': ANTHROPIC_API_KEY,
+      'anthropic-version': '2023-06-01',
+      'content-type': 'application/json',
+    },
     body: JSON.stringify({
-      systemInstruction: {
-        parts: [{ text: SYSTEM_PROMPTS[action] }],
-      },
-      contents: [
-        {
-          role: 'user',
-          parts: [{ text: buildPrompt(action, payload) }],
-        },
-      ],
-      generationConfig: {
-        maxOutputTokens: MAX_TOKENS,
-        responseMimeType: 'application/json',
-      },
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 2000,
+      system: SYSTEM_PROMPTS[action],
+      messages: [{ role: 'user', content: buildPrompt(action, payload) }],
     }),
   });
 
-  if (!res.ok) {
-    const errText = await res.text();
-    console.error('Gemini error:', res.status, errText);
-    throw new Error(`Gemini API error ${res.status}`);
+  if (!aiRes.ok) {
+    const errText = await aiRes.text();
+    console.error('Anthropic error:', aiRes.status, errText);
+    throw new Error(`Anthropic API error ${aiRes.status}`);
   }
 
-  const data = await res.json();
-  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+  const aiData = await aiRes.json();
+  const text = aiData?.content?.[0]?.text ?? '';
   const cleaned = text.trim().replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();
   const match = cleaned.match(/\{[\s\S]*\}/);
   return JSON.parse(match ? match[0] : cleaned);
@@ -256,7 +246,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const result = await callGemini(action, payload);
+    const result = await callAnthropic(action, payload);
 
     return new Response(JSON.stringify({ result }), {
       status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },

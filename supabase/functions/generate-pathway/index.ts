@@ -1,4 +1,4 @@
-// Cariva v1.0 - Gemini API
+// Cariva v1.0 - Anthropic Claude API
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 
 const corsHeaders = {
@@ -66,9 +66,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
-    if (!GEMINI_API_KEY) throw new Error('GEMINI_API_KEY not configured');
-
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
     const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? Deno.env.get('SUPABASE_PUBLISHABLE_KEY')!;
 
@@ -92,40 +89,34 @@ Deno.serve(async (req) => {
 
     const payload: OnboardingPayload = await req.json();
 
-    const aiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{
-            text: SYSTEM_PROMPT + '\n\n' + buildUserPrompt(payload)
-          }]}],
-          generationConfig: { temperature: 0.7, maxOutputTokens: 2000 }
-        })
-      }
-    );
+    const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
+    if (!ANTHROPIC_API_KEY) throw new Error('ANTHROPIC_API_KEY not configured');
+
+    const userPrompt = buildUserPrompt(payload);
+
+    const aiRes = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 2000,
+        system: SYSTEM_PROMPT,
+        messages: [{ role: 'user', content: userPrompt }],
+      }),
+    });
 
     if (!aiRes.ok) {
       const errText = await aiRes.text();
-      console.error('Gemini error:', aiRes.status, errText);
-      if (aiRes.status === 429) {
-        return new Response(JSON.stringify({ error: 'Rate limit exceeded. Please try again shortly.' }), {
-          status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      if (aiRes.status === 402) {
-        return new Response(JSON.stringify({ error: 'AI credits exhausted. Please add credits in Settings.' }), {
-          status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      return new Response(JSON.stringify({ error: `Gemini API failed: ${aiRes.status}`, details: errText }), {
-        status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      console.error('Anthropic error:', aiRes.status, errText);
+      throw new Error(`Anthropic API error ${aiRes.status}`);
     }
 
     const aiData = await aiRes.json();
-    const text = aiData?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+    const text = aiData?.content?.[0]?.text ?? '';
     const cleaned = text.trim().replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();
 
     let result: unknown;
