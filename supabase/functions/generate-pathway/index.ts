@@ -154,7 +154,7 @@ Deno.serve(async (req) => {
     const { error: profileError } = await supabase
       .from('profiles')
       .update({ onboarding_completed: true })
-      .eq('user_id', userData.user.id);
+      .eq('id', userData.user.id);
 
     if (profileError) {
       console.error('Profile update error:', profileError);
