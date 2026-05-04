@@ -138,7 +138,7 @@ export default function Onboarding() {
     if (uiPhase !== "success") return;
     const id = window.setTimeout(() => {
       localStorage.removeItem(STORAGE_KEY);
-      navigate("/pathways", { replace: true });
+      navigate("/learn", { replace: true });
     }, 1600);
     return () => clearTimeout(id);
   }, [uiPhase, navigate]);

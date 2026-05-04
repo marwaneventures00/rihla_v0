@@ -27,12 +27,12 @@ export default function Compass() {
       const uid = s.session.user.id;
 
       const [{ data: p }, { data: r }] = await Promise.all([
-        supabase.from("profiles").select("full_name, field_of_study, onboarding_completed").eq("id", uid).maybeSingle(),
+        supabase.from("profiles").select("full_name, field_of_study").eq("id", uid).maybeSingle(),
         supabase.from("pathway_results").select("result_json").eq("user_id", uid).order("created_at", { ascending: false }).limit(1).maybeSingle(),
       ]);
 
-      if (!p?.onboarding_completed || !r) {
-        navigate("/onboarding", { replace: true });
+      if (!r) {
+        navigate("/learn", { replace: true });
         return;
       }
 
@@ -99,7 +99,7 @@ export default function Compass() {
           <div className="space-y-4 flex flex-col items-center md:items-end">
             <ScoreRing score={animatedScore} />
             <Button asChild variant="outline" size="sm" className="w-full md:w-auto">
-              <Link to="/onboarding">
+              <Link to="/learn/path">
                 <RotateCcw className="w-4 h-4" /> {tr("Redo questionnaire", "Refaire le questionnaire")}
               </Link>
             </Button>
@@ -154,7 +154,7 @@ export default function Compass() {
 
       <div className="flex justify-end">
         <Button asChild variant="outline">
-          <Link to="/market">{tr("Explore the job market", "Explorer le marche de l'emploi")} <ArrowRight className="w-4 h-4" /></Link>
+          <Link to="/field">{tr("Explore the job market", "Explorer le marche de l'emploi")} <ArrowRight className="w-4 h-4" /></Link>
         </Button>
       </div>
     </div>

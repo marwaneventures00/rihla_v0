@@ -1,5 +1,3 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
-
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -12,37 +10,119 @@ Deno.serve(async (req) => {
     return new Response('ok', { headers: corsHeaders });
   }
   try {
-    const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
-    if (!ANTHROPIC_API_KEY) throw new Error('ANTHROPIC_API_KEY not configured');
+    const apiKey = Deno.env.get('ANTHROPIC_API_KEY');
+    if (!apiKey?.trim()) {
+      throw new Error('ANTHROPIC_API_KEY not configured');
+    }
 
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return new Response(JSON.stringify({ error: 'Missing authorization' }), {
-        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const { messages } = await req.json();
+    const body = await req.json();
+    const messages = Array.isArray(body.messages) ? body.messages : [];
+    const fromBody =
+      (typeof body.system === 'string' && body.system.trim()) ||
+      (typeof body.systemPrompt === 'string' && body.systemPrompt.trim()) ||
+      '';
+    const system = fromBody || SYSTEM_PROMPT;
+    const model =
+      typeof body.model === 'string' && body.model.trim().length > 0
+        ? body.model.trim()
+        : 'claude-haiku-4-5-20251001';
+    const maxTokens = system.length > 2000 ? 4096 : 1024;
+
+    const requestBody: Record<string, unknown> = {
+      model: model ?? 'claude-haiku-4-5-20251001',
+      max_tokens: maxTokens,
+      messages: messages.slice(-20),
+    };
+    if (system) {
+      requestBody.system = system;
+    }
+
+    console.log(
+      'Anthropic request:',
+      JSON.stringify({
+        model: requestBody.model,
+        messageCount: (requestBody.messages as unknown[]).length,
+        hasSystem: typeof requestBody.system === 'string' && (requestBody.system as string).length > 0,
+        firstMessage: (requestBody.messages as unknown[])[0],
+      }),
+    );
 
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
-        'x-api-key': ANTHROPIC_API_KEY,
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
         'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
       },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
-        max_tokens: 1024,
-        system: SYSTEM_PROMPT,
-        messages: messages.slice(-10),
-      }),
+      body: JSON.stringify(requestBody),
     });
 
-    const data = await res.json();
-    const reply = data?.content?.[0]?.text ?? '';
+    console.log('Anthropic response status:', res.status);
+    const rawBody = await res.text();
+    console.log('Anthropic raw body:', rawBody.substring(0, 500));
 
-    return new Response(JSON.stringify({ reply }), {
+    let data: Record<string, unknown>;
+    try {
+      data = JSON.parse(rawBody) as Record<string, unknown>;
+    } catch {
+      return new Response(
+        JSON.stringify({
+          error: 'Anthropic returned non-JSON body',
+          reply: '',
+          snippet: rawBody.substring(0, 200),
+        }),
+        { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+
+    if (!res.ok) {
+      const anthropicErr =
+        (typeof data?.error === 'object' &&
+          data.error !== null &&
+          'message' in (data.error as object) &&
+          String((data.error as { message?: string }).message)) ||
+        (typeof data?.message === 'string' && data.message) ||
+        JSON.stringify(data);
+      return new Response(JSON.stringify({ error: anthropicErr || `Anthropic HTTP ${res.status}`, reply: '' }), {
+        status: 502,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (data?.type === 'error') {
+      const errObj = data.error;
+      const msg =
+        errObj && typeof errObj === 'object' && 'message' in errObj && typeof (errObj as { message: string }).message === 'string'
+          ? (errObj as { message: string }).message
+          : JSON.stringify(data);
+      return new Response(JSON.stringify({ error: msg, reply: '' }), {
+        status: 502,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const reply =
+      typeof data?.content === 'object' && Array.isArray(data.content)
+        ? String((data.content[0] as { text?: string } | undefined)?.text ?? '')
+        : '';
+
+    if (!reply.trim()) {
+      console.error('chat-ai empty content', rawBody.substring(0, 2000));
+      return new Response(JSON.stringify({ error: 'Empty model response (no content[0].text)', reply: '' }), {
+        status: 502,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    return new Response(JSON.stringify({ reply: reply.trim() }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

@@ -74,6 +74,36 @@ export type Database = {
         }
         Relationships: []
       }
+      conversation_sessions: {
+        Row: {
+          created_at: string
+          dimensions_covered: Json
+          id: string
+          messages: Json
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          dimensions_covered?: Json
+          id?: string
+          messages?: Json
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          dimensions_covered?: Json
+          id?: string
+          messages?: Json
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       interview_insights: {
         Row: {
           generated_at: string | null
@@ -195,11 +225,14 @@ export type Database = {
       }
       job_applications: {
         Row: {
+          ai_insight: string | null
           application_date: string | null
           company_name: string
           contact_email: string | null
           contact_name: string | null
           created_at: string | null
+          fit_data: Json | null
+          fit_score: number | null
           id: string
           job_url: string | null
           location: string | null
@@ -214,11 +247,14 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          ai_insight?: string | null
           application_date?: string | null
           company_name: string
           contact_email?: string | null
           contact_name?: string | null
           created_at?: string | null
+          fit_data?: Json | null
+          fit_score?: number | null
           id?: string
           job_url?: string | null
           location?: string | null
@@ -233,11 +269,14 @@ export type Database = {
           user_id: string
         }
         Update: {
+          ai_insight?: string | null
           application_date?: string | null
           company_name?: string
           contact_email?: string | null
           contact_name?: string | null
           created_at?: string | null
+          fit_data?: Json | null
+          fit_score?: number | null
           id?: string
           job_url?: string | null
           location?: string | null
@@ -315,20 +354,35 @@ export type Database = {
       }
       pathway_results: {
         Row: {
+          all_careers: Json | null
+          archetypes: Json | null
+          confidence_score: number
           created_at: string
           id: string
+          key_insights: Json | null
+          recommended_track: string | null
           result_json: Json
           user_id: string
         }
         Insert: {
+          all_careers?: Json | null
+          archetypes?: Json | null
+          confidence_score?: number
           created_at?: string
           id?: string
+          key_insights?: Json | null
+          recommended_track?: string | null
           result_json: Json
           user_id: string
         }
         Update: {
+          all_careers?: Json | null
+          archetypes?: Json | null
+          confidence_score?: number
           created_at?: string
           id?: string
+          key_insights?: Json | null
+          recommended_track?: string | null
           result_json?: Json
           user_id?: string
         }
@@ -336,39 +390,56 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
+          bio: string | null
+          city: string | null
           created_at: string
           field_of_study: string | null
           full_name: string | null
+          graduation_year: string | null
           id: string
           institution_name: string | null
           institution_type: string | null
+          linkedin_url: string | null
           onboarding_completed: boolean
+          school: string | null
           study_level: string | null
           university_id: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          bio?: string | null
+          city?: string | null
           created_at?: string
           field_of_study?: string | null
           full_name?: string | null
+          graduation_year?: string | null
           id?: string
           institution_name?: string | null
           institution_type?: string | null
+          linkedin_url?: string | null
           onboarding_completed?: boolean
+          school?: string | null
           study_level?: string | null
           university_id?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          city?: string | null
           created_at?: string
           field_of_study?: string | null
           full_name?: string | null
+          graduation_year?: string | null
           id?: string
           institution_name?: string | null
           institution_type?: string | null
+          linkedin_url?: string | null
           onboarding_completed?: boolean
+          school?: string | null
           study_level?: string | null
           university_id?: string | null
           updated_at?: string

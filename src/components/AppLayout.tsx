@@ -1,79 +1,46 @@
-import { useEffect, useState, type ComponentType } from "react";
-import { Outlet, useNavigate, useLocation, Link } from "react-router-dom";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
-import { NavLink } from "@/components/NavLink";
-import CarivaChatBot from "@/components/CarivaChatBot";
-import { useLanguage } from "@/lib/i18n";
 import { useIsMobile } from "@/hooks/use-mobile";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarProvider,
-  SidebarTrigger,
-  SidebarHeader,
-  SidebarSeparator,
-  useSidebar,
-} from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
-import {
-  LayoutDashboard,
-  Compass,
-  Map,
-  Flame,
-  GitBranch,
-  Zap,
-  User,
-  Bell,
-  LogOut,
-  Loader2,
-  GraduationCap,
-  Users,
-  BarChart3,
-  TrendingUp,
-  Telescope,
-  Settings,
-  ChevronDown,
-  ShieldCheck,
-} from "lucide-react";
-import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
+import { Sidebar } from "@/components/Sidebar";
 
-type Role = "student" | "admin";
+export type AppLayoutOutletContext = { sidebarCollapsed: boolean };
 
-type Profile = { full_name: string | null; institution_name: string | null };
+// INSTITUTE_ENABLED = false — admin/institute UI removed; layout is student-only.
 
-const VIEW_KEY = "cariva.activeView";
-const THEME_KEY = "cariva.app.theme";
+type LayoutProfile = { full_name: string | null; institution_name: string | null; avatar_url: string | null };
 
-export default function AppLayout({ requireRole }: { requireRole?: Role }) {
+function pageTitleForPath(pathname: string, t: (key: string) => string) {
+  if (pathname === "/learn/path/report") return t("page.learnReport");
+  if (pathname === "/learn/path") return t("page.learnPath");
+  if (pathname === "/learn" || pathname === "/pathways") return t("nav.learn");
+  if (pathname === "/field" || pathname === "/market") return t("nav.field");
+  if (pathname === "/pipeline" || pathname === "/pmo") return t("nav.pipeline");
+  if (pathname.startsWith("/develop")) return t("nav.develop");
+  if (pathname.startsWith("/pulse")) return t("page.pulse");
+  if (pathname.startsWith("/profile")) return t("nav.profile");
+  if (pathname.startsWith("/meet")) return t("nav.meet");
+  return t("brand.tagline");
+}
+
+export default function AppLayout({ requireRole = "student" }: { requireRole?: "student" }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation();
   const isMobile = useIsMobile();
   const [loading, setLoading] = useState(true);
-  const [availableRoles, setAvailableRoles] = useState<Role[]>([]);
-  const [adminUniversityId, setAdminUniversityId] = useState<string | null>(null);
-  const [activeView, setActiveView] = useState<Role | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const { t } = useLanguage();
+  const [layoutUserId, setLayoutUserId] = useState<string | null>(null);
+  const [profile, setProfile] = useState<LayoutProfile | null>(null);
+  const [email, setEmail] = useState<string | null>(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [avatarSrc, setAvatarSrc] = useState<string | null>(null);
+
+  const pageTitle = useMemo(() => pageTitleForPath(location.pathname, t), [location.pathname, t]);
 
   useEffect(() => {
-    const saved = localStorage.getItem(THEME_KEY);
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const useDark = saved ? saved === "dark" : prefersDark;
-    document.documentElement.classList.toggle("dark", useDark);
+    document.documentElement.classList.remove("dark");
   }, []);
 
   useEffect(() => {
@@ -85,87 +52,92 @@ export default function AppLayout({ requireRole }: { requireRole?: Role }) {
         return;
       }
       const uid = s.session.user.id;
+      setLayoutUserId(uid);
+      setEmail(s.session.user.email ?? null);
 
       const [{ data: roles }, { data: prof }] = await Promise.all([
-        supabase.from("user_roles").select("role, university_id").eq("user_id", uid),
-        supabase.from("profiles").select("full_name, institution_name").eq("id", uid).maybeSingle(),
+        supabase.from("user_roles").select("role").eq("user_id", uid),
+        supabase.from("profiles").select("full_name, institution_name, avatar_url").eq("id", uid).maybeSingle(),
       ]);
       if (!mounted) return;
 
-      const uniqueRoles = Array.from(new Set((roles ?? []).map((r) => r.role as Role)));
-      const isAdmin = uniqueRoles.includes("admin");
-      const isStudent = uniqueRoles.includes("student");
-      const uniForAdmin = (roles ?? []).find((r) => r.role === "admin" && r.university_id)?.university_id ?? null;
-      if (!isAdmin && !isStudent) uniqueRoles.push("student");
-
-      const stored = (typeof window !== "undefined" ? localStorage.getItem(VIEW_KEY) : null) as Role | null;
-      let resolved: Role;
-      if (requireRole && uniqueRoles.includes(requireRole)) {
-        resolved = requireRole;
-      } else if (stored && uniqueRoles.includes(stored)) {
-        resolved = stored;
-      } else {
-        resolved = isAdmin ? "admin" : "student";
+      const roleSet = new Set((roles ?? []).map((r) => r.role));
+      if (requireRole === "student" && !roleSet.has("student")) {
+        navigate("/auth", { replace: true });
+        return;
       }
 
-      setAvailableRoles(uniqueRoles);
-      setAdminUniversityId(uniForAdmin);
-      setActiveView(resolved);
-      setProfile(prof);
+      const p = prof as LayoutProfile | null;
+      setProfile(p);
+      const raw = p?.avatar_url?.trim();
+      setAvatarSrc(raw ? `${raw.split("?")[0]}?t=${Date.now()}` : null);
       setLoading(false);
-
-      if (typeof window !== "undefined") localStorage.setItem(VIEW_KEY, resolved);
-
-      if (requireRole && !uniqueRoles.includes(requireRole)) {
-        navigate(resolved === "admin" ? "/admin" : "/pathways", { replace: true });
-      }
     })();
     return () => {
       mounted = false;
     };
   }, [navigate, requireRole, location.pathname]);
 
-  function switchView(next: Role) {
-    if (next === activeView) return;
-    localStorage.setItem(VIEW_KEY, next);
-    setActiveView(next);
-    navigate(next === "admin" ? "/admin" : "/pathways", { replace: true });
-  }
+  useEffect(() => {
+    if (!layoutUserId) return;
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("avatar_url, full_name, institution_name")
+        .eq("id", layoutUserId)
+        .maybeSingle();
+      if (cancelled) return;
+      if (error) {
+        console.error("Avatar/profile refetch:", error);
+        return;
+      }
+      if (data) {
+        setProfile((p) => ({
+          full_name: data.full_name ?? p?.full_name ?? null,
+          institution_name: data.institution_name ?? p?.institution_name ?? null,
+          avatar_url: data.avatar_url ?? p?.avatar_url ?? null,
+        }));
+        const raw = data.avatar_url?.trim();
+        setAvatarSrc(raw ? `${raw.split("?")[0]}?t=${Date.now()}` : null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [layoutUserId, location.pathname]);
 
-  async function signOut() {
-    await supabase.auth.signOut();
-    toast.success("Signed out");
-    navigate("/auth", { replace: true });
-  }
+  useEffect(() => {
+    const onAvatar = (e: Event) => {
+      const ce = e as CustomEvent<{ url: string }>;
+      const u = ce.detail?.url?.trim();
+      if (!u) return;
+      setAvatarSrc(`${u.split("?")[0]}?t=${Date.now()}`);
+      setProfile((p) => (p ? { ...p, avatar_url: u.split("?")[0] } : p));
+    };
+    window.addEventListener("cariva:avatar-updated", onAvatar as EventListener);
+    return () => window.removeEventListener("cariva:avatar-updated", onAvatar as EventListener);
+  }, []);
 
-  const STUDENT_ITEMS: NavItem[] = [
-    { title: t("nav.pathways", "Compass"), url: "/pathways", icon: Compass },
-    { title: t("nav.market", "Terrain"), url: "/market", icon: Map },
-    { title: t("nav.develop", "Forge"), url: "/develop", icon: Flame },
-    { title: "Pipeline", url: "/pmo", icon: GitBranch },
-    { title: "Briefing", url: "/pulse", icon: Zap },
-    { title: t("nav.profile", "Profile"), url: "/profile", icon: TrendingUp },
-  ];
-  const ADMIN_ITEMS: NavItem[] = [
-    { title: t("nav.dashboard", "Command"), url: "/admin", icon: LayoutDashboard },
-    { title: t("nav.students", "Students"), url: "/admin/students", icon: Users },
-    { title: t("nav.analytics", "Analytics"), url: "/admin/analytics", icon: BarChart3 },
-    ...(adminUniversityId
-      ? [{ title: "Observatoire", url: "/admin/observatoire", icon: Telescope, badge: "New" as const }]
-      : []),
-    { title: t("nav.settings", "Settings"), url: "/admin/settings", icon: Settings },
-  ];
-  const items = activeView === "admin" ? ADMIN_ITEMS : STUDENT_ITEMS;
-  const initials = (profile?.full_name ?? "U")
-    .split(" ")
-    .map((s) => s[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-  const hasBoth = availableRoles.length > 1;
-  const showMobileStudentNav = isMobile && activeView === "student";
+  const initials = (() => {
+    const name = profile?.full_name?.trim();
+    if (name) {
+      return name
+        .split(/\s+/)
+        .map((s) => s[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase();
+    }
+    const em = email?.trim();
+    if (em) {
+      const local = em.split("@")[0] ?? "";
+      return local.slice(0, 2).toUpperCase() || "U";
+    }
+    return "U";
+  })();
 
-  if (loading || !activeView) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="w-6 h-6 animate-spin text-primary" />
@@ -173,220 +145,80 @@ export default function AppLayout({ requireRole }: { requireRole?: Role }) {
     );
   }
 
+  const pillNavStyle: CSSProperties = {
+    position: "fixed",
+    zIndex: 30,
+    height: 52,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: "0 20px",
+    borderRadius: "100px",
+    backdropFilter: "blur(20px)",
+    WebkitBackdropFilter: "blur(20px)",
+    background: "rgba(255, 255, 255, 0.75)",
+    border: "1px solid rgba(255, 255, 255, 0.6)",
+    boxShadow: "0 4px 24px rgba(0, 0, 0, 0.06)",
+    ...(isMobile
+      ? { top: 12, left: 16, right: 16 }
+      : {
+          top: 16,
+          right: 24,
+          left: sidebarCollapsed ? "calc(64px + 24px)" : "calc(220px + 24px)",
+          transition: "left 0.25s ease",
+        }),
+  };
+
+  const sidebarOffsetPx = !isMobile ? (sidebarCollapsed ? 64 : 220) : 0;
+
   return (
-    <SidebarProvider defaultOpen>
-      <div className="min-h-screen flex w-full bg-background">
-        <AppSidebar items={items} profile={profile} activeView={activeView} />
+    <div className="min-h-screen flex w-full" style={{ background: "#FAFAF8" }}>
+      <Sidebar isCollapsed={sidebarCollapsed} onToggleCollapsed={() => setSidebarCollapsed((c) => !c)} />
 
-        <div className="flex min-h-0 flex-1 flex-col">
-          <header className="app-topbar fixed left-1/2 top-4 z-50 flex h-14 w-[calc(100%-48px)] max-w-[1200px] -translate-x-1/2 items-center justify-between gap-2 overflow-hidden rounded-2xl px-6 min-w-0">
-              <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
-              {!showMobileStudentNav && (
-                <SidebarTrigger className="h-8 w-8 shrink-0 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground" />
-              )}
-              <Link
-                to={activeView === "admin" ? "/admin" : "/pathways"}
-                className="flex shrink-0 items-center gap-2"
-              >
-                <span className="h-2 w-2 shrink-0 rounded-full bg-[#C8102E]" aria-hidden />
-                <span className="font-serif text-[17px] font-bold leading-none tracking-tight text-foreground">
-                  Cariva
-                </span>
-              </Link>
-              {profile?.institution_name && (
-                <span className="hidden min-w-0 truncate text-[13px] text-muted-foreground sm:inline md:max-w-[min(280px,40vw)]">
-                  {profile.institution_name}
-                </span>
-              )}
-              </div>
-              <div className="flex shrink-0 items-center gap-0.5 sm:gap-1 md:gap-2">
-              {hasBoth && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-8 gap-1 rounded-md px-2 text-muted-foreground sm:gap-2 sm:px-3">
-                      {activeView === "admin" ? <ShieldCheck className="h-4 w-4 shrink-0" /> : <GraduationCap className="h-4 w-4 shrink-0" />}
-                      <span className="hidden max-w-[8rem] truncate text-xs font-medium lg:inline">
-                        {activeView === "admin" ? t("app.adminView", "Admin view") : t("app.studentView", "Student view")}
-                      </span>
-                      <ChevronDown className="h-3.5 w-3.5 shrink-0 opacity-60" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuLabel>{t("app.switchView", "Switch view")}</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => switchView("student")}>
-                      <GraduationCap className="w-4 h-4 mr-2" /> {t("app.studentView", "Student view")}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => switchView("admin")}>
-                      <ShieldCheck className="w-4 h-4 mr-2" /> {t("app.adminView", "Admin view")}
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-
-              <button type="button" className="relative h-8 w-8 rounded-md text-muted-foreground hover:bg-muted flex items-center justify-center" aria-label="Notifications">
-                <Bell className="w-4 h-4" />
-                <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-primary" />
-              </button>
-
-              <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold">{initials}</div>
-
-              <Button variant="ghost" size="icon" onClick={signOut} aria-label={t("app.signOut", "Sign out")} className="h-8 w-8 rounded-md text-muted-foreground">
-                <LogOut className="w-4 h-4" />
-              </Button>
-              </div>
-          </header>
-
-          <main className={`mt-[88px] flex-1 w-full px-4 py-6 sm:px-6 md:px-10 md:py-8 lg:px-12 ${showMobileStudentNav ? "pb-24" : ""}`}>
-            <div className="mx-auto w-full max-w-[1100px]">
-              <Outlet />
-            </div>
-          </main>
-
-          {showMobileStudentNav && <MobileStudentNav pathname={location.pathname} />}
-
-          {activeView === "student" && <CarivaChatBot dockAboveMobileNav={showMobileStudentNav} />}
-        </div>
-      </div>
-    </SidebarProvider>
-  );
-}
-
-type NavItem = {
-  title: string;
-  url: string;
-  icon: ComponentType<{ className?: string }>;
-  badge?: string;
-};
-
-function MobileStudentNav({ pathname }: { pathname: string }) {
-  const { t } = useLanguage();
-  const links = [
-    { to: "/pathways", label: "Compass", icon: Compass },
-    { to: "/market", label: "Terrain", icon: Map },
-    { to: "/develop", label: "Forge", icon: Flame },
-    { to: "/pmo", label: "Pipeline", icon: GitBranch },
-    { to: "/profile", label: t("nav.profile", "Profile"), icon: User },
-  ];
-  return (
-    <nav className="mobile-bottom-nav fixed bottom-0 inset-x-0 z-[90] h-16 md:hidden flex items-stretch justify-around pt-1 pb-safe">
-      {links.map(({ to, label, icon: Icon }) => {
-        const active = pathname === to || (to !== "/pathways" && pathname.startsWith(to));
-        return (
-          <NavLink
-            key={to}
-            to={to}
-            className="flex flex-col items-center justify-center gap-0.5 min-w-0 flex-1 text-muted-foreground"
-            activeClassName="text-primary"
+      <div
+        className={`flex min-h-0 flex-1 flex-col min-w-0 ${isMobile ? "pb-[calc(60px+env(safe-area-inset-bottom,0px))]" : ""}`}
+        style={
+          !isMobile
+            ? {
+                marginLeft: sidebarOffsetPx,
+                transition: "margin-left 0.25s ease",
+              }
+            : undefined
+        }
+      >
+        <header style={pillNavStyle} aria-label="Page toolbar">
+          <h1
+            className="min-w-0 truncate text-[#0A0A0A]"
+            style={{ fontFamily: "Inter, system-ui, sans-serif", fontSize: 15, fontWeight: 600 }}
           >
-            {active && <span className="w-1 h-1 rounded-full bg-primary mb-0.5" />}
-            {!active && <span className="h-1 mb-0.5" />}
-            <Icon className={`w-5 h-5 shrink-0 ${active ? "text-primary" : ""}`} />
-            <span className="text-[10px] font-medium truncate max-w-full">{label}</span>
-          </NavLink>
-        );
-      })}
-    </nav>
-  );
-}
-
-function AppSidebar({
-  items,
-  profile,
-  activeView,
-}: {
-  items: NavItem[];
-  profile: Profile | null;
-  activeView: Role;
-}) {
-  const { state, toggleSidebar } = useSidebar();
-  const collapsed = state === "collapsed";
-  const location = useLocation();
-
-  const activeClass = collapsed
-    ? "!bg-white/15 !text-white"
-    : "!rounded-md !border-l-2 !border-l-white !bg-white/10 !text-white !font-medium";
-
-  const initials = (profile?.full_name ?? "U")
-    .split(" ")
-    .map((s) => s[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-
-  return (
-    <Sidebar collapsible="icon" className="hidden md:flex">
-      <SidebarHeader className={`${collapsed ? "px-2 py-4 h-16" : "px-3 py-4 h-16"} flex items-center border-b border-sidebar-border`}>
-        <div className={`flex w-full items-center gap-2.5 ${collapsed ? "justify-center" : ""}`}>
-          <button
-            type="button"
-            onClick={toggleSidebar}
-            aria-label="Toggle sidebar"
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-white text-sm font-semibold leading-none text-[hsl(var(--sidebar-background))] hover:bg-white/90"
-          >
-            C
-          </button>
-          {!collapsed && (
-            <div className="flex min-w-0 items-center gap-2">
-              <span className="h-2 w-2 shrink-0 rounded-full bg-sidebar-primary" aria-hidden />
-              <p className="truncate text-[17px] font-semibold leading-none tracking-tight text-sidebar-foreground">Cariva</p>
-            </div>
-          )}
-        </div>
-      </SidebarHeader>
-      <SidebarContent className="gap-0">
-        <SidebarGroup className="py-2">
-          <SidebarGroupContent>
-            <SidebarMenu className="gap-0.5">
-              {items.map((item) => {
-                const active = location.pathname === item.url || (item.url !== "/admin" && location.pathname.startsWith(item.url));
-                return (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild isActive={active} tooltip={collapsed ? item.title : undefined}>
-                      <NavLink
-                        to={item.url}
-                        end={item.url === "/admin"}
-                        className="flex h-9 items-center gap-3 rounded-md border-l-2 border-transparent px-3 text-sm font-normal text-sidebar-foreground/80 transition-colors hover:bg-white/10 hover:text-sidebar-foreground"
-                        activeClassName={activeClass}
-                      >
-                        <item.icon className="w-4 h-4 shrink-0" />
-                        {!collapsed && (
-                          <span className="flex items-center gap-2 min-w-0">
-                            <span className="truncate">{item.title}</span>
-                            {item.badge && (
-                              <span
-                                className="text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full shrink-0 border border-white/25 bg-white/10 text-sidebar-foreground"
-                              >
-                                {item.badge}
-                              </span>
-                            )}
-                          </span>
-                        )}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-      {!collapsed && profile && (
-        <SidebarFooter className="mt-auto border-t border-sidebar-border p-3">
-          <SidebarSeparator className="mb-3 bg-sidebar-border" />
-          <div className="flex items-center gap-3 px-1">
-            <div className="w-8 h-8 rounded-full bg-sidebar-primary text-sidebar-primary-foreground flex items-center justify-center text-xs font-semibold shrink-0">
-              {initials}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-[13px] font-medium text-sidebar-foreground truncate">{profile.full_name ?? "User"}</p>
-              <p className="text-[11px] text-sidebar-foreground/65 truncate">
-                {profile.institution_name ?? (activeView === "admin" ? "Admin" : "Student")}
-              </p>
-            </div>
+            {pageTitle}
+          </h1>
+          <div className="flex shrink-0 items-center gap-3">
+            <button
+              type="button"
+              onClick={() => navigate("/profile")}
+              className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-full border-0 text-[12px] font-semibold text-[#0A0A0A] hover:opacity-90"
+              style={{ width: 32, height: 32, background: avatarSrc ? "transparent" : "#F5F5F5" }}
+              aria-label="Profile"
+            >
+              {avatarSrc ? (
+                <img src={avatarSrc} alt="" className="h-full w-full object-cover" />
+              ) : (
+                initials
+              )}
+            </button>
           </div>
-        </SidebarFooter>
-      )}
-    </Sidebar>
+        </header>
+
+        <main className="flex-1 w-full pt-[80px] pb-6 md:pb-8" style={{ background: "#FAFAF8" }}>
+          <div
+            className="mx-auto w-full max-w-[1100px] px-5 py-6 md:px-10 md:pt-12 md:pb-10"
+            style={{ background: "#FAFAF8" }}
+          >
+            <Outlet context={{ sidebarCollapsed } as AppLayoutOutletContext} />
+          </div>
+        </main>
+      </div>
+    </div>
   );
 }

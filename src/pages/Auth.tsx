@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import type { Session } from "@supabase/supabase-js";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
@@ -29,8 +28,8 @@ const primaryBtnClassName =
 
 export default function Auth() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useLanguage();
-  const [tab, setTab] = useState<"student" | "admin">("student");
   const [mode, setMode] = useState<"signin" | "signup">("signup");
   const [loading, setLoading] = useState(false);
 
@@ -46,29 +45,28 @@ export default function Auth() {
   }, []);
 
   useEffect(() => {
+    async function routeAfterAuth(session: Session) {
+      if (location.pathname !== "/auth") return;
+
+      for (let attempt = 0; attempt < 8; attempt++) {
+        const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", session.user.id);
+        const hasStudent = (roles ?? []).some((r) => r.role === "student");
+        if (hasStudent) {
+          navigate("/learn", { replace: true });
+          return;
+        }
+        await new Promise((r) => setTimeout(r, 100 * (attempt + 1)));
+      }
+    }
+
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      if (session) routeAfterAuth(session);
+      if (session) void routeAfterAuth(session);
     });
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) routeAfterAuth(data.session);
+    void supabase.auth.getSession().then(({ data }) => {
+      if (data.session) void routeAfterAuth(data.session);
     });
     return () => sub.subscription.unsubscribe();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  async function routeAfterAuth(session: Session) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("onboarding_completed")
-      .eq("id", session.user.id)
-      .maybeSingle();
-
-    if (!profile || !profile.onboarding_completed) {
-      navigate("/onboarding", { replace: true });
-    } else {
-      navigate("/pathways", { replace: true });
-    }
-  }
+  }, [location.pathname, navigate]);
 
   async function handleStudentSignup(e: React.FormEvent) {
     e.preventDefault();
@@ -158,7 +156,10 @@ export default function Auth() {
             className="inline-flex items-center gap-2.5 text-[#0A0A0A] no-underline outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2"
           >
             <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#C8102E]" aria-hidden />
-            <span className="font-serif text-4xl font-bold tracking-tight lg:text-[2.75rem] lg:leading-none">
+            <span
+              className="text-4xl font-bold tracking-tight lg:text-[2.75rem] lg:leading-none"
+              style={{ fontFamily: "Inter, sans-serif", fontWeight: 700 }}
+            >
               Cariva
             </span>
             <span className="sr-only">Back to home</span>
@@ -213,30 +214,14 @@ export default function Auth() {
               className="inline-flex items-center gap-2.5 text-[#0A0A0A] no-underline outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2"
             >
               <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#C8102E]" aria-hidden />
-              <span className="font-serif text-3xl font-bold tracking-tight">Cariva</span>
+              <span className="text-3xl font-bold tracking-tight" style={{ fontFamily: "Inter, sans-serif", fontWeight: 700 }}>
+                Cariva
+              </span>
               <span className="sr-only">Back to home</span>
             </Link>
           </div>
 
-          <Tabs value={tab} onValueChange={(v) => setTab(v as "student" | "admin")}>
-            <TabsList className="mb-6 flex h-auto w-full gap-0 rounded-full bg-[#F5F5F5] p-1">
-              <TabsTrigger
-                value="student"
-                className="flex-1 rounded-full border-0 bg-transparent py-2.5 text-sm font-normal text-[#6B6B6B] shadow-none transition-all data-[state=active]:bg-white data-[state=active]:font-semibold data-[state=active]:text-[#0A0A0A] data-[state=active]:shadow-[0_1px_4px_rgba(0,0,0,0.1)]"
-                style={inter}
-              >
-                {t("auth.student", "Student")}
-              </TabsTrigger>
-              <TabsTrigger
-                value="admin"
-                className="flex-1 rounded-full border-0 bg-transparent py-2.5 text-sm font-normal text-[#6B6B6B] shadow-none transition-all data-[state=active]:bg-white data-[state=active]:font-semibold data-[state=active]:text-[#0A0A0A] data-[state=active]:shadow-[0_1px_4px_rgba(0,0,0,0.1)]"
-                style={inter}
-              >
-                {t("auth.universityAdmin", "University admin")}
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="student">
+          <div>
               <h2 className="mb-1 text-xl font-semibold text-[#0A0A0A]" style={inter}>
                 {mode === "signup" ? t("auth.getStarted", "Get started") : t("auth.welcomeBack", "Welcome back")}
               </h2>
@@ -327,59 +312,7 @@ export default function Auth() {
               >
                 {mode === "signup" ? "Already have an account? Sign in" : "New here? Create an account"}
               </button>
-            </TabsContent>
-
-            <TabsContent value="admin">
-              <h2 className="mb-1 text-xl font-semibold text-[#0A0A0A]" style={inter}>
-                University login
-              </h2>
-              <p className="mb-6 text-sm text-[#6B6B6B]" style={inter}>
-                Admin dashboards arrive in the next phase. For now, please sign in with your credentials.
-              </p>
-              <form onSubmit={handleSignIn} className="space-y-4">
-                <div>
-                  <Label htmlFor="aemail" className={labelClassName} style={inter}>
-                    Email
-                  </Label>
-                  <Input
-                    id="aemail"
-                    type="email"
-                    className={inputClassName}
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="apassword" className={labelClassName} style={inter}>
-                    Password
-                  </Label>
-                  <Input
-                    id="apassword"
-                    type="password"
-                    className={inputClassName}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id="remember-me-admin"
-                    checked={rememberMe}
-                    onCheckedChange={(checked) => setRememberMe(checked === true)}
-                  />
-                  <Label htmlFor="remember-me-admin" className="text-sm font-normal text-[#6B6B6B]" style={inter}>
-                    Remember me
-                  </Label>
-                </div>
-                <button type="submit" className={primaryBtnClassName} disabled={loading} style={inter}>
-                  {loading && <Loader2 className="mr-2 inline h-4 w-4 animate-spin align-middle" />}
-                  {t("auth.signIn", "Sign in")}
-                </button>
-              </form>
-            </TabsContent>
-          </Tabs>
+          </div>
         </div>
       </div>
     </div>

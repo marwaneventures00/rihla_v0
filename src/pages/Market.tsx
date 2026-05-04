@@ -29,10 +29,17 @@ export default function Market() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6 text-[14px] leading-normal text-[#0A0A0A]" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
       <div>
-        <h1 className="text-[var(--text-h1)] font-medium mb-2">Terrain</h1>
-        <p className="text-muted-foreground text-[15px] leading-relaxed max-w-2xl">{tr("Navigate Morocco's job market in real terms — sectors, roles, employers and emerging trends.", "Explorez le marche de l'emploi marocain en pratique : secteurs, roles, employeurs et tendances emergentes.")}</p>
+        <h1
+          className="mb-2 text-[32px] font-bold leading-tight text-[#0A0A0A]"
+          style={{ fontFamily: '"Inter", system-ui, sans-serif' }}
+        >
+          Field
+        </h1>
+        <p className="mb-8 max-w-2xl text-[15px] leading-[1.6] text-[#6B6B6B]">
+          Explore the Moroccan job market: sectors, roles, employers and emerging trends.
+        </p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -41,25 +48,25 @@ export default function Market() {
             value="sectors"
             className="rounded-none border-b-2 border-transparent px-4 py-2.5 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none text-muted-foreground font-normal data-[state=active]:font-medium"
           >
-            {tr("Sectors", "Secteurs")}
+            Sectors
           </TabsTrigger>
           <TabsTrigger
             value="roles"
             className="rounded-none border-b-2 border-transparent px-4 py-2.5 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none text-muted-foreground font-normal data-[state=active]:font-medium"
           >
-            {tr("Roles", "Roles")}
+            Roles
           </TabsTrigger>
           <TabsTrigger
             value="employers"
             className="rounded-none border-b-2 border-transparent px-4 py-2.5 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none text-muted-foreground font-normal data-[state=active]:font-medium"
           >
-            {tr("Employers", "Employeurs")}
+            Employers
           </TabsTrigger>
           <TabsTrigger
             value="trends"
             className="rounded-none border-b-2 border-transparent px-4 py-2.5 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none text-muted-foreground font-normal data-[state=active]:font-medium"
           >
-            {tr("Trends", "Tendances")}
+            Trends
           </TabsTrigger>
         </TabsList>
 
@@ -211,7 +218,7 @@ function RolesTab({ prefill = "" }: { prefill?: string }) {
 
                     <div className="pt-1">
                       <Button asChild size="sm">
-                        <Link to="/pathways">{tr("View related pathways", "Voir les parcours associes")} <ArrowRight className="w-3.5 h-3.5 ml-1" /></Link>
+                        <Link to="/learn">{tr("View related pathways", "Voir les parcours associes")} <ArrowRight className="w-3.5 h-3.5 ml-1" /></Link>
                       </Button>
                     </div>
                   </div>

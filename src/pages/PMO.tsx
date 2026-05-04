@@ -461,11 +461,16 @@ export default function PMO() {
   }
 
   return (
-    <div className="space-y-6" style={{ color: PMO_TEXT, fontFamily: "Inter, sans-serif" }}>
+    <div className="space-y-6 text-[14px] text-[#0A0A0A]" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
       <div className="flex items-start justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl md:text-2xl font-bold text-foreground">Pipeline</h1>
+        <div className="min-w-0">
+          <div className="mb-2 flex flex-wrap items-center gap-2">
+            <h1
+              className="text-[32px] font-bold leading-tight text-[#0A0A0A]"
+              style={{ fontFamily: '"Inter", system-ui, sans-serif' }}
+            >
+              Pipeline
+            </h1>
             <span
               className="text-[10px] uppercase tracking-wide px-2 py-1 rounded-full border"
               style={{ backgroundColor: "rgba(200, 16, 46, 0.12)", color: "#C8102E", borderColor: "rgba(200, 16, 46, 0.35)" }}
@@ -473,7 +478,7 @@ export default function PMO() {
               Premium
             </span>
           </div>
-          <p className="mt-1 text-sm" style={{ color: PMO_MUTED }}>Your career deal flow.</p>
+          <p className="mb-8 text-[15px] leading-[1.6] text-[#6B6B6B]">Your career deal flow.</p>
         </div>
         <Button
           onClick={openCreateApplication}

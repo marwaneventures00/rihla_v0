@@ -117,7 +117,9 @@ export default function Landing() {
         <header className="app-topbar flex h-14 w-full max-w-6xl min-w-0 items-center justify-between gap-2 overflow-hidden rounded-2xl px-3 sm:px-6 md:grid md:grid-cols-[auto_minmax(0,1fr)_auto] md:items-center md:gap-4 md:px-6">
           <Link to="/" className="flex shrink-0 items-center gap-2 justify-self-start">
             <span className="h-2 w-2 shrink-0 rounded-full bg-[#C8102E]" aria-hidden />
-            <span className="font-serif text-[17px] font-bold tracking-tight text-[#0A0A0A]">Cariva</span>
+            <span className="text-[17px] font-bold tracking-tight text-[#0A0A0A]" style={{ fontFamily: "Inter, sans-serif", fontWeight: 700 }}>
+              Cariva
+            </span>
           </Link>
           <nav className="hidden min-w-0 justify-self-stretch overflow-x-auto md:flex md:items-center md:justify-center">
             <div
