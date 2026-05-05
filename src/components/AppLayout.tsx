@@ -1,16 +1,30 @@
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Loader2, BookOpen, Hammer, BarChart2, Briefcase, User } from "lucide-react";
+import { BookOpen, Hammer, BarChart2, Briefcase, User } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
 
 export type AppLayoutOutletContext = { sidebarCollapsed: boolean };
 
-// INSTITUTE_ENABLED = false — admin/institute UI removed; layout is student-only.
+type AppLayoutState = {
+  ready: boolean;
+  userId: string | null;
+  email: string;
+  fullName: string;
+  avatarUrl: string | null;
+};
 
-type LayoutProfile = { full_name: string | null; institution_name: string | null; avatar_url: string | null };
+const initialAppState: AppLayoutState = {
+  ready: false,
+  userId: null,
+  email: "",
+  fullName: "",
+  avatarUrl: null,
+};
+
+type ProfileRow = { full_name: string | null; avatar_url: string | null };
 
 function pageTitleForPath(pathname: string, t: (key: string) => string) {
   if (pathname === "/learn/path/report") return t("page.learnReport");
@@ -26,102 +40,121 @@ function pageTitleForPath(pathname: string, t: (key: string) => string) {
   return t("brand.tagline");
 }
 
+/**
+ * useEffect inventory:
+ * 1. [] — document dark class
+ * 2. [] — auth + profile (single setAppState), onAuthStateChange
+ * 3. [] — cariva:avatar-updated (single setAppState functional update)
+ */
 export default function AppLayout({ requireRole = "student" }: { requireRole?: "student" }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
   const isMobile = useIsMobile();
-  const [loading, setLoading] = useState(true);
-  const [layoutUserId, setLayoutUserId] = useState<string | null>(null);
-  const [profile, setProfile] = useState<LayoutProfile | null>(null);
-  const [email, setEmail] = useState<string | null>(null);
+
+  const [appState, setAppState] = useState<AppLayoutState>(initialAppState);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [avatarSrc, setAvatarSrc] = useState<string | null>(null);
+
+  const handleToggleCollapse = useCallback(() => {
+    setSidebarCollapsed((prev) => !prev);
+  }, []);
+
+  const authInitRef = useRef(false);
+  const navigateRef = useRef(navigate);
+  const requireRoleRef = useRef(requireRole);
+  navigateRef.current = navigate;
+  requireRoleRef.current = requireRole;
 
   const pageTitle = useMemo(() => pageTitleForPath(location.pathname, t), [location.pathname, t]);
+
+  const outletContext = useMemo(() => ({ sidebarCollapsed }) as AppLayoutOutletContext, [sidebarCollapsed]);
 
   useEffect(() => {
     document.documentElement.classList.remove("dark");
   }, []);
 
   useEffect(() => {
+    if (authInitRef.current) return;
+    authInitRef.current = true;
+
     let mounted = true;
-    (async () => {
-      const { data: s } = await supabase.auth.getSession();
-      if (!s.session) {
-        navigate("/auth", { replace: true });
-        return;
-      }
-      const uid = s.session.user.id;
-      setLayoutUserId(uid);
-      setEmail(s.session.user.email ?? null);
 
-      const [{ data: roles }, { data: prof }] = await Promise.all([
-        supabase.from("user_roles").select("role").eq("user_id", uid),
-        supabase.from("profiles").select("full_name, institution_name, avatar_url").eq("id", uid).maybeSingle(),
-      ]);
+    const init = async () => {
+      try {
+        const { data: s } = await supabase.auth.getSession();
+        if (!mounted) return;
+
+        if (!s.session) {
+          navigateRef.current("/auth", { replace: true });
+          return;
+        }
+
+        const uid = s.session.user.id;
+
+        const [{ data: roles }, { data: prof }] = await Promise.all([
+          supabase.from("user_roles").select("role").eq("user_id", uid),
+          supabase.from("profiles").select("full_name, avatar_url").eq("id", uid).maybeSingle(),
+        ]);
+        if (!mounted) return;
+
+        const roleSet = new Set((roles ?? []).map((r) => r.role));
+        if (requireRoleRef.current === "student" && !roleSet.has("student")) {
+          navigateRef.current("/auth", { replace: true });
+          return;
+        }
+
+        const p = (prof as ProfileRow | null) ?? null;
+        const raw = p?.avatar_url?.trim();
+        const busted = raw ? `${raw.split("?")[0]}?t=${Date.now()}` : null;
+
+        setAppState({
+          ready: true,
+          userId: uid,
+          email: s.session.user.email ?? "",
+          fullName: p?.full_name?.trim() ?? "",
+          avatarUrl: busted,
+        });
+      } catch (err) {
+        console.error("AppLayout init error:", err);
+        if (mounted) {
+          setAppState((prev) => ({ ...prev, ready: true }));
+        }
+      }
+    };
+
+    void init();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
       if (!mounted) return;
-
-      const roleSet = new Set((roles ?? []).map((r) => r.role));
-      if (requireRole === "student" && !roleSet.has("student")) {
-        navigate("/auth", { replace: true });
-        return;
+      if (event === "SIGNED_OUT" || !session) {
+        navigateRef.current("/auth", { replace: true });
       }
+    });
 
-      const p = prof as LayoutProfile | null;
-      setProfile(p);
-      const raw = p?.avatar_url?.trim();
-      setAvatarSrc(raw ? `${raw.split("?")[0]}?t=${Date.now()}` : null);
-      setLoading(false);
-    })();
     return () => {
       mounted = false;
+      subscription.unsubscribe();
     };
-  }, [navigate, requireRole, location.pathname]);
-
-  useEffect(() => {
-    if (!layoutUserId) return;
-    let cancelled = false;
-    (async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("avatar_url, full_name, institution_name")
-        .eq("id", layoutUserId)
-        .maybeSingle();
-      if (cancelled) return;
-      if (error) {
-        console.error("Avatar/profile refetch:", error);
-        return;
-      }
-      if (data) {
-        setProfile((p) => ({
-          full_name: data.full_name ?? p?.full_name ?? null,
-          institution_name: data.institution_name ?? p?.institution_name ?? null,
-          avatar_url: data.avatar_url ?? p?.avatar_url ?? null,
-        }));
-        const raw = data.avatar_url?.trim();
-        setAvatarSrc(raw ? `${raw.split("?")[0]}?t=${Date.now()}` : null);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [layoutUserId, location.pathname]);
+  }, []);
 
   useEffect(() => {
     const onAvatar = (e: Event) => {
       const ce = e as CustomEvent<{ url: string }>;
       const u = ce.detail?.url?.trim();
       if (!u) return;
-      setAvatarSrc(`${u.split("?")[0]}?t=${Date.now()}`);
-      setProfile((p) => (p ? { ...p, avatar_url: u.split("?")[0] } : p));
+      setAppState((prev) => ({
+        ...prev,
+        avatarUrl: `${u.split("?")[0]}?t=${Date.now()}`,
+      }));
     };
     window.addEventListener("cariva:avatar-updated", onAvatar as EventListener);
     return () => window.removeEventListener("cariva:avatar-updated", onAvatar as EventListener);
   }, []);
 
-  const initials = (() => {
-    const name = profile?.full_name?.trim();
+  const initials = useMemo(() => {
+    const name = appState.fullName?.trim();
     if (name) {
       return name
         .split(/\s+/)
@@ -130,18 +163,35 @@ export default function AppLayout({ requireRole = "student" }: { requireRole?: "
         .slice(0, 2)
         .toUpperCase();
     }
-    const em = email?.trim();
+    const em = appState.email?.trim();
     if (em) {
       const local = em.split("@")[0] ?? "";
       return local.slice(0, 2).toUpperCase() || "U";
     }
     return "U";
-  })();
+  }, [appState.fullName, appState.email]);
 
-  if (loading) {
+  if (!appState.ready) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "100vh",
+          background: "#FAFAF8",
+        }}
+      >
+        <div
+          style={{
+            width: "32px",
+            height: "32px",
+            borderRadius: "50%",
+            border: "2px solid #E5E5E5",
+            borderTop: "2px solid #C8102E",
+            animation: "spin 0.8s linear infinite",
+          }}
+        />
       </div>
     );
   }
@@ -173,11 +223,11 @@ export default function AppLayout({ requireRole = "student" }: { requireRole?: "
   const sidebarOffsetPx = !isMobile ? (sidebarCollapsed ? 64 : 220) : 0;
 
   return (
-    <div className="min-h-screen flex w-full" style={{ background: "#FAFAF8" }}>
-      <Sidebar isCollapsed={sidebarCollapsed} onToggleCollapsed={() => setSidebarCollapsed((c) => !c)} />
+    <div className="flex min-h-screen w-full" style={{ background: "#FAFAF8" }}>
+      <Sidebar isCollapsed={sidebarCollapsed} onToggleCollapsed={handleToggleCollapse} />
 
       <div
-        className={`main-content flex min-h-0 flex-1 flex-col min-w-0 ${isMobile ? "pb-[calc(60px+env(safe-area-inset-bottom,0px))]" : ""}`}
+        className={`main-content flex min-h-0 min-w-0 flex-1 flex-col ${isMobile ? "pb-[calc(60px+env(safe-area-inset-bottom,0px))]" : ""}`}
         style={
           !isMobile
             ? {
@@ -199,11 +249,11 @@ export default function AppLayout({ requireRole = "student" }: { requireRole?: "
               type="button"
               onClick={() => navigate("/profile")}
               className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-full border-0 text-[12px] font-semibold text-[#0A0A0A] hover:opacity-90"
-              style={{ width: 32, height: 32, background: avatarSrc ? "transparent" : "#F5F5F5" }}
+              style={{ width: 32, height: 32, background: appState.avatarUrl ? "transparent" : "#F5F5F5" }}
               aria-label="Profile"
             >
-              {avatarSrc ? (
-                <img src={avatarSrc} alt="" className="h-full w-full object-cover" />
+              {appState.avatarUrl ? (
+                <img src={appState.avatarUrl} alt="" className="h-full w-full object-cover" />
               ) : (
                 initials
               )}
@@ -211,12 +261,9 @@ export default function AppLayout({ requireRole = "student" }: { requireRole?: "
           </div>
         </header>
 
-        <main className="flex-1 w-full pt-[80px] pb-6 md:pb-8" style={{ background: "#FAFAF8" }}>
-          <div
-            className="mx-auto w-full max-w-[1100px] px-5 py-6 md:px-10 md:pt-12 md:pb-10"
-            style={{ background: "#FAFAF8" }}
-          >
-            <Outlet context={{ sidebarCollapsed } as AppLayoutOutletContext} />
+        <main className="w-full flex-1 bg-[#FAFAF8] pb-6 pt-[80px] md:pb-8">
+          <div className="mx-auto w-full max-w-[1100px] bg-[#FAFAF8] px-5 py-6 md:px-10 md:pb-10 md:pt-12">
+            <Outlet context={outletContext} />
           </div>
         </main>
 

@@ -150,9 +150,10 @@ export default function Profile() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
-  const [profile, setProfile] = useState<ProfileData | null>(null);
-  const [email, setEmail] = useState<string | null>(null);
+  const [profile, setProfile] = useState<any>(null);
+  const [email, setEmail] = useState("");
   const [pathway, setPathway] = useState<PathwayRow | null>(null);
+  const [confidenceScore, setConfidenceScore] = useState<number>(0);
   const [applicationsCount, setApplicationsCount] = useState(0);
   const [conversation, setConversation] = useState<ConversationRow | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -220,8 +221,9 @@ export default function Profile() {
       setFormData(profileToForm(row));
       const rawAv = row?.avatar_url?.trim();
       setAvatarUrl(rawAv ? `${rawAv.split("?")[0]}?t=${Date.now()}` : null);
-      setEmail(userRes.data.user?.email ?? session.user.email ?? null);
+      setEmail(userRes.data.user?.email ?? session.user.email ?? "");
       setPathway(pathwayRes.data ?? null);
+      setConfidenceScore(typeof pathwayRes.data?.confidence_score === "number" ? pathwayRes.data.confidence_score : 0);
       setApplicationsCount(appsRes.count ?? 0);
       setConversation(convRes.data ?? null);
       setLoading(false);
@@ -357,759 +359,215 @@ export default function Profile() {
     margin: "32px 0 16px",
   };
 
-  if (loading) {
-    return (
-      <div
-        style={{
-          minHeight: "40vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontFamily: mont,
-          color: "#6B6B6B",
-          background: "#FAFAF8",
-        }}
-      >
-        Loading…
-      </div>
-    );
-  }
-
-  const badgeText = schoolBadgeText(profile);
-  const li = profile?.linkedin_url?.trim();
-  const bioText = profile?.bio?.trim();
-
   return (
     <div
-      className="page-container"
       style={{
-        background: "#FAFAF8",
-        maxWidth: 720,
-        margin: "0 auto",
         padding: "48px 40px",
-        fontFamily: mont,
+        maxWidth: "720px",
+        margin: "0 auto",
+        fontFamily: "Inter, sans-serif",
       }}
     >
-      {/* Section 1 — Identity */}
-      <div
-        style={{
-          background: "white",
-          borderRadius: 20,
-          border: "1px solid #E5E5E5",
-          padding: 32,
-          display: "flex",
-          alignItems: "flex-start",
-          gap: 24,
-          flexWrap: "wrap",
-        }}
-      >
-        <div style={{ position: "relative", width: 72, height: 72, flexShrink: 0 }}>
-          {avatarUrl ? (
-            <img
-              src={avatarUrl}
-              alt="Profile"
-              style={{
-                width: 72,
-                height: 72,
-                borderRadius: "50%",
-                objectFit: "cover",
-                border: "2px solid #E5E5E5",
-              }}
+      {loading ? (
+        <div style={{ textAlign: "center", paddingTop: "80px" }}>
+          <p style={{ color: "#6B6B6B" }}>Loading...</p>
+        </div>
+      ) : isEditing ? (
+        <div
+          style={{
+            background: "white",
+            borderRadius: "20px",
+            border: "1px solid #E5E5E5",
+            padding: "32px",
+            marginBottom: "24px",
+          }}
+        >
+          <p style={{ margin: "0 0 16px", fontSize: "18px", fontWeight: 700 }}>Edit Profile</p>
+          <div style={{ display: "grid", gap: "10px" }}>
+            <input
+              value={formData.full_name}
+              onChange={(e) => setFormData((f) => ({ ...f, full_name: e.target.value }))}
+              placeholder="Full name"
+              style={{ border: "1px solid #E5E5E5", borderRadius: 10, padding: "10px 12px" }}
             />
-          ) : (
+            <input
+              value={formData.school}
+              onChange={(e) => setFormData((f) => ({ ...f, school: e.target.value }))}
+              placeholder="School"
+              style={{ border: "1px solid #E5E5E5", borderRadius: 10, padding: "10px 12px" }}
+            />
+          </div>
+          <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
+            <button
+              onClick={() => void handleSave()}
+              style={{ background: "#C8102E", color: "white", border: "none", borderRadius: 100, padding: "8px 16px" }}
+            >
+              Save
+            </button>
+            <button
+              onClick={() => setIsEditing(false)}
+              style={{
+                background: "transparent",
+                border: "1px solid #E5E5E5",
+                borderRadius: 100,
+                padding: "8px 16px",
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div
+            style={{
+              background: "white",
+              borderRadius: "20px",
+              border: "1px solid #E5E5E5",
+              padding: "32px",
+              display: "flex",
+              alignItems: "center",
+              gap: "24px",
+              marginBottom: "24px",
+            }}
+          >
             <div
               style={{
-                width: 72,
-                height: 72,
+                width: "72px",
+                height: "72px",
                 borderRadius: "50%",
                 background: "#0A0A0A",
                 color: "white",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: 28,
+                fontSize: "24px",
                 fontWeight: 700,
-                fontFamily: "Inter, sans-serif",
+                flexShrink: 0,
+                overflow: "hidden",
               }}
             >
-              {profile?.full_name?.[0]?.toUpperCase() ?? "U"}
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              ) : (
+                (profile?.full_name ?? email ?? "U")[0].toUpperCase()
+              )}
             </div>
-          )}
-          {uploadingAvatar ? (
-            <div
-              style={{
-                position: "absolute",
-                inset: 0,
-                borderRadius: "50%",
-                background: "rgba(255,255,255,0.75)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Loader2 className="h-6 w-6 animate-spin text-[#C8102E]" aria-hidden />
-            </div>
-          ) : null}
-          <label
-            htmlFor="avatar-upload"
-            style={{
-              position: "absolute",
-              bottom: 0,
-              right: 0,
-              width: 24,
-              height: 24,
-              borderRadius: "50%",
-              background: "#C8102E",
-              border: "2px solid white",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: uploadingAvatar ? "wait" : "pointer",
-              pointerEvents: uploadingAvatar ? "none" : "auto",
-            }}
-          >
-            <Camera size={12} color="white" aria-hidden />
-          </label>
-          <input
-            id="avatar-upload"
-            type="file"
-            accept="image/*"
-            style={{ display: "none" }}
-            onChange={(ev) => void handleAvatarUpload(ev)}
-            disabled={uploadingAvatar}
-          />
-        </div>
-
-        {isEditing ? (
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              <div>
-                <label htmlFor="pf-full_name" style={labelStyle}>
-                  Full Name
-                </label>
-                <input
-                  id="pf-full_name"
-                  value={formData.full_name}
-                  onChange={(e) => setFormData((f) => ({ ...f, full_name: e.target.value }))}
-                  style={inputBase}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = "#0A0A0A";
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = "#E5E5E5";
-                  }}
-                />
-              </div>
-              <div>
-                <label htmlFor="pf-school" style={labelStyle}>
-                  School / University
-                </label>
-                <input
-                  id="pf-school"
-                  value={formData.school}
-                  onChange={(e) => setFormData((f) => ({ ...f, school: e.target.value }))}
-                  placeholder="e.g. ESCA École de Management"
-                  style={inputBase}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = "#0A0A0A";
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = "#E5E5E5";
-                  }}
-                />
-              </div>
-              <div>
-                <label htmlFor="pf-field" style={labelStyle}>
-                  Field of Study
-                </label>
-                <input
-                  id="pf-field"
-                  value={formData.field_of_study}
-                  onChange={(e) => setFormData((f) => ({ ...f, field_of_study: e.target.value }))}
-                  placeholder="e.g. Business Administration"
-                  style={inputBase}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = "#0A0A0A";
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = "#E5E5E5";
-                  }}
-                />
-              </div>
-              <div>
-                <label htmlFor="pf-year" style={labelStyle}>
-                  Graduation Year
-                </label>
-                <input
-                  id="pf-year"
-                  type="number"
-                  value={formData.graduation_year}
-                  onChange={(e) => setFormData((f) => ({ ...f, graduation_year: e.target.value }))}
-                  placeholder="e.g. 2026"
-                  style={inputBase}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = "#0A0A0A";
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = "#E5E5E5";
-                  }}
-                />
-              </div>
-              <div>
-                <label htmlFor="pf-city" style={labelStyle}>
-                  City
-                </label>
-                <input
-                  id="pf-city"
-                  value={formData.city}
-                  onChange={(e) => setFormData((f) => ({ ...f, city: e.target.value }))}
-                  placeholder="e.g. Casablanca"
-                  style={inputBase}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = "#0A0A0A";
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = "#E5E5E5";
-                  }}
-                />
-              </div>
-              <div>
-                <label htmlFor="pf-li" style={labelStyle}>
-                  LinkedIn URL
-                </label>
-                <input
-                  id="pf-li"
-                  value={formData.linkedin_url}
-                  onChange={(e) => setFormData((f) => ({ ...f, linkedin_url: e.target.value }))}
-                  placeholder="https://linkedin.com/in/yourname"
-                  style={inputBase}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = "#0A0A0A";
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = "#E5E5E5";
-                  }}
-                />
-              </div>
-              <div>
-                <label htmlFor="pf-bio" style={labelStyle}>
-                  Bio
-                </label>
-                <textarea
-                  id="pf-bio"
-                  value={formData.bio}
-                  onChange={(e) => setFormData((f) => ({ ...f, bio: e.target.value }))}
-                  maxLength={200}
-                  placeholder="A short bio about yourself..."
-                  rows={4}
-                  style={{ ...inputBase, resize: "vertical", minHeight: 100 }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = "#0A0A0A";
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = "#E5E5E5";
-                  }}
-                />
-                <p style={{ fontSize: 12, color: "#6B6B6B", marginTop: 4, fontFamily: montSans }}>
-                  {formData.bio.length}/200
-                </p>
-              </div>
-            </div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginTop: 20 }}>
-              <button
-                type="button"
-                disabled={saving}
-                onClick={() => void handleSave()}
-                style={{
-                  background: "#C8102E",
-                  color: "white",
-                  borderRadius: 100,
-                  padding: "10px 24px",
-                  fontWeight: 600,
-                  border: "none",
-                  cursor: saving ? "wait" : "pointer",
-                  fontFamily: mont,
-                  opacity: saving ? 0.85 : 1,
-                }}
-              >
-                {saving ? "Saving…" : "Save"}
-              </button>
-              <button
-                type="button"
-                disabled={saving}
-                onClick={() => {
-                  setFormData(profileToForm(profile));
-                  setIsEditing(false);
-                }}
-                style={{
-                  background: "transparent",
-                  border: "1.5px solid #E5E5E5",
-                  borderRadius: 100,
-                  padding: "10px 24px",
-                  color: "#6B6B6B",
-                  cursor: "pointer",
-                  fontFamily: mont,
-                }}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        ) : (
-          <>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: mont, fontSize: 24, fontWeight: 700, color: "#0A0A0A" }}>{displayName}</div>
-              <div style={{ fontSize: 14, color: "#6B6B6B", marginTop: 4 }}>{email ?? "—"}</div>
-              {bioText ? (
-                <p
-                  style={{
-                    marginTop: 8,
-                    fontSize: 13,
-                    fontStyle: "italic",
-                    color: "#6B6B6B",
-                    fontFamily: montSans,
-                    lineHeight: 1.5,
-                  }}
-                >
-                  {bioText}
-                </p>
-              ) : null}
-              <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, marginTop: 10 }}>
-                <div
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: "22px", fontWeight: 700, margin: 0 }}>
+                {profile?.full_name ?? email?.split("@")[0] ?? "Student"}
+              </p>
+              <p style={{ fontSize: "14px", color: "#6B6B6B", margin: "4px 0 0" }}>{email ?? ""}</p>
+              {profile?.school && (
+                <span
                   style={{
                     display: "inline-block",
-                    background: "white",
-                    border: "1px solid #E5E5E5",
-                    borderRadius: 100,
+                    background: "#F5F5F5",
+                    borderRadius: "100px",
                     padding: "4px 12px",
-                    fontSize: 12,
+                    fontSize: "12px",
                     color: "#6B6B6B",
-                    fontFamily: mont,
+                    marginTop: "8px",
                   }}
                 >
-                  {badgeText}
-                </div>
-                {profile?.city?.trim() ? (
-                  <div
-                    style={{
-                      display: "inline-block",
-                      background: "white",
-                      border: "1px solid #E5E5E5",
-                      borderRadius: 100,
-                      padding: "4px 12px",
-                      fontSize: 12,
-                      color: "#6B6B6B",
-                      fontFamily: mont,
-                    }}
-                  >
-                    {profile.city.trim()}
-                  </div>
-                ) : null}
-              </div>
-              {li ? (
-                <a
-                  href={linkedinHref(li)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 6,
-                    marginTop: 12,
-                    fontSize: 14,
-                    fontWeight: 500,
-                    color: "#C8102E",
-                    textDecoration: "none",
-                    fontFamily: mont,
-                  }}
-                >
-                  LinkedIn
-                  <ExternalLink size={14} aria-hidden />
-                </a>
-              ) : null}
+                  {profile.school}
+                  {profile.graduation_year ? ` · Class of ${profile.graduation_year}` : ""}
+                </span>
+              )}
             </div>
             <button
-              type="button"
-              onClick={() => {
-                setFormData(profileToForm(profile));
-                setIsEditing(true);
-              }}
+              onClick={() => setIsEditing(true)}
               style={{
-                flexShrink: 0,
-                border: "1px solid #E5E5E5",
-                borderRadius: 100,
-                padding: "8px 16px",
-                fontSize: 13,
-                color: "#0A0A0A",
                 background: "transparent",
+                border: "1px solid #E5E5E5",
+                borderRadius: "100px",
+                padding: "8px 16px",
+                fontSize: "13px",
+                color: "#6B6B6B",
                 cursor: "pointer",
-                fontFamily: mont,
               }}
             >
               Edit profile
             </button>
-          </>
-        )}
-      </div>
+          </div>
 
-      {/* Section 2 — Journey */}
-      <h2 style={h2Style}>Your Journey</h2>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-          gap: 12,
-        }}
-        className="profile-journey-grid"
-      >
-        {[
-          {
-            value: String(pathScore),
-            label: "Path Score",
-            sub: "out of 100",
-            valueColor: pathScore > 0 ? "#C8102E" : "#AAAAAA",
-            valueFont: mont,
-            valueSize: 28,
-          },
-          {
-            value: "—",
-            label: "Learn Score",
-            sub: "coming soon",
-            valueColor: "#AAAAAA",
-            valueFont: mont,
-            valueSize: 22,
-          },
-          {
-            value: String(applicationsCount),
-            label: "Applications",
-            sub: "active",
-            valueColor: applicationsCount > 0 ? "#0A0A0A" : "#AAAAAA",
-            valueFont: mont,
-            valueSize: 28,
-          },
-          {
-            value: memberSinceLabel,
-            label: "Member since",
-            sub: "Cariva",
-            valueColor: "#0A0A0A",
-            valueFont: mont,
-            valueSize: 16,
-            valueWeight: 600,
-          },
-        ].map((card) => (
           <div
-            key={card.label}
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(4, 1fr)",
+              gap: "12px",
+              marginBottom: "24px",
+            }}
+          >
+            {[
+              { label: "Path Score", value: confidenceScore ?? 0, sub: "out of 100" },
+              { label: "Learn Score", value: "—", sub: "coming soon" },
+              { label: "Applications", value: applicationsCount ?? 0, sub: "active" },
+              {
+                label: "Member since",
+                value: profile?.created_at
+                  ? new Date(profile.created_at).toLocaleDateString("en", { month: "short", year: "numeric" })
+                  : "—",
+                sub: "Cariva",
+              },
+            ].map((stat, i) => (
+              <div
+                key={i}
+                style={{
+                  background: "white",
+                  borderRadius: "12px",
+                  border: "1px solid #E5E5E5",
+                  padding: "20px",
+                  textAlign: "center",
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: "28px",
+                    fontWeight: 800,
+                    margin: 0,
+                    color: i === 0 && (confidenceScore ?? 0) > 0 ? "#C8102E" : "#0A0A0A",
+                  }}
+                >
+                  {stat.value}
+                </p>
+                <p style={{ fontSize: "13px", color: "#6B6B6B", margin: "4px 0 0" }}>{stat.label}</p>
+                <p style={{ fontSize: "11px", color: "#AAAAAA", margin: "2px 0 0" }}>{stat.sub}</p>
+              </div>
+            ))}
+          </div>
+
+          <div
             style={{
               background: "white",
-              borderRadius: 12,
+              borderRadius: "16px",
               border: "1px solid #E5E5E5",
-              padding: 20,
+              padding: "24px",
+              marginTop: "24px",
             }}
           >
-            <div
+            <button
+              onClick={async () => {
+                await supabase.auth.signOut();
+                navigate("/");
+              }}
               style={{
-                fontFamily: card.valueFont,
-                fontSize: card.valueSize,
-                fontWeight: card.valueWeight ?? 700,
-                color: card.valueColor,
+                width: "100%",
+                background: "transparent",
+                border: "1.5px solid #FFCDD2",
+                borderRadius: "100px",
+                padding: "12px",
+                color: "#C8102E",
+                cursor: "pointer",
+                fontSize: "14px",
+                fontFamily: "Inter, sans-serif",
               }}
             >
-              {card.value}
-            </div>
-            <div style={{ fontSize: 14, fontWeight: 500, color: "#0A0A0A", marginTop: 8 }}>{card.label}</div>
-            <div style={{ fontSize: 12, color: "#6B6B6B", marginTop: 4 }}>{card.sub}</div>
+              Sign out
+            </button>
           </div>
-        ))}
-      </div>
-
-      {/* Section 3 — Career profile */}
-      <h2 style={h2Style}>My Career Profile</h2>
-      {hasArchetypes ? (
-        <div
-          style={{
-            background: "white",
-            borderRadius: 16,
-            border: "1px solid #E5E5E5",
-            padding: 24,
-          }}
-        >
-          {archetypeList.map((a, idx) => (
-            <div key={a.rank}>
-              {idx > 0 ? <div style={{ height: 1, background: "#F5F5F5", margin: "16px 0" }} /> : null}
-              <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-                <div
-                  style={{
-                    width: 28,
-                    height: 28,
-                    borderRadius: "50%",
-                    background: "#F5F5F5",
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: "#0A0A0A",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexShrink: 0,
-                  }}
-                >
-                  #{a.rank}
-                </div>
-                <span style={{ fontSize: 15, fontWeight: 500, color: "#0A0A0A", flex: 1, minWidth: 120 }}>{a.title}</span>
-                <span style={{ fontSize: 14, fontWeight: 600, color: "#C8102E", marginLeft: "auto" }}>{a.match}%</span>
-              </div>
-              <div style={{ height: 4, background: "#F0F0F0", borderRadius: 2, marginTop: 10, overflow: "hidden" }}>
-                <div style={{ height: "100%", width: `${a.match}%`, background: "#C8102E", borderRadius: 2 }} />
-              </div>
-            </div>
-          ))}
-          <button
-            type="button"
-            onClick={() => navigate("/learn/path/report")}
-            style={{
-              marginTop: 24,
-              background: "#C8102E",
-              color: "white",
-              border: "none",
-              borderRadius: 100,
-              padding: "10px 20px",
-              fontSize: 14,
-              fontWeight: 500,
-              cursor: "pointer",
-              fontFamily: mont,
-            }}
-          >
-            View full report →
-          </button>
-        </div>
-      ) : (
-        <div
-          style={{
-            background: "white",
-            borderRadius: 16,
-            border: "1px solid #E5E5E5",
-            padding: 32,
-            textAlign: "center",
-          }}
-        >
-          <Target size={32} color="#AAAAAA" style={{ margin: "0 auto" }} aria-hidden />
-          <p style={{ fontSize: 15, color: "#6B6B6B", marginTop: 12 }}>Your career profile will appear here</p>
-          <button
-            type="button"
-            onClick={() => navigate("/learn/path")}
-            style={{
-              marginTop: 20,
-              background: "#C8102E",
-              color: "white",
-              border: "none",
-              borderRadius: 100,
-              padding: "10px 20px",
-              fontSize: 14,
-              fontWeight: 500,
-              cursor: "pointer",
-              fontFamily: mont,
-            }}
-          >
-            Start Path conversation →
-          </button>
-        </div>
+        </>
       )}
-
-      {/* Section 4 — Documents & Achievements */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: 20,
-          marginTop: 32,
-        }}
-        className="profile-two-col"
-      >
-        <div
-          style={{
-            background: "white",
-            borderRadius: 16,
-            border: "1px solid #E5E5E5",
-            padding: 24,
-          }}
-        >
-          <div style={{ fontSize: 16, fontWeight: 600, color: "#0A0A0A", marginBottom: 16 }}>Documents</div>
-
-          <DocRow
-            icon={<Download size={16} color="#6B6B6B" aria-hidden />}
-            label="Archetype Report"
-            sub="Your career profile PDF"
-            action={
-              hasArchetypes ? (
-                <button
-                  type="button"
-                  style={{
-                    border: "1px solid #E5E5E5",
-                    borderRadius: 100,
-                    padding: "6px 14px",
-                    fontSize: 12,
-                    color: "#6B6B6B",
-                    background: "transparent",
-                    cursor: "pointer",
-                    fontFamily: mont,
-                  }}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLButtonElement).style.background = "#F5F5F5";
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLButtonElement).style.background = "transparent";
-                  }}
-                  onClick={() => toast.info("PDF download coming soon")}
-                >
-                  Download
-                </button>
-              ) : (
-                <button type="button" disabled style={docBtnDisabled}>
-                  Not yet generated
-                </button>
-              )
-            }
-          />
-          <div style={{ height: 1, background: "#F5F5F5", margin: "16px 0" }} />
-          <DocRow
-            icon={<Download size={16} color="#6B6B6B" aria-hidden />}
-            label="Cariva Certificate"
-            sub="Virtual Internship completion"
-            action={
-              <button type="button" disabled style={{ ...docBtnDisabled, display: "flex", alignItems: "center", gap: 6 }}>
-                <Lock size={14} aria-hidden />
-                Locked
-              </button>
-            }
-          />
-          <div style={{ height: 1, background: "#F5F5F5", margin: "16px 0" }} />
-          <DocRow
-            icon={<Download size={16} color="#6B6B6B" aria-hidden />}
-            label="AI Resume"
-            sub="Generated from your profile"
-            action={
-              <button
-                type="button"
-                style={{
-                  background: "#C8102E",
-                  color: "white",
-                  border: "none",
-                  borderRadius: 100,
-                  padding: "6px 14px",
-                  fontSize: 12,
-                  fontWeight: 500,
-                  cursor: "pointer",
-                  fontFamily: mont,
-                }}
-                onClick={() => toast.info("Coming soon — AI Resume generation is being built 🚀")}
-              >
-                Generate
-              </button>
-            }
-          />
-        </div>
-
-        <div
-          style={{
-            background: "white",
-            borderRadius: 16,
-            border: "1px solid #E5E5E5",
-            padding: 24,
-          }}
-        >
-          <div style={{ fontSize: 16, fontWeight: 600, color: "#0A0A0A", marginBottom: 16 }}>Achievements</div>
-
-          <AchRow
-            icon={
-              conversationExists ? (
-                <CheckCircle size={18} color="#22C55E" aria-hidden />
-              ) : (
-                <Circle size={18} color="#AAAAAA" aria-hidden />
-              )
-            }
-            label="Path Started"
-            right={formatAchievementDate(conversation?.created_at ?? null)}
-          />
-          <div style={{ height: 1, background: "#F5F5F5", margin: "14px 0" }} />
-          <AchRow
-            icon={
-              hasArchetypes ? (
-                <CheckCircle size={18} color="#22C55E" aria-hidden />
-              ) : (
-                <Circle size={18} color="#AAAAAA" aria-hidden />
-              )
-            }
-            label="Career Profile Generated"
-            right={hasArchetypes ? formatAchievementDate(pathwayCreatedAt) : "—"}
-          />
-          <div style={{ height: 1, background: "#F5F5F5", margin: "14px 0" }} />
-          <AchRow
-            icon={
-              applicationsCount > 0 ? (
-                <CheckCircle size={18} color="#22C55E" aria-hidden />
-              ) : (
-                <Circle size={18} color="#AAAAAA" aria-hidden />
-              )
-            }
-            label="First Application"
-            right="—"
-          />
-          <div style={{ height: 1, background: "#F5F5F5", margin: "14px 0" }} />
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <Lock size={18} color="#AAAAAA" aria-hidden />
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 14, color: "#0A0A0A" }}>Virtual Internship</div>
-            </div>
-            <span style={{ fontSize: 12, color: "#AAAAAA" }}>Locked</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Section 5 — Account */}
-      <h2 style={h2Style}>Account</h2>
-      <div
-        style={{
-          background: "white",
-          borderRadius: 16,
-          border: "1px solid #E5E5E5",
-          padding: 24,
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
-          <span style={{ fontSize: 14, fontWeight: 500, color: "#0A0A0A" }}>Language</span>
-          <LanguageSwitcher />
-        </div>
-        <div style={{ height: 1, background: "#F5F5F5", margin: "16px 0" }} />
-        <button
-          type="button"
-          onClick={() => {
-            void handleSignOut();
-          }}
-          style={{
-            width: "100%",
-            background: "transparent",
-            border: "1.5px solid #FFCDD2",
-            borderRadius: 100,
-            padding: 12,
-            fontSize: 14,
-            color: "#C8102E",
-            cursor: "pointer",
-            fontFamily: mont,
-          }}
-        >
-          Sign out
-        </button>
-      </div>
-
-      <style>{`
-        @media (max-width: 767px) {
-          .profile-journey-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-          }
-          .profile-two-col {
-            grid-template-columns: 1fr !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }

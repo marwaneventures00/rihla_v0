@@ -297,7 +297,7 @@ async function persistMessages(list: ChatMessage[], existingId: string | null): 
 
 type LearnPathProps = { sidebarCollapsed?: boolean };
 
-export default function LearnPath({ sidebarCollapsed = false }: LearnPathProps) {
+export default function LearnPath({ sidebarCollapsed: _sidebarCollapsed = false }: LearnPathProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -319,6 +319,7 @@ export default function LearnPath({ sidebarCollapsed = false }: LearnPathProps) 
   const messagesRef = useRef<ChatMessage[]>([]);
   const firstNameRef = useRef("");
   const autoReportRequestedRef = useRef(false);
+
   sessionIdRef.current = sessionId;
   messagesRef.current = messages;
 
@@ -612,6 +613,13 @@ No text before or after the JSON.`
     // eslint-disable-next-line react-hooks/exhaustive-deps -- mount bootstrap only
   }, [navigate, invokeMentor, handleReportReady, maybeForceReportAfterClosing, t]);
 
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      setLoading(false);
+    }, 5000);
+    return () => window.clearTimeout(timeout);
+  }, []);
+
   const send = useCallback(async () => {
     const text = input.trim();
     if (!text || sending || buildingReport) return;
@@ -747,8 +755,6 @@ No text before or after the JSON.`
     el.style.height = `${el.scrollHeight}px`;
   };
 
-  const mainLeftOffsetClass = sidebarCollapsed ? "md:left-16" : "md:left-[220px]";
-
   const scorePill = useMemo(
     () => (
       <span
@@ -782,73 +788,115 @@ No text before or after the JSON.`
   const lastClosingIndex = closingMessageIndexes.length > 0 ? closingMessageIndexes[closingMessageIndexes.length - 1] : -1;
   const showReportButton = closingMessageIndexes.length > 0;
 
-  if (loading) {
-    return (
-      <div
-        className={`fixed left-0 right-0 z-20 flex items-center justify-center bg-white ${mainLeftOffsetClass} transition-[left] duration-[250ms] ease-in-out`}
-        style={{ top: 60, bottom: 0 }}
-      >
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#C8102E] border-t-transparent" />
-      </div>
-    );
-  }
-
   return (
     <div
-      className={`page-container fixed left-0 right-0 z-20 flex flex-col bg-white ${mainLeftOffsetClass} transition-[left] duration-[250ms] ease-in-out`}
       style={{
-        top: 60,
-        bottom: 0,
-        height: "calc(100vh - 60px)",
-        fontFamily: "Inter, system-ui, sans-serif",
+        display: "flex",
+        flexDirection: "column",
+        height: "100vh",
+        background: "#FAFAF8",
+        position: "relative",
       }}
     >
-      <header className="shrink-0 border-b border-[#F0F0F0] px-5 pt-12 md:px-10">
-        <div className="relative mx-auto flex h-14 max-w-[1100px] items-center justify-between">
-          <div className="relative z-10 flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => navigate("/learn")}
-              className="flex h-9 w-9 items-center justify-center rounded-lg border-0 bg-transparent text-[#0A0A0A] hover:bg-[#F5F5F5]"
-              aria-label={t("learn.hub.backToLearn")}
-            >
-              <ArrowLeft className="h-5 w-5" strokeWidth={2} />
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                void handleReset();
-              }}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 4,
-                padding: "6px 12px",
-                background: "transparent",
-                border: "1px solid #E5E5E5",
-                borderRadius: "100px",
-                cursor: "pointer",
-                fontSize: 12,
-                color: "#6B6B6B",
-                fontFamily: "Inter, sans-serif",
-              }}
-            >
-              <RotateCcw size={12} aria-hidden />
-              Reset
-            </button>
-          </div>
-          <span
-            className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 font-semibold text-[#0A0A0A]"
-            style={{ fontFamily: "Inter, system-ui, sans-serif", fontSize: 15 }}
-          >
-            Mentor
-          </span>
-          <div className="relative z-10">{scorePill}</div>
+      {loading ? (
+        <div
+          style={{
+            flex: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexDirection: "column",
+            gap: 16,
+            background: "#FAFAF8",
+            minHeight: 0,
+          }}
+        >
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#C8102E] border-t-transparent" />
+          <p style={{ color: "#6B6B6B", fontFamily: "Inter, sans-serif" }}>Loading...</p>
         </div>
-      </header>
+      ) : (
+        <>
+          <div
+            style={{
+              position: "sticky",
+              top: 0,
+              zIndex: 10,
+              background: "rgba(250, 250, 248, 0.95)",
+              borderBottom: "1px solid #F0F0F0",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "0 24px",
+              height: "56px",
+              flexShrink: 0,
+            }}
+          >
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => navigate("/learn")}
+                className="flex h-9 w-9 items-center justify-center rounded-lg border-0 bg-transparent text-[#0A0A0A] hover:bg-[#F5F5F5]"
+                aria-label={t("learn.hub.backToLearn")}
+              >
+                <ArrowLeft className="h-5 w-5" strokeWidth={2} />
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  void handleReset();
+                }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4,
+                  padding: "6px 12px",
+                  background: "transparent",
+                  border: "1px solid #E5E5E5",
+                  borderRadius: "100px",
+                  cursor: "pointer",
+                  fontSize: 12,
+                  color: "#6B6B6B",
+                  fontFamily: "Inter, sans-serif",
+                }}
+              >
+                <RotateCcw size={12} aria-hidden />
+                Reset
+              </button>
+            </div>
+            <div
+              style={{
+                flex: 1,
+                display: "flex",
+                justifyContent: "center",
+                minWidth: 0,
+              }}
+            >
+              <span
+                className="pointer-events-none font-semibold text-[#0A0A0A]"
+                style={{ fontFamily: "Inter, system-ui, sans-serif", fontSize: 15 }}
+              >
+                Mentor
+              </span>
+            </div>
+            <div className="flex shrink-0 justify-end">{scorePill}</div>
+          </div>
 
-      <div ref={listRef} className="min-h-0 flex-1 overflow-y-auto" style={{ padding: "24px 40px" }}>
-        <div className="mx-auto w-full max-w-[720px]">
+          <div
+            ref={listRef}
+            style={{
+              flex: 1,
+              minHeight: 0,
+              overflowY: "auto",
+              padding: "24px 40px",
+            }}
+          >
+            <div
+              style={{
+                maxWidth: "720px",
+                margin: "0 auto",
+                width: "100%",
+              }}
+            >
           {visibleMessages.map((m, idx) =>
             m.role === "assistant" ? (
               <div key={m.id} className="mb-8 max-w-[600px]">
@@ -933,33 +981,32 @@ No text before or after the JSON.`
           {buildingReport && (
             <div className="py-6 text-center text-[15px] font-medium text-[#6B6B6B]">{t("learn.path.buildingReport")}</div>
           )}
-        </div>
-      </div>
+            </div>
+          </div>
 
-      <div
-        className="shrink-0"
-        style={{
-          position: "sticky",
-          bottom: 0,
-          zIndex: 100,
-          background: "linear-gradient(to top, white 80%, transparent)",
-          padding: "16px 24px 24px",
-          display: "flex",
-          justifyContent: "center",
-        }}
-      >
+          <div
+            style={{
+              position: "sticky",
+              bottom: 0,
+              background: "linear-gradient(to top, #FAFAF8 80%, transparent)",
+              padding: "16px 24px 24px",
+              display: "flex",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
         <div
           style={{
-            maxWidth: 680,
+            maxWidth: "680px",
             width: "100%",
             background: "white",
             border: "1.5px solid #E5E5E5",
-            borderRadius: 16,
+            borderRadius: "16px",
             boxShadow: "0 4px 24px rgba(0,0,0,0.08)",
             padding: "12px 16px",
             display: "flex",
             flexDirection: "column",
-            gap: 8,
+            gap: "8px",
           }}
         >
           <textarea
@@ -1113,6 +1160,8 @@ No text before or after the JSON.`
           </div>
         </div>
       </div>
+        </>
+      )}
     </div>
   );
 }
