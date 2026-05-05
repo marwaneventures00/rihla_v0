@@ -162,6 +162,13 @@ export default function Profile() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   useEffect(() => {
+    document.title = "Profile — Cariva";
+    const nodes = document.querySelectorAll(".page-container");
+    const el = nodes[nodes.length - 1] as HTMLElement | undefined;
+    if (el) requestAnimationFrame(() => el.classList.add("page-visible"));
+  }, []);
+
+  useEffect(() => {
     let cancelled = false;
     (async () => {
       setLoading(true);
@@ -240,8 +247,6 @@ export default function Profile() {
       toast.error("Not signed in");
       return;
     }
-    console.log("Saving profile:", formData, "user id:", user.id);
-
     setSaving(true);
     try {
       const { error } = await supabase
@@ -376,6 +381,7 @@ export default function Profile() {
 
   return (
     <div
+      className="page-container"
       style={{
         background: "#FAFAF8",
         maxWidth: 720,

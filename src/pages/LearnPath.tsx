@@ -180,31 +180,29 @@ function stripMarkdown(text: string): string {
     .trim();
 }
 
-function extractReportJson(text: string): Record<string, unknown> | null {
-  const marker = '"report_ready"';
-  const idx = text.indexOf(marker);
-  if (idx === -1) return null;
-  const start = text.lastIndexOf("{", idx);
-  if (start === -1) return null;
-  let depth = 0;
-  for (let i = start; i < text.length; i++) {
-    const c = text[i];
-    if (c === "{") depth++;
-    if (c === "}") {
-      depth--;
-      if (depth === 0) {
-        const slice = text.slice(start, i + 1);
-        try {
-          const parsed = JSON.parse(slice) as Record<string, unknown>;
-          if (parsed.report_ready === true) return parsed;
-        } catch {
-          return null;
-        }
-      }
-    }
+const CLOSING_TRIGGERS = [
+  "here's your full breakdown",
+  "let me put together",
+  "i've got what i need",
+  "here is your full breakdown",
+  "your full breakdown",
+  "let me build your report",
+];
+
+const isClosingMessage = (text: string) =>
+  CLOSING_TRIGGERS.some((trigger) => text.toLowerCase().includes(trigger));
+
+const detectReport = (text: string): Record<string, unknown> | null => {
+  try {
+    const jsonMatch = text.match(/\{[\s\S]*"report_ready"[\s\S]*\}/);
+    if (!jsonMatch) return null;
+    const parsed = JSON.parse(jsonMatch[0]) as Record<string, unknown>;
+    if (parsed.report_ready === true) return parsed;
+    return null;
+  } catch {
+    return null;
   }
-  return null;
-}
+};
 
 function buildMentorSystemPromptForRequest(opts: { firstName: string; mode: MentorMode }): string {
   const fn = opts.firstName.trim();
@@ -313,17 +311,26 @@ export default function LearnPath({ sidebarCollapsed = false }: LearnPathProps) 
   const mentorModeRef = useRef<MentorMode>("questions");
   mentorModeRef.current = mentorMode;
   const [showModeDropdown, setShowModeDropdown] = useState(false);
+  const [manualReportLoading, setManualReportLoading] = useState(false);
   const modeBarRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
   const sessionIdRef = useRef<string | null>(null);
   const messagesRef = useRef<ChatMessage[]>([]);
   const firstNameRef = useRef("");
+  const autoReportRequestedRef = useRef(false);
   sessionIdRef.current = sessionId;
   messagesRef.current = messages;
 
   const hasUserReplied = messages.some((m) => m.role === "user" && m.content !== MENTOR_START_TRIGGER);
   const currentMode = MENTOR_MODES.find((m) => m.id === mentorMode) ?? MENTOR_MODES[0];
+
+  useEffect(() => {
+    document.title = "Path — Cariva";
+    const nodes = document.querySelectorAll(".page-container");
+    const el = nodes[nodes.length - 1] as HTMLElement | undefined;
+    if (el) requestAnimationFrame(() => el.classList.add("page-visible"));
+  }, []);
 
   useEffect(() => {
     if (hasUserReplied) setShowModeDropdown(false);
@@ -350,36 +357,45 @@ export default function LearnPath({ sidebarCollapsed = false }: LearnPathProps) 
     scrollBottom();
   }, [messages, sending, buildingReport, scrollBottom]);
 
-  const invokeMentor = useCallback(async (apiMessages: { role: ChatRole; content: string }[]) => {
-    const baseUrl = String(import.meta.env.VITE_SUPABASE_URL ?? "").replace(/\/$/, "");
-    const url = `${baseUrl}/functions/v1/chat-ai`;
-    const system = buildMentorSystemPromptForRequest({
-      firstName: firstNameRef.current,
-      mode: mentorModeRef.current,
-    });
-    const body = {
-      messages: apiMessages,
-      system,
-      model: "claude-haiku-4-5-20251001",
-    };
-    console.log("Calling edge function with:", { body, url });
+  const invokeMentor = useCallback(
+    async (
+      apiMessages: { role: ChatRole; content: string }[],
+      opts?: { forceJsonOnly?: boolean },
+    ) => {
+      const baseUrl = String(import.meta.env.VITE_SUPABASE_URL ?? "").replace(/\/$/, "");
+      const url = `${baseUrl}/functions/v1/chat-ai`;
+      const baseSystem = buildMentorSystemPromptForRequest({
+        firstName: firstNameRef.current,
+        mode: mentorModeRef.current,
+      });
+      const system = opts?.forceJsonOnly
+        ? `${baseSystem}\n\nThe user just received your closing narrative.
+Now output ONLY the JSON report, nothing else.
+Start your response with { and end with }.
+No text before or after the JSON.`
+        : baseSystem;
+      const body = {
+        messages: apiMessages,
+        system,
+        model: "claude-haiku-4-5-20251001",
+      };
+      const { data, error } = await supabase.functions.invoke("chat-ai", { body });
 
-    const { data, error } = await supabase.functions.invoke("chat-ai", { body });
-    console.log("Edge function response:", { data, error });
-
-    const reply = parseEdgeFunctionReply(data);
-    if (error) {
-      throw new Error(formatMentorInvokeFailure(error, data));
-    }
-    const payloadErr = pickErrorFromEdgePayload(data);
-    if (payloadErr && !reply) {
-      throw new Error(payloadErr);
-    }
-    if (!reply) {
-      throw new Error(`No reply in payload: ${JSON.stringify(data ?? {})}`);
-    }
-    return reply;
-  }, []);
+      const reply = parseEdgeFunctionReply(data);
+      if (error) {
+        throw new Error(formatMentorInvokeFailure(error, data));
+      }
+      const payloadErr = pickErrorFromEdgePayload(data);
+      if (payloadErr && !reply) {
+        throw new Error(payloadErr);
+      }
+      if (!reply) {
+        throw new Error(`No reply in payload: ${JSON.stringify(data ?? {})}`);
+      }
+      return reply;
+    },
+    [],
+  );
 
   const handleReportReady = useCallback(
     async (parsed: Record<string, unknown>) => {
@@ -407,6 +423,7 @@ export default function LearnPath({ sidebarCollapsed = false }: LearnPathProps) 
       }
 
       setConfidenceScore(insertRow.confidence_score);
+      autoReportRequestedRef.current = true;
       setBuildingReport(true);
       window.setTimeout(() => {
         navigate("/learn/path/report");
@@ -414,6 +431,101 @@ export default function LearnPath({ sidebarCollapsed = false }: LearnPathProps) 
     },
     [navigate],
   );
+
+  const maybeForceReportAfterClosing = useCallback(
+    async (mentorReply: string, currentMessages: ChatMessage[], sid: string | null) => {
+      if (!isClosingMessage(mentorReply) || autoReportRequestedRef.current) return;
+      autoReportRequestedRef.current = true;
+      await new Promise((resolve) => window.setTimeout(resolve, 1000));
+
+      const forcedMessages = [...currentMessages, { role: "user" as const, content: "GENERATE_REPORT_NOW" }];
+      let nextSid = sid;
+      try {
+        const forcedReply = await invokeMentor(toAnthropicApiMessages(forcedMessages), { forceJsonOnly: true });
+        const forcedParsed = detectReport(forcedReply);
+        if (forcedParsed?.report_ready === true) {
+          await handleReportReady(forcedParsed);
+          return;
+        }
+        const forcedAssistantMsg: ChatMessage = {
+          id: genId(),
+          role: "assistant",
+          content: stripReportJsonFromDisplay(forcedReply).trim() || forcedReply,
+        };
+        const withForcedAssistant = [...currentMessages, forcedAssistantMsg];
+        setMessages(withForcedAssistant);
+        messagesRef.current = withForcedAssistant;
+        nextSid = await persistMessages(withForcedAssistant, nextSid);
+        if (nextSid) {
+          setSessionId(nextSid);
+          sessionIdRef.current = nextSid;
+        }
+      } catch (e) {
+        autoReportRequestedRef.current = false;
+        const msg = e instanceof Error ? e.message : JSON.stringify(e);
+        toast.error(`Mentor error: ${msg || "Unknown"}`);
+      }
+    },
+    [handleReportReady, invokeMentor],
+  );
+
+  const generateReport = useCallback(async () => {
+    setManualReportLoading(true);
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const uid = session?.user?.id;
+      if (!uid) {
+        navigate("/auth", { replace: true });
+        return;
+      }
+
+      const { data: existing } = await supabase
+        .from("pathway_results")
+        .select("id")
+        .eq("user_id", uid)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (existing?.id) {
+        navigate("/learn/path/report");
+        return;
+      }
+
+      const reply = await invokeMentor(
+        toAnthropicApiMessages([...messagesRef.current, { role: "user", content: "GENERATE_REPORT_NOW" }]),
+        { forceJsonOnly: true },
+      );
+      const report = detectReport(reply);
+      if (!report) return;
+
+      const row = {
+        user_id: uid,
+        result_json: report as unknown as Json,
+        confidence_score:
+          typeof report.confidence_score === "number" ? Math.min(100, Math.max(0, Math.round(report.confidence_score))) : 0,
+        archetypes: (report.archetypes ?? null) as Json | null,
+        all_careers: (report.all_careers ?? null) as Json | null,
+        key_insights: (report.key_insights ?? null) as Json | null,
+        recommended_track: typeof report.recommended_track === "string" ? report.recommended_track : null,
+      };
+      const upsertRes = await supabase.from("pathway_results").upsert(row, { onConflict: "user_id" });
+      if (upsertRes.error) {
+        const fallbackInsert = await supabase.from("pathway_results").insert(row);
+        if (fallbackInsert.error) {
+          toast.error(fallbackInsert.error.message);
+          return;
+        }
+      }
+      navigate("/learn/path/report");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : JSON.stringify(e);
+      toast.error(`Mentor error: ${msg || "Unknown"}`);
+    } finally {
+      setManualReportLoading(false);
+    }
+  }, [invokeMentor, navigate]);
 
   useEffect(() => {
     let cancelled = false;
@@ -465,13 +577,15 @@ export default function LearnPath({ sidebarCollapsed = false }: LearnPathProps) 
         if (list.length === 0) {
           const reply = await invokeMentor([{ role: "user", content: MENTOR_START_TRIGGER }]);
           if (cancelled) return;
-          const parsed = extractReportJson(reply);
+          const parsed = detectReport(reply);
           const display = (stripReportJsonFromDisplay(reply) || (parsed ? t("learn.path.closingNarrativeFallback") : reply)).trim();
           const assistantMsg: ChatMessage = { id: genId(), role: "assistant", content: display || reply };
           list = [assistantMsg];
           sid = await persistMessages(list, sid);
           if (parsed?.report_ready === true) {
             await handleReportReady(parsed);
+          } else {
+            await maybeForceReportAfterClosing(assistantMsg.content, list, sid);
           }
         }
 
@@ -496,7 +610,7 @@ export default function LearnPath({ sidebarCollapsed = false }: LearnPathProps) 
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- mount bootstrap only
-  }, [navigate, invokeMentor, handleReportReady]);
+  }, [navigate, invokeMentor, handleReportReady, maybeForceReportAfterClosing, t]);
 
   const send = useCallback(async () => {
     const text = input.trim();
@@ -521,7 +635,7 @@ export default function LearnPath({ sidebarCollapsed = false }: LearnPathProps) 
 
       const apiMessages = toAnthropicApiMessages(nextHistory);
       const reply = await invokeMentor(apiMessages);
-      const parsed = extractReportJson(reply);
+      const parsed = detectReport(reply);
       const display = (stripReportJsonFromDisplay(reply) || (parsed ? t("learn.path.closingNarrativeFallback") : reply)).trim();
       const assistantMsg: ChatMessage = { id: genId(), role: "assistant", content: display || reply };
       const withAssistant = [...nextHistory, assistantMsg];
@@ -535,6 +649,8 @@ export default function LearnPath({ sidebarCollapsed = false }: LearnPathProps) 
 
       if (parsed?.report_ready === true) {
         await handleReportReady(parsed);
+      } else {
+        await maybeForceReportAfterClosing(assistantMsg.content, withAssistant, sid);
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : JSON.stringify(e);
@@ -544,13 +660,13 @@ export default function LearnPath({ sidebarCollapsed = false }: LearnPathProps) 
     } finally {
       setSending(false);
     }
-  }, [buildingReport, handleReportReady, input, invokeMentor, sending, t]);
+  }, [buildingReport, handleReportReady, input, invokeMentor, maybeForceReportAfterClosing, sending, t]);
 
   const triggerOpeningMessage = useCallback(async () => {
     setSending(true);
     try {
       const reply = await invokeMentor([{ role: "user", content: MENTOR_START_TRIGGER }]);
-      const parsed = extractReportJson(reply);
+      const parsed = detectReport(reply);
       const display = (stripReportJsonFromDisplay(reply) || (parsed ? t("learn.path.closingNarrativeFallback") : reply)).trim();
       const assistantMsg: ChatMessage = { id: genId(), role: "assistant", content: display || reply };
       const list = [assistantMsg];
@@ -564,6 +680,8 @@ export default function LearnPath({ sidebarCollapsed = false }: LearnPathProps) 
       }
       if (parsed?.report_ready === true) {
         await handleReportReady(parsed);
+      } else {
+        await maybeForceReportAfterClosing(assistantMsg.content, list, sid);
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : JSON.stringify(e);
@@ -571,7 +689,7 @@ export default function LearnPath({ sidebarCollapsed = false }: LearnPathProps) 
     } finally {
       setSending(false);
     }
-  }, [handleReportReady, invokeMentor, t]);
+  }, [handleReportReady, invokeMentor, maybeForceReportAfterClosing, t]);
 
   const handleReset = useCallback(async () => {
     if (
@@ -602,6 +720,7 @@ export default function LearnPath({ sidebarCollapsed = false }: LearnPathProps) 
       setInput("");
       setMentorMode("questions");
       mentorModeRef.current = "questions";
+      autoReportRequestedRef.current = false;
       setShowModeDropdown(false);
       if (taRef.current) taRef.current.style.height = "auto";
 
@@ -649,6 +768,20 @@ export default function LearnPath({ sidebarCollapsed = false }: LearnPathProps) 
     [confidenceScore],
   );
 
+  const visibleMessages = useMemo(
+    () => messages.filter((m) => !(m.role === "user" && m.content === MENTOR_START_TRIGGER)),
+    [messages],
+  );
+  const closingMessageIndexes = useMemo(
+    () =>
+      visibleMessages
+        .map((m, idx) => (m.role === "assistant" && isClosingMessage(m.content) ? idx : -1))
+        .filter((idx) => idx >= 0),
+    [visibleMessages],
+  );
+  const lastClosingIndex = closingMessageIndexes.length > 0 ? closingMessageIndexes[closingMessageIndexes.length - 1] : -1;
+  const showReportButton = closingMessageIndexes.length > 0;
+
   if (loading) {
     return (
       <div
@@ -662,7 +795,7 @@ export default function LearnPath({ sidebarCollapsed = false }: LearnPathProps) 
 
   return (
     <div
-      className={`fixed left-0 right-0 z-20 flex flex-col bg-white ${mainLeftOffsetClass} transition-[left] duration-[250ms] ease-in-out`}
+      className={`page-container fixed left-0 right-0 z-20 flex flex-col bg-white ${mainLeftOffsetClass} transition-[left] duration-[250ms] ease-in-out`}
       style={{
         top: 60,
         bottom: 0,
@@ -716,9 +849,7 @@ export default function LearnPath({ sidebarCollapsed = false }: LearnPathProps) 
 
       <div ref={listRef} className="min-h-0 flex-1 overflow-y-auto" style={{ padding: "24px 40px" }}>
         <div className="mx-auto w-full max-w-[720px]">
-          {messages
-            .filter((m) => !(m.role === "user" && m.content === MENTOR_START_TRIGGER))
-            .map((m) =>
+          {visibleMessages.map((m, idx) =>
             m.role === "assistant" ? (
               <div key={m.id} className="mb-8 max-w-[600px]">
                 <div className="mb-2 flex items-center gap-2 text-[12px] font-medium" style={{ color: "#C8102E" }}>
@@ -744,6 +875,30 @@ export default function LearnPath({ sidebarCollapsed = false }: LearnPathProps) 
                       </p>
                     ))}
                 </div>
+                {showReportButton && idx === lastClosingIndex ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void generateReport();
+                    }}
+                    disabled={manualReportLoading}
+                    style={{
+                      marginTop: 12,
+                      background: "#C8102E",
+                      color: "white",
+                      border: "none",
+                      borderRadius: 100,
+                      padding: "10px 20px",
+                      fontSize: 14,
+                      fontWeight: 600,
+                      fontFamily: "Inter, sans-serif",
+                      cursor: manualReportLoading ? "default" : "pointer",
+                      opacity: manualReportLoading ? 0.7 : 1,
+                    }}
+                  >
+                    {manualReportLoading ? "Generating report..." : "View your report →"}
+                  </button>
+                ) : null}
               </div>
             ) : (
               <div key={m.id} className="mb-4 flex justify-end">

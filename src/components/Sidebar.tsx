@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { BarChart2, BookOpen, Briefcase, ChevronLeft, ChevronRight, MessageCircle } from "lucide-react";
+import { BarChart2, BookOpen, Briefcase, ChevronLeft, ChevronRight, Hammer, MessageCircle, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type SidebarProps = {
@@ -13,8 +13,10 @@ type SidebarProps = {
 function isActivePath(pathname: string, path: string) {
   if (path === "/learn")
     return pathname === "/learn" || pathname === "/pathways" || pathname.startsWith("/learn/");
+  if (path === "/develop") return pathname === "/develop" || pathname.startsWith("/develop/");
   if (path === "/field") return pathname === "/field" || pathname === "/market";
   if (path === "/pipeline") return pathname === "/pipeline" || pathname === "/pmo";
+  if (path === "/trends") return pathname === "/trends" || pathname.startsWith("/trends/");
   return pathname === path || pathname.startsWith(`${path}/`);
 }
 
@@ -39,8 +41,10 @@ export function Sidebar({ isCollapsed, onToggleCollapsed }: SidebarProps) {
 
   const items = [
     { to: "/learn", path: "/learn", icon: BookOpen, labelKey: "nav.learn" as const },
+    { to: "/develop", path: "/develop", icon: Hammer, labelKey: "nav.forge" as const },
     { to: "/field", path: "/field", icon: BarChart2, labelKey: "nav.field" as const },
     { to: "/pipeline", path: "/pipeline", icon: Briefcase, labelKey: "nav.pipeline" as const },
+    { to: "/trends", path: "/trends", icon: TrendingUp, labelKey: "nav.trends" as const },
   ];
 
   const asideWidth = isCollapsed ? 64 : 220;
@@ -64,7 +68,7 @@ export function Sidebar({ isCollapsed, onToggleCollapsed }: SidebarProps) {
 
   return (
     <>
-      <aside className="hidden md:flex" style={desktopAsideStyle} aria-label="Main navigation">
+      <aside className="desktop-sidebar hidden md:flex" style={desktopAsideStyle} aria-label="Main navigation">
         <div
           className={cn("shrink-0 transition-[padding] duration-[250ms] ease-in-out", isCollapsed ? "flex justify-center px-0" : "pl-5")}
           style={{ paddingTop: 24 }}
@@ -189,7 +193,7 @@ export function Sidebar({ isCollapsed, onToggleCollapsed }: SidebarProps) {
       </button>
 
       <nav
-        className="md:hidden flex items-center justify-around border-t border-black/[0.06]"
+        className="legacy-mobile-nav md:hidden flex items-center justify-around border-t border-black/[0.06]"
         style={{
           position: "fixed",
           bottom: 0,

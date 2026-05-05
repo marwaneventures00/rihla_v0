@@ -1,15 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ChevronDown, ChevronUp, Search, ArrowUpRight, ArrowRight, TrendingUp, Users, GraduationCap } from "lucide-react";
+import { ChevronDown, ChevronUp, Search, ArrowUpRight, ArrowRight, TrendingUp, Users, GraduationCap, Target, Calendar, RefreshCw } from "lucide-react";
 import { SECTORS, ROLES, EMPLOYERS, getRoleDetail, type Outlook } from "@/lib/marketData";
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid, ScatterChart, Scatter, ZAxis, LabelList } from "recharts";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/lib/i18n";
+import { supabase } from "@/integrations/supabase/client";
 
 const outlookStyles: Record<Outlook, string> = {
   Hot: "bg-primary text-primary-foreground border-0 rounded-full text-[10px] font-semibold px-2 py-0.5",
@@ -17,9 +18,81 @@ const outlookStyles: Record<Outlook, string> = {
   Declining: "bg-muted text-muted-foreground border-0 rounded-full text-[10px] font-medium px-2 py-0.5",
 };
 
+type MyViewCompany = {
+  name: string;
+  open_positions: number;
+  match_percentage: number;
+  city: string;
+  why_good_fit: string;
+};
+
+type MyViewSkillGap = {
+  skill: string;
+  demand_level: string;
+  learn_resource: string;
+};
+
+type MyViewData = {
+  sector_summary: string;
+  trending_up: boolean;
+  trend_percentage: number;
+  top_companies: MyViewCompany[];
+  skill_gaps: MyViewSkillGap[];
+  salary_data: {
+    junior: string;
+    mid: string;
+    senior: string;
+    city: string;
+  };
+  hiring_timeline: string;
+  insider_tip: string;
+};
+
+function parseMyView(raw: unknown): MyViewData | null {
+  if (!raw || typeof raw !== "object") return null;
+  const o = raw as Record<string, unknown>;
+  return {
+    sector_summary: String(o.sector_summary ?? ""),
+    trending_up: Boolean(o.trending_up),
+    trend_percentage: Number(o.trend_percentage ?? 0),
+    top_companies: Array.isArray(o.top_companies)
+      ? o.top_companies.map((c) => {
+          const x = c as Record<string, unknown>;
+          return {
+            name: String(x.name ?? ""),
+            open_positions: Number(x.open_positions ?? 0),
+            match_percentage: Number(x.match_percentage ?? 0),
+            city: String(x.city ?? ""),
+            why_good_fit: String(x.why_good_fit ?? ""),
+          };
+        })
+      : [],
+    skill_gaps: Array.isArray(o.skill_gaps)
+      ? o.skill_gaps.map((g) => {
+          const x = g as Record<string, unknown>;
+          return {
+            skill: String(x.skill ?? ""),
+            demand_level: String(x.demand_level ?? ""),
+            learn_resource: String(x.learn_resource ?? ""),
+          };
+        })
+      : [],
+    salary_data: {
+      junior: String((o.salary_data as Record<string, unknown> | undefined)?.junior ?? ""),
+      mid: String((o.salary_data as Record<string, unknown> | undefined)?.mid ?? ""),
+      senior: String((o.salary_data as Record<string, unknown> | undefined)?.senior ?? ""),
+      city: String((o.salary_data as Record<string, unknown> | undefined)?.city ?? "Casablanca"),
+    },
+    hiring_timeline: String(o.hiring_timeline ?? ""),
+    insider_tip: String(o.insider_tip ?? ""),
+  };
+}
+
 export default function Market() {
   const { language } = useLanguage();
+  const navigate = useNavigate();
   const tr = (en: string, fr: string) => (language === "fr" ? fr : en);
+  const [viewTab, setViewTab] = useState<"overview" | "my-view">("overview");
   const [activeTab, setActiveTab] = useState("sectors");
   const [rolesPrefill, setRolesPrefill] = useState("");
 
@@ -28,8 +101,75 @@ export default function Market() {
     setActiveTab("roles");
   }
 
+  useEffect(() => {
+    document.title = "Field — Cariva";
+    const nodes = document.querySelectorAll(".page-container");
+    const el = nodes[nodes.length - 1] as HTMLElement | undefined;
+    if (el) requestAnimationFrame(() => el.classList.add("page-visible"));
+  }, []);
+
+  const marketOverviewContent = (
+    <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <TabsList className="w-full h-auto p-0 bg-transparent rounded-none border-b border-border justify-start gap-1">
+        <TabsTrigger
+          value="sectors"
+          className="rounded-none border-b-2 border-transparent px-4 py-2.5 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none text-muted-foreground font-normal data-[state=active]:font-medium"
+        >
+          Sectors
+        </TabsTrigger>
+        <TabsTrigger
+          value="roles"
+          className="rounded-none border-b-2 border-transparent px-4 py-2.5 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none text-muted-foreground font-normal data-[state=active]:font-medium"
+        >
+          Roles
+        </TabsTrigger>
+        <TabsTrigger
+          value="employers"
+          className="rounded-none border-b-2 border-transparent px-4 py-2.5 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none text-muted-foreground font-normal data-[state=active]:font-medium"
+        >
+          Employers
+        </TabsTrigger>
+        <TabsTrigger
+          value="trends"
+          className="rounded-none border-b-2 border-transparent px-4 py-2.5 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none text-muted-foreground font-normal data-[state=active]:font-medium"
+        >
+          Trends
+        </TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="sectors" className="mt-6">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {SECTORS.map((s) => (
+            <Card key={s.name} className="p-6 hover:bg-muted/40 transition-colors border-border/80">
+              <div className="flex items-start justify-between mb-3">
+                <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center">
+                  <s.icon className="w-[18px] h-[18px] text-muted-foreground" />
+                </div>
+                <Badge className={outlookStyles[s.outlook]}>{s.outlook}</Badge>
+              </div>
+              <h3 className="text-[15px] font-medium mb-1.5">{s.name}</h3>
+              <p className="text-[13px] text-muted-foreground line-clamp-2 mb-4 leading-snug">{s.description}</p>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground hover:text-foreground p-0 h-auto font-normal text-[13px] group/btn"
+                onClick={() => exploreSector(s.name)}
+              >
+                {tr("Explore", "Explorer")} <ArrowUpRight className="w-3.5 h-3.5" />
+              </Button>
+            </Card>
+          ))}
+        </div>
+      </TabsContent>
+
+      <TabsContent value="roles" className="mt-6"><RolesTab prefill={rolesPrefill} /></TabsContent>
+      <TabsContent value="employers" className="mt-6"><EmployersTab /></TabsContent>
+      <TabsContent value="trends" className="mt-6"><TrendsTab /></TabsContent>
+    </Tabs>
+  );
+
   return (
-    <div className="w-full space-y-6 text-[14px] leading-normal text-[#0A0A0A]" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
+    <div className="page-container w-full space-y-6 text-[14px] leading-normal text-[#0A0A0A]" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
       <div>
         <h1
           className="mb-2 text-[32px] font-bold leading-tight text-[#0A0A0A]"
@@ -42,63 +182,329 @@ export default function Market() {
         </p>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="w-full h-auto p-0 bg-transparent rounded-none border-b border-border justify-start gap-1">
-          <TabsTrigger
-            value="sectors"
-            className="rounded-none border-b-2 border-transparent px-4 py-2.5 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none text-muted-foreground font-normal data-[state=active]:font-medium"
-          >
-            Sectors
-          </TabsTrigger>
-          <TabsTrigger
-            value="roles"
-            className="rounded-none border-b-2 border-transparent px-4 py-2.5 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none text-muted-foreground font-normal data-[state=active]:font-medium"
-          >
-            Roles
-          </TabsTrigger>
-          <TabsTrigger
-            value="employers"
-            className="rounded-none border-b-2 border-transparent px-4 py-2.5 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none text-muted-foreground font-normal data-[state=active]:font-medium"
-          >
-            Employers
-          </TabsTrigger>
-          <TabsTrigger
-            value="trends"
-            className="rounded-none border-b-2 border-transparent px-4 py-2.5 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none text-muted-foreground font-normal data-[state=active]:font-medium"
-          >
-            Trends
-          </TabsTrigger>
-        </TabsList>
+      <div
+        style={{
+          background: "#F5F5F5",
+          borderRadius: 100,
+          padding: 4,
+          display: "inline-flex",
+          gap: 4,
+        }}
+      >
+        {[
+          { id: "overview" as const, label: "Market Overview" },
+          { id: "my-view" as const, label: "My View" },
+        ].map((t) => {
+          const active = viewTab === t.id;
+          return (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setViewTab(t.id)}
+              style={{
+                background: active ? "white" : "transparent",
+                border: "none",
+                borderRadius: 100,
+                boxShadow: active ? "0 1px 4px rgba(0,0,0,0.1)" : "none",
+                fontWeight: active ? 600 : 400,
+                color: active ? "#0A0A0A" : "#6B6B6B",
+                padding: "8px 20px",
+                fontFamily: "Inter, sans-serif",
+                fontSize: 14,
+                cursor: "pointer",
+              }}
+            >
+              {t.label}
+            </button>
+          );
+        })}
+      </div>
 
-        <TabsContent value="sectors" className="mt-6">
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {SECTORS.map((s) => (
-              <Card key={s.name} className="p-6 hover:bg-muted/40 transition-colors border-border/80">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center">
-                    <s.icon className="w-[18px] h-[18px] text-muted-foreground" />
-                  </div>
-                  <Badge className={outlookStyles[s.outlook]}>{s.outlook}</Badge>
-                </div>
-                <h3 className="text-[15px] font-medium mb-1.5">{s.name}</h3>
-                <p className="text-[13px] text-muted-foreground line-clamp-2 mb-4 leading-snug">{s.description}</p>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-muted-foreground hover:text-foreground p-0 h-auto font-normal text-[13px] group/btn"
-                  onClick={() => exploreSector(s.name)}
-                >
-                  {tr("Explore", "Explorer")} <ArrowUpRight className="w-3.5 h-3.5" />
-                </Button>
-              </Card>
-            ))}
+      {viewTab === "overview" ? marketOverviewContent : <MyViewTab onStartPath={() => navigate("/learn/path")} />}
+    </div>
+  );
+}
+
+function MyViewTab({ onStartPath }: { onStartPath: () => void }) {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [track, setTrack] = useState<string | null>(null);
+  const [data, setData] = useState<MyViewData | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<string>("today");
+
+  const fetchMyView = async (force = false) => {
+    setLoading(true);
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const uid = session?.user?.id;
+      if (!uid) return;
+
+      const { data: pathway } = await supabase
+        .from("pathway_results")
+        .select("confidence_score, archetypes, recommended_track, result_json")
+        .eq("user_id", uid)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      const resultObj = (pathway?.result_json ?? {}) as Record<string, unknown>;
+      const archetypes = Array.isArray(pathway?.archetypes) ? (pathway?.archetypes as unknown[]) : [];
+      const firstArch = (archetypes[0] ?? {}) as Record<string, unknown>;
+      const pickedTrack =
+        pathway?.recommended_track ||
+        (typeof resultObj.recommended_track === "string" ? resultObj.recommended_track : null) ||
+        (typeof firstArch.title === "string" ? firstArch.title : null) ||
+        null;
+
+      setTrack(pickedTrack);
+      if (!pickedTrack) {
+        setData(null);
+        setLoading(false);
+        return;
+      }
+
+      const dateKey = new Date().toISOString().slice(0, 10);
+      const cacheKey = `field_myview_${uid}_${dateKey}`;
+      if (!force) {
+        const cached = localStorage.getItem(cacheKey);
+        if (cached) {
+          const parsed = parseMyView(JSON.parse(cached));
+          if (parsed) {
+            setData(parsed);
+            setLastUpdated("today");
+            setLoading(false);
+            return;
+          }
+        }
+      }
+
+      const prompt = `You are a Moroccan job market expert.
+This student's career target is: ${pickedTrack}
+
+Generate personalized Moroccan job market
+intelligence for this specific career path.
+Respond ONLY with valid JSON:
+{
+  "sector_summary": "2-3 sentence insight about their sector in Morocco this month — be specific and data-driven",
+  "trending_up": true,
+  "trend_percentage": 23,
+  "top_companies": [
+    {
+      "name": "Company name",
+      "open_positions": 2,
+      "match_percentage": 91,
+      "city": "Casablanca",
+      "why_good_fit": "one sentence"
+    }
+  ],
+  "skill_gaps": [
+    {
+      "skill": "Financial Modeling",
+      "demand_level": "high",
+      "learn_resource": "Coursera"
+    }
+  ],
+  "salary_data": {
+    "junior": "8,000 - 12,000 MAD",
+    "mid": "15,000 - 25,000 MAD",
+    "senior": "25,000 - 40,000 MAD",
+    "city": "Casablanca"
+  },
+  "hiring_timeline": "Q2 2026 is peak hiring season for this sector",
+  "insider_tip": "one actionable tip specific to breaking into this field in Morocco"
+}`;
+
+      const { data: aiRes } = await supabase.functions.invoke("chat-ai", {
+        body: {
+          messages: [{ role: "user", content: prompt }],
+          model: "claude-haiku-4-5-20251001",
+        },
+      });
+      const reply = String((aiRes as { reply?: unknown })?.reply ?? "");
+      const matched = reply.match(/\{[\s\S]*\}/);
+      if (!matched) {
+        setData(null);
+        setLoading(false);
+        return;
+      }
+      const parsed = parseMyView(JSON.parse(matched[0]));
+      if (parsed) {
+        setData(parsed);
+        localStorage.setItem(cacheKey, JSON.stringify(parsed));
+      }
+      setLastUpdated("today");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void fetchMyView(false);
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="space-y-3">
+        <div className="h-24 w-full animate-pulse rounded-xl bg-[#EFEFEF]" />
+        <div className="h-20 w-full animate-pulse rounded-xl bg-[#EFEFEF]" />
+        <div className="h-28 w-full animate-pulse rounded-xl bg-[#EFEFEF]" />
+      </div>
+    );
+  }
+
+  if (!track) {
+    return (
+      <div
+        style={{
+          background: "white",
+          borderRadius: 16,
+          border: "1px solid #E5E5E5",
+          padding: 40,
+          textAlign: "center",
+        }}
+      >
+        <Target size={32} color="#AAAAAA" style={{ margin: "0 auto" }} />
+        <p style={{ fontFamily: "Inter, sans-serif", fontSize: 15, color: "#6B6B6B", marginTop: 12 }}>
+          Complete your Path conversation to unlock your personalized market view
+        </p>
+        <button
+          type="button"
+          onClick={onStartPath}
+          style={{
+            marginTop: 14,
+            background: "#C8102E",
+            color: "white",
+            borderRadius: 100,
+            padding: "10px 20px",
+            border: "none",
+            cursor: "pointer",
+            fontFamily: "Inter, sans-serif",
+          }}
+        >
+          Start Path →
+        </button>
+      </div>
+    );
+  }
+
+  if (!data) return null;
+
+  return (
+    <div>
+      <section
+        style={{
+          background: "white",
+          borderLeft: "4px solid #C8102E",
+          borderRadius: 12,
+          padding: 24,
+          marginBottom: 24,
+        }}
+      >
+        <div className="flex items-center justify-between gap-3">
+          <p style={{ fontFamily: "Inter, sans-serif", fontSize: 11, textTransform: "uppercase", color: "#C8102E", letterSpacing: "0.1em" }}>
+            YOUR SECTOR
+          </p>
+          {data.trending_up ? (
+            <span style={{ background: "#F0FDF4", color: "#16A34A", borderRadius: 100, padding: "4px 12px", fontFamily: "Inter, sans-serif", fontSize: 12, fontWeight: 600 }}>
+              ↑ +{data.trend_percentage}% this month
+            </span>
+          ) : null}
+        </div>
+        <p style={{ fontFamily: "Inter, sans-serif", fontSize: 15, color: "#0A0A0A", lineHeight: 1.7, marginTop: 12 }}>{data.sector_summary}</p>
+      </section>
+
+      <section style={{ background: "#0A0A0A", borderRadius: 12, padding: "20px 24px", marginBottom: 24 }}>
+        <div className="flex items-center">
+          <Calendar size={16} color="rgba(255,255,255,0.5)" />
+          <p style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: "rgba(255,255,255,0.5)", marginLeft: 6 }}>Hiring Timeline</p>
+        </div>
+        <p style={{ fontFamily: "Inter, sans-serif", fontSize: 15, color: "white", fontWeight: 500, marginTop: 8 }}>{data.hiring_timeline}</p>
+      </section>
+
+      <h3 style={{ fontFamily: "Inter, sans-serif", fontSize: 18, fontWeight: 700, marginBottom: 16 }}>Companies matching your profile</h3>
+      {data.top_companies.map((c) => (
+        <div key={c.name} style={{ background: "white", borderRadius: 12, border: "1px solid #E5E5E5", padding: 20, marginBottom: 12, display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+          <div>
+            <p style={{ fontFamily: "Inter, sans-serif", fontSize: 15, fontWeight: 600 }}>{c.name}</p>
+            <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: "#6B6B6B", marginTop: 2 }}>{c.city}</p>
+            <span style={{ display: "inline-block", background: "#F5F5F5", borderRadius: 100, padding: "4px 10px", fontFamily: "Inter, sans-serif", fontSize: 12, color: "#6B6B6B", marginTop: 8 }}>
+              {c.open_positions} open positions
+            </span>
+            <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: "#6B6B6B", fontStyle: "italic", marginTop: 6 }}>{c.why_good_fit}</p>
           </div>
-        </TabsContent>
+          <span style={{ background: "#FFF0F0", color: "#C8102E", borderRadius: 100, padding: "6px 14px", fontFamily: "Inter, sans-serif", fontSize: 14, fontWeight: 600 }}>
+            {c.match_percentage}% match
+          </span>
+        </div>
+      ))}
 
-        <TabsContent value="roles" className="mt-6"><RolesTab prefill={rolesPrefill} /></TabsContent>
-        <TabsContent value="employers" className="mt-6"><EmployersTab /></TabsContent>
-        <TabsContent value="trends" className="mt-6"><TrendsTab /></TabsContent>
-      </Tabs>
+      <h3 style={{ fontFamily: "Inter, sans-serif", fontSize: 18, fontWeight: 700, marginBottom: 16, marginTop: 20 }}>Skills to prioritize now</h3>
+      <div style={{ background: "white", borderRadius: 12, border: "1px solid #E5E5E5", padding: "0 18px", marginBottom: 20 }}>
+        {data.skill_gaps.map((g) => (
+          <div key={g.skill} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 0", borderBottom: "1px solid #F5F5F5" }}>
+            <div>
+              <span style={{ fontFamily: "Inter, sans-serif", fontSize: 14, fontWeight: 500 }}>{g.skill}</span>
+              <span style={{ background: "#FFF0F0", color: "#C8102E", borderRadius: 100, padding: "3px 10px", fontFamily: "Inter, sans-serif", fontSize: 11, marginLeft: 8 }}>
+                {g.demand_level} demand
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => navigate("/develop?tab=resources")}
+              style={{ border: "none", background: "transparent", color: "#C8102E", cursor: "pointer", fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: 500 }}
+            >
+              → Learn
+            </button>
+          </div>
+        ))}
+      </div>
+
+      <h3 style={{ fontFamily: "Inter, sans-serif", fontSize: 18, fontWeight: 700, marginBottom: 16 }}>
+        Salary ranges — {data.salary_data.city}
+      </h3>
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+        {[
+          { label: "Junior", value: data.salary_data.junior, color: "#C8102E" },
+          { label: "Mid", value: data.salary_data.mid, color: "#0A0A0A" },
+          { label: "Senior", value: data.salary_data.senior, color: "#0A0A0A" },
+        ].map((s) => (
+          <div key={s.label} style={{ background: "#F5F5F5", borderRadius: 12, padding: 20 }}>
+            <p style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: "#6B6B6B", textTransform: "uppercase" }}>{s.label}</p>
+            <p style={{ fontFamily: "Inter, sans-serif", fontSize: 20, fontWeight: 700, color: s.color, marginTop: 8 }}>{s.value}</p>
+          </div>
+        ))}
+      </div>
+
+      <section style={{ background: "#FFFBEB", borderRadius: 12, borderLeft: "4px solid #F59E0B", padding: "20px 24px", marginTop: 24 }}>
+        <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: 600, color: "#B45309" }}>💡 Insider tip</p>
+        <p style={{ fontFamily: "Inter, sans-serif", fontSize: 14, color: "#0A0A0A", lineHeight: 1.7, marginTop: 8 }}>{data.insider_tip}</p>
+      </section>
+
+      <div className="mt-8 flex items-center justify-between">
+        <p style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: "#AAAAAA" }}>Last updated: {lastUpdated}</p>
+        <button
+          type="button"
+          onClick={() => void fetchMyView(true)}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            border: "1px solid #E5E5E5",
+            borderRadius: 100,
+            padding: "6px 14px",
+            background: "transparent",
+            color: "#6B6B6B",
+            cursor: "pointer",
+            fontFamily: "Inter, sans-serif",
+            fontSize: 13,
+          }}
+        >
+          <RefreshCw size={14} />
+          Refresh
+        </button>
+      </div>
     </div>
   );
 }

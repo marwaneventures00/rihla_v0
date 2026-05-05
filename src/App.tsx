@@ -12,6 +12,7 @@ import Learn from "./pages/Learn.tsx";
 import Market from "./pages/Market.tsx";
 import Profile from "./pages/Profile.tsx";
 import Develop from "./pages/Develop.tsx";
+import Pipeline from "./pages/Pipeline.tsx";
 // INSTITUTE_ENABLED = false
 // import AdminDashboard from "./pages/AdminDashboard.tsx";
 // import AdminObservatoire from "./pages/AdminObservatoire.tsx";
@@ -19,6 +20,9 @@ import PMO from "./pages/PMO.tsx";
 import Pulse from "./pages/Pulse.tsx";
 import AppLayout from "./components/AppLayout.tsx";
 import MeetAndGreet from "./pages/MeetAndGreet.tsx";
+import LearnPathReport from "./pages/LearnPathReport.tsx";
+import CareerDetail from "./pages/CareerDetail.tsx";
+import Trends from "./pages/Trends.tsx";
 import { LanguageProvider } from "./lib/i18n.tsx";
 
 const queryClient = new QueryClient();
@@ -28,7 +32,21 @@ const App = () => (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
-        <Sonner />
+        <Sonner
+          position="bottom-right"
+          toastOptions={{
+            style: {
+              fontFamily: "Inter, sans-serif",
+              fontSize: "14px",
+              borderRadius: "12px",
+              border: "1px solid #E5E5E5",
+            },
+            classNames: {
+              success: "toast-success",
+              error: "toast-error",
+            },
+          }}
+        />
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Landing />} />
@@ -38,12 +56,15 @@ const App = () => (
 
             {/* Student app — canonical: /learn, /field, /pipeline; legacy /pathways, /market, /pmo kept */}
             <Route element={<AppLayout requireRole="student" />}>
+              <Route path="/learn/path/report" element={<LearnPathReport />} />
+              <Route path="/learn/path/career/:careerId" element={<CareerDetail />} />
               <Route path="/learn/*" element={<Learn />} />
               <Route path="/pathways" element={<Pathways />} />
               <Route path="/field" element={<Market />} />
               <Route path="/market" element={<Market />} />
-              <Route path="/pipeline" element={<PMO />} />
+              <Route path="/pipeline" element={<Pipeline />} />
               <Route path="/pmo" element={<PMO />} />
+              <Route path="/trends" element={<Trends />} />
               <Route path="/pulse" element={<Pulse />} />
               <Route path="/develop" element={<Develop />} />
               <Route path="/meet-and-greet" element={<MeetAndGreet />} />

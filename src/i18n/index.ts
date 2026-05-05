@@ -97,7 +97,9 @@ const resources = {
       nav: {
         ...legacyFr.nav,
         learn: "Apprendre",
+        forge: "Forge",
         pipeline: "Pipeline",
+        trends: "Tendances",
       },
       learn: {
         path: {
@@ -181,7 +183,9 @@ const resources = {
       nav: {
         ...legacyEn.nav,
         learn: "Learn",
+        forge: "Forge",
         pipeline: "Pipeline",
+        trends: "Trends",
       },
       learn: {
         path: {

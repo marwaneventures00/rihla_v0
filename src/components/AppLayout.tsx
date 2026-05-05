@@ -3,7 +3,7 @@ import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Loader2 } from "lucide-react";
+import { Loader2, BookOpen, Hammer, BarChart2, Briefcase, User } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
 
 export type AppLayoutOutletContext = { sidebarCollapsed: boolean };
@@ -16,9 +16,10 @@ function pageTitleForPath(pathname: string, t: (key: string) => string) {
   if (pathname === "/learn/path/report") return t("page.learnReport");
   if (pathname === "/learn/path") return t("page.learnPath");
   if (pathname === "/learn" || pathname === "/pathways") return t("nav.learn");
+  if (pathname === "/develop" || pathname.startsWith("/develop/")) return t("nav.forge");
   if (pathname === "/field" || pathname === "/market") return t("nav.field");
   if (pathname === "/pipeline" || pathname === "/pmo") return t("nav.pipeline");
-  if (pathname.startsWith("/develop")) return t("nav.develop");
+  if (pathname === "/trends" || pathname.startsWith("/trends/")) return t("nav.trends");
   if (pathname.startsWith("/pulse")) return t("page.pulse");
   if (pathname.startsWith("/profile")) return t("nav.profile");
   if (pathname.startsWith("/meet")) return t("nav.meet");
@@ -176,7 +177,7 @@ export default function AppLayout({ requireRole = "student" }: { requireRole?: "
       <Sidebar isCollapsed={sidebarCollapsed} onToggleCollapsed={() => setSidebarCollapsed((c) => !c)} />
 
       <div
-        className={`flex min-h-0 flex-1 flex-col min-w-0 ${isMobile ? "pb-[calc(60px+env(safe-area-inset-bottom,0px))]" : ""}`}
+        className={`main-content flex min-h-0 flex-1 flex-col min-w-0 ${isMobile ? "pb-[calc(60px+env(safe-area-inset-bottom,0px))]" : ""}`}
         style={
           !isMobile
             ? {
@@ -186,7 +187,7 @@ export default function AppLayout({ requireRole = "student" }: { requireRole?: "
             : undefined
         }
       >
-        <header style={pillNavStyle} aria-label="Page toolbar">
+        <header style={pillNavStyle} className="top-nav-pill" aria-label="Page toolbar">
           <h1
             className="min-w-0 truncate text-[#0A0A0A]"
             style={{ fontFamily: "Inter, system-ui, sans-serif", fontSize: 15, fontWeight: 600 }}
@@ -218,6 +219,60 @@ export default function AppLayout({ requireRole = "student" }: { requireRole?: "
             <Outlet context={{ sidebarCollapsed } as AppLayoutOutletContext} />
           </div>
         </main>
+
+        <nav
+          style={{
+            display: "none",
+            position: "fixed",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: "60px",
+            background: "rgba(255,255,255,0.9)",
+            backdropFilter: "blur(16px)",
+            borderTop: "1px solid #E5E5E5",
+            zIndex: 40,
+            alignItems: "center",
+            justifyContent: "space-around",
+            padding: "0 8px",
+          }}
+          className="mobile-bottom-nav"
+        >
+          {[
+            { icon: BookOpen, label: "Learn", path: "/learn" },
+            { icon: Hammer, label: "Forge", path: "/develop" },
+            { icon: BarChart2, label: "Field", path: "/field" },
+            { icon: Briefcase, label: "Pipeline", path: "/pipeline" },
+            { icon: User, label: "Profile", path: "/profile" },
+          ].map((item) => (
+            <button
+              key={item.path}
+              onClick={() => navigate(item.path)}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "4px",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                padding: "8px 12px",
+                color: location.pathname === item.path ? "#C8102E" : "#6B6B6B",
+              }}
+            >
+              <item.icon size={20} />
+              <span
+                style={{
+                  fontSize: "10px",
+                  fontFamily: "Inter, sans-serif",
+                  fontWeight: location.pathname === item.path ? 600 : 400,
+                }}
+              >
+                {item.label}
+              </span>
+            </button>
+          ))}
+        </nav>
       </div>
     </div>
   );

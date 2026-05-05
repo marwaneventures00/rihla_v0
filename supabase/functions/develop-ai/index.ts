@@ -191,7 +191,7 @@ async function callAnthropic(action: Action, payload: any): Promise<any> {
       'content-type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-5',
+      model: 'claude-haiku-4-5-20251001',
       max_tokens: 2000,
       system: SYSTEM_PROMPTS[action],
       messages: [{ role: 'user', content: buildPrompt(action, payload) }],

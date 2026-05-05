@@ -1,4 +1,4 @@
-import { Suspense, useMemo, type CSSProperties } from "react";
+import { Suspense, useEffect, useMemo, type CSSProperties } from "react";
 import { Link, useLocation, useNavigate, useOutletContext } from "react-router-dom";
 import type { AppLayoutOutletContext } from "@/components/AppLayout";
 import { useTranslation } from "react-i18next";
@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
 import type { PathwayResult } from "@/lib/onboarding";
 import { Loader2, Lock, Briefcase, TrendingUp, Globe, BookOpen, ArrowLeft } from "lucide-react";
+import { toast } from "sonner";
 import LearnPath from "./LearnPath";
 
 type ArchetypeCard = { name: string; match: number; desc: string };
@@ -21,7 +22,8 @@ export type LearnHubData = {
     recommended_track: string | null;
     result_json: Json;
   } | null;
-  actionItems: { id: string; completed: boolean }[];
+  actionCompletedCount: number;
+  actionTotalCount: number;
 };
 
 const emptyHub: LearnHubData = {
@@ -30,7 +32,8 @@ const emptyHub: LearnHubData = {
   hasConversation: false,
   latestSession: null,
   pathway: null,
-  actionItems: [],
+  actionCompletedCount: 0,
+  actionTotalCount: 0,
 };
 
 async function fetchLearnHub(): Promise<LearnHubData> {
@@ -41,14 +44,14 @@ async function fetchLearnHub(): Promise<LearnHubData> {
   if (!uid) return emptyHub;
 
   try {
-    const [pathRes, countRes, latestRes, actionsRes] = await Promise.all([
+    const [pathRes, countRes, latestRes, completedRes, totalRes] = await Promise.all([
       supabase
         .from("pathway_results")
         .select("confidence_score, archetypes, recommended_track, result_json")
         .eq("user_id", uid)
         .order("created_at", { ascending: false })
         .limit(1)
-        .maybeSingle(),
+        .single(),
       supabase.from("conversation_sessions").select("id", { count: "exact", head: true }).eq("user_id", uid),
       supabase
         .from("conversation_sessions")
@@ -57,7 +60,8 @@ async function fetchLearnHub(): Promise<LearnHubData> {
         .order("updated_at", { ascending: false })
         .limit(1)
         .maybeSingle(),
-      supabase.from("action_plan_items").select("id, completed").eq("user_id", uid),
+      supabase.from("action_plan_items").select("*", { count: "exact", head: true }).eq("user_id", uid).eq("completed", true),
+      supabase.from("action_plan_items").select("*", { count: "exact", head: true }).eq("user_id", uid),
     ]);
 
     const pathway = pathRes.data;
@@ -82,7 +86,8 @@ async function fetchLearnHub(): Promise<LearnHubData> {
             result_json: pathway.result_json,
           }
         : null,
-      actionItems: (actionsRes.data ?? []) as { id: string; completed: boolean }[],
+      actionCompletedCount: completedRes.count ?? 0,
+      actionTotalCount: totalRes.count ?? 0,
     };
   } catch {
     return { ...emptyHub, userId: uid };
@@ -119,6 +124,27 @@ function parseArchetypes(archetypes: Json | null, resultJson: Json): ArchetypeCa
     }));
   }
   return [];
+}
+
+function extractRecommendedTrack(pathway: LearnHubData["pathway"]): string | null {
+  const direct = pathway?.recommended_track?.trim();
+  if (direct) return direct;
+
+  const resultObj = pathway?.result_json as Record<string, unknown> | null;
+  const fromResultTrack = typeof resultObj?.recommended_track === "string" ? resultObj.recommended_track.trim() : "";
+  if (fromResultTrack) return fromResultTrack;
+
+  const resultArchetypes = Array.isArray(resultObj?.archetypes) ? (resultObj?.archetypes as unknown[]) : [];
+  const resultFirst = resultArchetypes[0] as Record<string, unknown> | undefined;
+  const fromResultArchetype = typeof resultFirst?.title === "string" ? resultFirst.title.trim() : "";
+  if (fromResultArchetype) return fromResultArchetype;
+
+  const columnArchetypes = Array.isArray(pathway?.archetypes) ? (pathway?.archetypes as unknown[]) : [];
+  const columnFirst = columnArchetypes[0] as Record<string, unknown> | undefined;
+  const fromColumnArchetype = typeof columnFirst?.title === "string" ? columnFirst.title.trim() : "";
+  if (fromColumnArchetype) return fromColumnArchetype;
+
+  return null;
 }
 
 function LearnLoading() {
@@ -203,10 +229,17 @@ function LearnHubContent() {
   );
 
   const skillsUnlocked = data.confidenceScore >= 75;
-  const completedActions = data.actionItems.filter((x) => x.completed).length;
-  const totalActions = Math.max(1, data.actionItems.length);
-  const trackProgress = Math.round((completedActions / totalActions) * 100);
-  const trackName = data.pathway?.recommended_track?.trim() || t("learn.hub.fallbackTrack");
+  const completedActions = data.actionCompletedCount;
+  const totalActions = data.actionTotalCount;
+  const trackProgress = totalActions > 0 ? Math.round((completedActions / totalActions) * 100) : 0;
+  const recommendedTrack = extractRecommendedTrack(data.pathway);
+
+  useEffect(() => {
+    document.title = "Learn — Cariva";
+    const nodes = document.querySelectorAll(".page-container");
+    const el = nodes[nodes.length - 1] as HTMLElement | undefined;
+    if (el) requestAnimationFrame(() => el.classList.add("page-visible"));
+  }, []);
 
   const pathBody = () => {
     if (!data.hasConversation) {
@@ -301,27 +334,66 @@ function LearnHubContent() {
 
   const skillsInner = (
     <div className="rounded-2xl border border-[#E5E5E5] p-6" style={{ background: "#FAFAF8" }}>
-      <p className="text-[12px] font-semibold text-[#6B6B6B]" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
-        {t("learn.hub.activeTrack")}
+      <p
+        className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#6B6B6B]"
+        style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+      >
+        Active track
       </p>
-      <p className="mt-1 text-lg font-semibold text-[#0A0A0A]" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
-        {trackName}
+      <p
+        className="mt-1 text-[#0A0A0A]"
+        style={{
+          fontFamily: "Inter, system-ui, sans-serif",
+          fontSize: recommendedTrack ? 18 : 16,
+          fontWeight: recommendedTrack ? 700 : 400,
+          color: recommendedTrack ? "#0A0A0A" : "#6B6B6B",
+        }}
+      >
+        {recommendedTrack ?? "Choose your track"}
       </p>
-      <p className="mt-1 text-[13px] text-[#6B6B6B]">{t("learn.hub.progressLabel")}</p>
       <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-[#F0F0F0]">
         <div className="h-full rounded-full bg-[#C8102E] transition-all" style={{ width: `${trackProgress}%` }} />
       </div>
+      <p className="mt-2 text-[13px] text-[#6B6B6B]" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
+        {totalActions > 0 ? `${trackProgress}% complete` : "0% — Start your first case"}
+      </p>
       <div className="mt-8 grid gap-4 sm:grid-cols-2">
         {[
-          { to: "/develop?tab=cases", title: t("learn.hub.cardCasesTitle"), desc: t("learn.hub.cardCasesDesc"), Icon: Briefcase },
-          { to: "/pulse", title: t("learn.hub.cardEdgeTitle"), desc: t("learn.hub.cardEdgeDesc"), Icon: TrendingUp },
-          { to: "/field", title: t("learn.hub.cardInternTitle"), desc: t("learn.hub.cardInternDesc"), Icon: Globe },
-          { to: "/develop?tab=resources", title: t("learn.hub.cardResourcesTitle"), desc: t("learn.hub.cardResourcesDesc"), Icon: BookOpen },
-        ].map(({ to, title, desc, Icon }) => (
-          <Link
-            key={to}
-            to={to}
+          {
+            key: "cases",
+            title: "Business Cases",
+            desc: "Practice realistic business cases.",
+            Icon: Briefcase,
+            onClick: () => navigate("/develop?tab=cases"),
+          },
+          {
+            key: "interview",
+            title: "Interview Prep",
+            desc: "Simulate interviews and get feedback.",
+            Icon: TrendingUp,
+            onClick: () => navigate("/develop?tab=simulate"),
+          },
+          {
+            key: "internship",
+            title: "Virtual Internship",
+            desc: "Hands-on simulations with guided projects.",
+            Icon: Globe,
+            onClick: () => toast("Coming soon"),
+          },
+          {
+            key: "resources",
+            title: "Resources",
+            desc: "Curated courses and links for you.",
+            Icon: BookOpen,
+            onClick: () => navigate("/develop?tab=resources"),
+          },
+        ].map(({ key, title, desc, Icon, onClick }) => (
+          <button
+            key={key}
+            type="button"
+            onClick={onClick}
             className="flex gap-3 rounded-xl border border-[#E5E5E5] bg-[#FAFAF8] p-4 no-underline transition hover:border-[#C8102E]/40"
+            style={{ textAlign: "left" }}
           >
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-[#C8102E]" style={{ background: "#FAFAF8" }}>
               <Icon className="h-5 w-5" strokeWidth={2} />
@@ -334,14 +406,14 @@ function LearnHubContent() {
                 {desc}
               </p>
             </div>
-          </Link>
+          </button>
         ))}
       </div>
     </div>
   );
 
   return (
-    <div className="w-full text-[14px] text-[#0A0A0A]" style={{ background: "#FAFAF8", fontFamily: "Inter, system-ui, sans-serif" }}>
+    <div className="page-container w-full text-[14px] text-[#0A0A0A]" style={{ background: "#FAFAF8", fontFamily: "Inter, system-ui, sans-serif" }}>
       <section>
         <p className="mb-1" style={sectionLabelStyle}>
           {t("learn.hub.section1")}

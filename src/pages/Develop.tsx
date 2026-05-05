@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/select";
 import {
   Briefcase, Mic, Clock, Sparkles, ChevronRight, RefreshCw,
-  Lightbulb, Building2, ExternalLink, ArrowLeft, CheckCircle2, AlertCircle,
+  Lightbulb, ExternalLink, ArrowLeft, CheckCircle2, AlertCircle, Volume2, Loader2 as Loader,
 } from "lucide-react";
 import { toast } from "sonner";
 import { RESOURCES, RESOURCE_CATEGORIES, type Resource } from "@/lib/resourcesData";
@@ -32,8 +32,17 @@ type Profile = {
 };
 
 async function callForgeAI(action: string, payload: any) {
-  const { data, error } = await supabase.functions.invoke("Forge-ai", {
-    body: { action, payload },
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!session) {
+    toast.error("Not authenticated");
+    throw new Error("Not authenticated");
+  }
+
+  const body = { action, payload };
+  const { data, error } = await supabase.functions.invoke("develop-ai", {
+    body,
   });
   if (error) throw new Error(error.message);
   if ((data as any)?.error) throw new Error((data as any).error);
@@ -150,8 +159,9 @@ function BusinessCasesTab({ targetRole }: { targetRole?: string }) {
         }).select("id").single();
         if (row) setCaseId(row.id);
       }
-    } catch (e: any) {
-      toast.error(e.message || tr("Failed to generate case", "Echec de generation du cas"));
+    } catch (err) {
+      console.error("Case generation error:", err);
+      toast.error("Error: " + String(err));
     } finally { setGenerating(false); }
   }
 
@@ -191,6 +201,7 @@ function BusinessCasesTab({ targetRole }: { targetRole?: string }) {
       { k: "Morocco context", v: score.scores.morocco_context },
     ];
     return (
+      <>
       <div className="space-y-6">
         <Button variant="ghost" size="sm" onClick={reset}><ArrowLeft className="w-4 h-4" /> {tr("Back to cases", "Retour aux cas")}</Button>
         <Card className="p-6">
@@ -240,6 +251,8 @@ function BusinessCasesTab({ targetRole }: { targetRole?: string }) {
           <Button variant="outline">{tr("Practice interview for this role", "S'entrainer en entretien pour ce role")}</Button>
         </div>
       </div>
+      {voiceOverlay}
+      </>
     );
   }
 
@@ -248,12 +261,50 @@ function BusinessCasesTab({ targetRole }: { targetRole?: string }) {
     return (
       <div className="grid lg:grid-cols-[3fr_2fr] gap-6">
         <Card className="p-6 space-y-4">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <Badge variant="secondary" className="mb-2"><Building2 className="w-3 h-3" /> {caseData.company}</Badge>
-              <h2 className="text-xl font-bold">{caseData.title}</h2>
-            </div>
-            <Badge className="bg-accent text-accent-foreground"><Clock className="w-3 h-3" /> {fmtTime(seconds)}</Badge>
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px",
+              background: "#F5F5F5",
+              borderRadius: "100px",
+              padding: "6px 14px",
+              marginBottom: "16px",
+            }}
+          >
+            <span
+              style={{
+                fontSize: "13px",
+                color: "#6B6B6B",
+                fontFamily: "Inter, sans-serif",
+              }}
+            >
+              {sector}
+            </span>
+            <span
+              style={{
+                width: "1px",
+                height: "12px",
+                background: "#E5E5E5",
+              }}
+            />
+            <span
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
+                fontSize: "13px",
+                fontWeight: 600,
+                color: "#C8102E",
+                fontFamily: "Inter, sans-serif",
+              }}
+            >
+              <Clock size={13} />
+              {fmtTime(seconds)}
+            </span>
+          </div>
+          <div>
+            <h2 className="text-xl font-bold">{caseData.title}</h2>
           </div>
           <p className="text-sm leading-relaxed text-muted-foreground">{caseData.context}</p>
 
@@ -356,18 +407,48 @@ function BusinessCasesTab({ targetRole }: { targetRole?: string }) {
           ))}
         </div>
 
-        <Button onClick={() => generate()} className="mt-6 bg-accent text-accent-foreground hover:bg-accent/90">
-          {tr("Generate my case", "Generer mon cas")} <ChevronRight className="w-4 h-4" />
-        </Button>
-        {roleFocus && (
+        <div
+          style={{
+            display: "flex",
+            gap: 16,
+            alignItems: "center",
+            flexWrap: "wrap",
+            marginTop: 24,
+          }}
+        >
           <Button
-            onClick={() => generate(`${roleFocus} interview/case prep`)}
-            variant="outline"
-            className="mt-3"
+            onClick={() => generate()}
+            className="bg-accent text-accent-foreground hover:bg-accent/90"
+            style={{
+              padding: "12px 24px",
+              borderRadius: 100,
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+            }}
           >
-            {tr("Generate role-focused case", "Generer un cas cible metier")} <ChevronRight className="w-4 h-4" />
+            {tr("Generate my case", "Generer mon cas")}
+            <ChevronRight className="w-4 h-4" />
           </Button>
-        )}
+          {roleFocus && (
+            <Button
+              onClick={() => generate(`${roleFocus} interview/case prep`)}
+              variant="outline"
+              style={{
+                padding: "12px 24px",
+                borderRadius: 100,
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                border: "1.5px solid #E5E5E5",
+                background: "transparent",
+              }}
+            >
+              {tr("Generate role-focused case", "Generer un cas cible metier")}
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          )}
+        </div>
       </Card>
 
       <Card className="p-6">
@@ -423,8 +504,157 @@ function InterviewPrepTab({ profile, defaultRole }: { profile: Profile | null; d
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [scoring, setScoring] = useState(false);
   const [feedback, setFeedback] = useState<IFeedback | null>(null);
+  const [responseMode, setResponseMode] = useState<"text" | "voice">("text");
+  const [fullVoiceMode, setFullVoiceMode] = useState(false);
+  const [voiceActive, setVoiceActive] = useState(false);
+  const [voiceStatus, setVoiceStatus] = useState<"idle" | "listening" | "processing" | "speaking">("idle");
+  const [interimTranscript, setInterimTranscript] = useState("");
+  const recognitionRef = useRef<any>(null);
+  const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isSpeakingRef = useRef(false);
+  const voiceActiveRef = useRef(false);
+  const voiceStatusRef = useRef<"idle" | "listening" | "processing" | "speaking">("idle");
 
   useEffect(() => { setRole(defaultRole); }, [defaultRole]);
+
+  useEffect(() => {
+    voiceActiveRef.current = voiceActive;
+  }, [voiceActive]);
+
+  useEffect(() => {
+    voiceStatusRef.current = voiceStatus;
+  }, [voiceStatus]);
+
+  const supportsVoiceMode = () =>
+    typeof window !== "undefined" &&
+    ("webkitSpeechRecognition" in window || "SpeechRecognition" in window);
+
+  const speakTextFluid = (text: string): Promise<void> => {
+    return new Promise((resolve) => {
+      if (!("speechSynthesis" in window)) {
+        resolve();
+        return;
+      }
+      window.speechSynthesis.cancel();
+      isSpeakingRef.current = true;
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = "en-US";
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+      utterance.volume = 1.0;
+
+      const loadVoices = () => {
+        const voices = window.speechSynthesis.getVoices();
+        const preferred = voices.find((v) =>
+          v.name.includes("Google UK English Female") ||
+          v.name.includes("Google US English") ||
+          v.name.includes("Samantha") ||
+          (v.lang === "en-US" && v.localService === false),
+        );
+        if (preferred) utterance.voice = preferred;
+      };
+
+      loadVoices();
+      if (window.speechSynthesis.getVoices().length === 0) {
+        window.speechSynthesis.onvoiceschanged = loadVoices;
+      }
+
+      utterance.onend = () => {
+        isSpeakingRef.current = false;
+        resolve();
+      };
+      utterance.onerror = () => {
+        isSpeakingRef.current = false;
+        resolve();
+      };
+      window.speechSynthesis.speak(utterance);
+    });
+  };
+
+  const startContinuousVoice = () => {
+    if (!supportsVoiceMode()) {
+      toast.error("Voice mode requires Chrome browser");
+      setResponseMode("text");
+      setFullVoiceMode(false);
+      return;
+    }
+
+    recognitionRef.current?.stop?.();
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const recognition = new SR();
+
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = "en-US";
+
+    recognition.onstart = () => {
+      setVoiceStatus("listening");
+    };
+
+    recognition.onresult = (event: any) => {
+      if (isSpeakingRef.current) return;
+
+      let interim = "";
+      let final = "";
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          final += transcript;
+        } else {
+          interim += transcript;
+        }
+      }
+
+      setInterimTranscript(interim);
+      if (final.trim()) {
+        if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = setTimeout(() => {
+          if (final.trim().length > 2) {
+            setInterimTranscript("");
+            void handleVoiceAnswer(final.trim());
+          }
+        }, 1500);
+      }
+    };
+    recognition.onerror = (event: any) => {
+      if (event.error === "not-allowed") {
+        toast.error("Microphone access denied");
+        setVoiceActive(false);
+        setVoiceStatus("idle");
+        return;
+      }
+      if (event.error === "no-speech") {
+        recognition.stop();
+        setTimeout(() => {
+          if (voiceActiveRef.current) recognition.start();
+        }, 500);
+      }
+    };
+
+    recognition.onend = () => {
+      if (voiceActiveRef.current && voiceStatusRef.current === "listening") {
+        setTimeout(() => recognition.start(), 300);
+      }
+    };
+
+    recognitionRef.current = recognition;
+    setVoiceActive(true);
+    recognition.start();
+  };
+
+  const stopContinuousVoice = () => {
+    recognitionRef.current?.stop();
+    window.speechSynthesis.cancel();
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
+    }
+    setVoiceActive(false);
+    setVoiceStatus("idle");
+    setInterimTranscript("");
+    isSpeakingRef.current = false;
+  };
 
   const normalizedRole = role.toLowerCase();
   const personalizedPrepSteps = useMemo(() => {
@@ -461,6 +691,68 @@ function InterviewPrepTab({ profile, defaultRole }: { profile: Profile | null; d
     ];
   }, [normalizedRole, tr]);
 
+  useEffect(() => {
+    if (responseMode !== "voice") return;
+    if (!supportsVoiceMode()) {
+      toast.error("Voice mode requires Chrome browser");
+      setResponseMode("text");
+      setFullVoiceMode(false);
+    }
+  }, [responseMode]);
+
+  useEffect(() => {
+    setInterimTranscript("");
+  }, [idx]);
+
+  useEffect(() => {
+    return () => {
+      recognitionRef.current?.stop?.();
+      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
+
+  const sendInterviewMessage = async (message: string): Promise<string | null> => {
+    if (!questions) return null;
+    const q = questions[idx];
+    if (!q) return null;
+    setAnswers((a) => ({ ...a, [q.id]: message.trim() }));
+
+    const isLastQuestion = idx === questions.length - 1;
+    if (isLastQuestion) {
+      await submitForFeedback();
+      return null;
+    }
+    const nextIdx = idx + 1;
+    setIdx(nextIdx);
+    return questions[nextIdx]?.question ?? null;
+  };
+
+  const handleVoiceAnswer = async (text: string) => {
+    setVoiceStatus("processing");
+    recognitionRef.current?.stop();
+    try {
+      const response = await sendInterviewMessage(text);
+      if (response && fullVoiceMode) {
+        setVoiceStatus("speaking");
+        await speakTextFluid(response);
+      }
+    } finally {
+      if (!voiceActiveRef.current) {
+        setVoiceStatus("idle");
+        return;
+      }
+      setVoiceStatus("listening");
+      setTimeout(() => {
+        if (voiceActiveRef.current) {
+          recognitionRef.current?.start();
+        }
+      }, 500);
+    }
+  };
+
   async function startInterview() {
     setGenerating(true); setFeedback(null); setAnswers({}); setIdx(0);
     try {
@@ -477,6 +769,11 @@ function InterviewPrepTab({ profile, defaultRole }: { profile: Profile | null; d
           questions_json: result,
         }).select("id").single();
         if (row) setSessionId(row.id);
+      }
+      if (responseMode === "voice") {
+        setTimeout(() => {
+          startContinuousVoice();
+        }, 300);
       }
     } catch (e: any) {
       toast.error(e.message || tr("Failed to generate interview", "Echec de generation de l'entretien"));
@@ -501,7 +798,113 @@ function InterviewPrepTab({ profile, defaultRole }: { profile: Profile | null; d
     finally { setScoring(false); }
   }
 
-  function reset() { setQuestions(null); setFeedback(null); setAnswers({}); setIdx(0); setSessionId(null); }
+  function reset() {
+    setQuestions(null);
+    setFeedback(null);
+    setAnswers({});
+    setIdx(0);
+    setSessionId(null);
+    setInterimTranscript("");
+    stopContinuousVoice();
+    voiceActiveRef.current = false;
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+      isSpeakingRef.current = false;
+    }
+  }
+
+  const voiceOverlay = voiceActive ? (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(10, 10, 10, 0.95)",
+        zIndex: 100,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "32px",
+      }}
+    >
+      <p
+        style={{
+          fontSize: "14px",
+          color: "rgba(255,255,255,0.5)",
+          fontFamily: "Inter, sans-serif",
+          letterSpacing: "0.1em",
+          textTransform: "uppercase",
+        }}
+      >
+        {voiceStatus === "listening" && "Listening..."}
+        {voiceStatus === "processing" && "Processing..."}
+        {voiceStatus === "speaking" && "Interviewer speaking..."}
+      </p>
+
+      <div
+        style={{
+          width: "120px",
+          height: "120px",
+          borderRadius: "50%",
+          background: voiceStatus === "speaking" ? "#C8102E" : voiceStatus === "listening" ? "#0A0A0A" : "#333",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          boxShadow:
+            voiceStatus === "listening"
+              ? "0 0 0 16px rgba(255,255,255,0.05), 0 0 0 32px rgba(255,255,255,0.03)"
+              : voiceStatus === "speaking"
+                ? "0 0 0 16px rgba(200,16,46,0.15), 0 0 0 32px rgba(200,16,46,0.08)"
+                : "none",
+          transition: "all 0.3s ease",
+          animation: voiceStatus === "listening" ? "pulse 2s ease-in-out infinite" : "none",
+        }}
+      >
+        {voiceStatus === "speaking" ? (
+          <Volume2 size={40} color="white" />
+        ) : voiceStatus === "processing" ? (
+          <Loader size={40} color="white" style={{ animation: "spin 1s linear infinite" }} />
+        ) : (
+          <Mic size={40} color="white" />
+        )}
+      </div>
+
+      {interimTranscript && (
+        <p
+          style={{
+            fontSize: "18px",
+            color: "rgba(255,255,255,0.8)",
+            fontFamily: "Inter, sans-serif",
+            maxWidth: "500px",
+            textAlign: "center",
+            lineHeight: 1.6,
+            fontStyle: "italic",
+          }}
+        >
+          "{interimTranscript}"
+        </p>
+      )}
+
+      <button
+        type="button"
+        onClick={stopContinuousVoice}
+        style={{
+          marginTop: "16px",
+          background: "transparent",
+          border: "1.5px solid rgba(255,255,255,0.2)",
+          borderRadius: "100px",
+          padding: "10px 24px",
+          color: "rgba(255,255,255,0.6)",
+          fontSize: "14px",
+          cursor: "pointer",
+          fontFamily: "Inter, sans-serif",
+          transition: "all 0.2s ease",
+        }}
+      >
+        End voice session
+      </button>
+    </div>
+  ) : null;
 
   if (feedback && questions) {
     const decisionColor =
@@ -574,6 +977,7 @@ function InterviewPrepTab({ profile, defaultRole }: { profile: Profile | null; d
     const q = questions[idx];
     const isLast = idx === questions.length - 1;
     return (
+      <>
       <div className="space-y-5 max-w-3xl mx-auto">
         <Progress value={((idx + 1) / questions.length) * 100} />
         <p className="text-sm text-muted-foreground text-center">{tr("Question", "Question")} {idx + 1} {tr("of", "sur")} {questions.length}</p>
@@ -595,12 +999,18 @@ function InterviewPrepTab({ profile, defaultRole }: { profile: Profile | null; d
             </div>
           </div>
         </Card>
-        <Textarea
-          value={answers[q.id] ?? ""}
-          onChange={(e) => setAnswers((a) => ({ ...a, [q.id]: e.target.value }))}
-          placeholder={tr("Type your answer...", "Ecrivez votre reponse...")}
-          className="min-h-[200px]"
-        />
+        {responseMode === "voice" ? (
+          <div className="rounded-xl border border-[#E5E5E5] bg-[#FAFAF8] p-4 text-sm text-[#6B6B6B]">
+            Voice session is active in overlay. Speak naturally and pause briefly after each answer.
+          </div>
+        ) : (
+          <Textarea
+            value={answers[q.id] ?? ""}
+            onChange={(e) => setAnswers((a) => ({ ...a, [q.id]: e.target.value }))}
+            placeholder={tr("Type your answer...", "Ecrivez votre reponse...")}
+            className="min-h-[200px]"
+          />
+        )}
         <div className="flex justify-between">
           <Button variant="ghost" disabled={idx === 0} onClick={() => setIdx((i) => i - 1)}>← {tr("Previous", "Precedent")}</Button>
           {isLast ? (
@@ -612,6 +1022,8 @@ function InterviewPrepTab({ profile, defaultRole }: { profile: Profile | null; d
           )}
         </div>
       </div>
+      {voiceOverlay}
+      </>
     );
   }
 
@@ -620,6 +1032,7 @@ function InterviewPrepTab({ profile, defaultRole }: { profile: Profile | null; d
   }
 
   return (
+    <>
     <div className="space-y-6">
       {defaultRole && (
         <Card className="p-5 border-l-4 border-l-accent bg-accent-soft/30">
@@ -684,11 +1097,130 @@ function InterviewPrepTab({ profile, defaultRole }: { profile: Profile | null; d
           </div>
         </div>
 
+        <div style={{ marginBottom: "24px" }}>
+          <p
+            style={{
+              fontSize: "13px",
+              fontWeight: 600,
+              color: "#6B6B6B",
+              textTransform: "uppercase",
+              letterSpacing: "0.08em",
+              marginBottom: "12px",
+              fontFamily: "Inter, sans-serif",
+            }}
+          >
+            Response Mode
+          </p>
+
+          <div style={{ display: "flex", gap: "12px" }}>
+            <button
+              type="button"
+              onClick={() => {
+                setResponseMode("text");
+                setFullVoiceMode(false);
+              }}
+              style={{
+                flex: 1,
+                padding: "16px",
+                borderRadius: "12px",
+                border: responseMode === "text" && !fullVoiceMode ? "2px solid #C8102E" : "1.5px solid #E5E5E5",
+                background: responseMode === "text" && !fullVoiceMode ? "#FFF8F8" : "white",
+                cursor: "pointer",
+                textAlign: "left",
+              }}
+            >
+              <div style={{ fontSize: "20px", marginBottom: "8px" }}>⌨️</div>
+              <div style={{ fontSize: "14px", fontWeight: 600, color: "#0A0A0A", fontFamily: "Inter, sans-serif" }}>
+                Text
+              </div>
+              <div style={{ fontSize: "12px", color: "#6B6B6B", marginTop: "4px", fontFamily: "Inter, sans-serif" }}>
+                Type your answers
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setResponseMode("voice");
+                setFullVoiceMode(false);
+              }}
+              style={{
+                flex: 1,
+                padding: "16px",
+                borderRadius: "12px",
+                border: responseMode === "voice" && !fullVoiceMode ? "2px solid #C8102E" : "1.5px solid #E5E5E5",
+                background: responseMode === "voice" && !fullVoiceMode ? "#FFF8F8" : "white",
+                cursor: "pointer",
+                textAlign: "left",
+              }}
+            >
+              <div style={{ fontSize: "20px", marginBottom: "8px" }}>🎤</div>
+              <div style={{ fontSize: "14px", fontWeight: 600, color: "#0A0A0A", fontFamily: "Inter, sans-serif" }}>
+                Voice → Text
+              </div>
+              <div style={{ fontSize: "12px", color: "#6B6B6B", marginTop: "4px", fontFamily: "Inter, sans-serif" }}>
+                Speak, interviewer replies in text
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setResponseMode("voice");
+                setFullVoiceMode(true);
+              }}
+              style={{
+                flex: 1,
+                padding: "16px",
+                borderRadius: "12px",
+                border: fullVoiceMode ? "2px solid #C8102E" : "1.5px solid #E5E5E5",
+                background: fullVoiceMode ? "#FFF8F8" : "white",
+                cursor: "pointer",
+                textAlign: "left",
+              }}
+            >
+              <div style={{ fontSize: "20px", marginBottom: "8px" }}>🔊</div>
+              <div style={{ fontSize: "14px", fontWeight: 600, color: "#0A0A0A", fontFamily: "Inter, sans-serif" }}>
+                Full Voice
+              </div>
+              <div style={{ fontSize: "12px", color: "#6B6B6B", marginTop: "4px", fontFamily: "Inter, sans-serif" }}>
+                Speak and hear the interviewer
+              </div>
+            </button>
+          </div>
+        </div>
+
+        {responseMode === "voice" && (
+          <button
+            type="button"
+            onClick={startContinuousVoice}
+            style={{
+              background: "#0A0A0A",
+              color: "white",
+              border: "none",
+              borderRadius: "100px",
+              padding: "14px 28px",
+              fontSize: "15px",
+              fontWeight: 600,
+              cursor: "pointer",
+              fontFamily: "Inter, sans-serif",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+            }}
+          >
+            <Mic size={18} />
+            Start voice session
+          </button>
+        )}
+
         <Button onClick={startInterview} className="bg-accent text-accent-foreground hover:bg-accent/90">
           {tr("Start interview", "Demarrer l'entretien")} <ChevronRight className="w-4 h-4" />
         </Button>
       </Card>
     </div>
+    {voiceOverlay}
+    </>
   );
 }
 
@@ -897,10 +1429,18 @@ export default function Forge() {
   }, []);
 
   const requestedRole = searchParams.get("role")?.trim() ?? "";
-  const tabParam = searchParams.get("tab");
+  const tabParamRaw = searchParams.get("tab");
+  const tabParam = tabParamRaw === "simulate" ? "interview" : tabParamRaw;
   const initialTab = tabParam === "cases" || tabParam === "interview" || tabParam === "resources" ? tabParam : "cases";
   const [activeTab, setActiveTab] = useState<"cases" | "interview" | "resources">(initialTab);
   const defaultRole = requestedRole || (pathway?.pathways?.[0]?.title ?? "Business Analyst");
+
+  useEffect(() => {
+    document.title = "Forge — Cariva";
+    const nodes = document.querySelectorAll(".page-container");
+    const el = nodes[nodes.length - 1] as HTMLElement | undefined;
+    if (el) requestAnimationFrame(() => el.classList.add("page-visible"));
+  }, []);
 
   useEffect(() => {
     const nextTab = tabParam === "cases" || tabParam === "interview" || tabParam === "resources" ? tabParam : "cases";
@@ -908,7 +1448,7 @@ export default function Forge() {
   }, [tabParam]);
 
   return (
-    <div className="space-y-6 max-w-6xl">
+    <div className="page-container space-y-6 max-w-6xl">
       <div>
         <h1 className="text-[var(--text-h1)] font-medium mb-2">{tr("Forge", "Forge")}</h1>
         <p className="text-muted-foreground">{tr("Forge your edge in Morocco.", "Forgez votre avantage au Maroc.")}</p>
