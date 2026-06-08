@@ -3,9 +3,9 @@ import { Link } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import { Check, GraduationCap, Sparkles, TrendingUp } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import HeroReportMock from "@/components/landing/HeroReportMock";
 import InstituteDashboardMock from "@/components/landing/InstituteDashboardMock";
+import SiteNav from "@/components/landing/SiteNav";
 
 const STATS = [
   {
@@ -99,50 +99,7 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-white text-zinc-950 antialiased">
-      {/* Floating frosted top bar — semi-transparent glass; no overflow-hidden so backdrop-blur renders */}
-      <div className="sticky top-0 z-50 flex justify-center px-4 pt-3 sm:px-6 sm:pt-4">
-        <header className="flex h-14 w-full max-w-6xl min-w-0 items-center justify-between gap-2 rounded-2xl border border-white/30 bg-white/60 px-3 shadow-lg shadow-gray-200/40 backdrop-blur-xl sm:px-6 md:grid md:grid-cols-[auto_minmax(0,1fr)_auto] md:items-center md:gap-4 md:px-6">
-          <Link to="/" className="flex shrink-0 items-center gap-2 justify-self-start">
-            <span className="h-2 w-2 shrink-0 rounded-full bg-[#C8102E]" aria-hidden />
-            <span className="text-[17px] font-bold tracking-tight text-[#0A0A0A]" style={{ fontFamily: "Inter, sans-serif", fontWeight: 700 }}>
-              Cariva
-            </span>
-          </Link>
-          <nav className="hidden min-w-0 justify-self-stretch overflow-x-auto md:flex md:items-center md:justify-center">
-            <div
-              className="flex shrink-0 items-center gap-4 text-[13px] text-zinc-600 lg:gap-6"
-              style={interSans}
-            >
-              <a href="#product" className="whitespace-nowrap transition-colors hover:text-[#0A0A0A]">
-                Products
-              </a>
-              <a href="#how" className="whitespace-nowrap transition-colors hover:text-[#0A0A0A]">
-                Capabilities
-              </a>
-              <a href="#product" className="whitespace-nowrap transition-colors hover:text-[#0A0A0A]">
-                Solutions
-              </a>
-              <a href="#stories" className="whitespace-nowrap transition-colors hover:text-[#0A0A0A]">
-                Resources
-              </a>
-              <a href="#institutions" className="whitespace-nowrap transition-colors hover:text-[#0A0A0A]">
-                Pricing
-              </a>
-            </div>
-          </nav>
-          <div className="flex shrink-0 items-center justify-self-end">
-            <Button
-              asChild
-              size="sm"
-              className="h-9 rounded-full border-0 bg-[#0A0A0A] px-4 text-[13px] font-semibold text-white shadow-none hover:bg-zinc-800"
-            >
-              <Link to="/auth" style={interSans}>
-                Log in
-              </Link>
-            </Button>
-          </div>
-        </header>
-      </div>
+      <SiteNav />
 
       {/* Hero — two-column on desktop (headline + CTA left, product mock right), stacked on mobile */}
       <section className="relative overflow-hidden bg-white px-5 pt-24 pb-12 sm:px-8 sm:pt-28 sm:pb-14 md:pt-32 md:pb-16">
@@ -446,23 +403,35 @@ export default function Landing() {
           </div>
           <div>
             <p className="text-[13px] font-semibold text-[#0A0A0A]" style={interSans}>
-              Product
+              Products
             </p>
             <ul className="mt-3 space-y-2">
               <li>
-                <a href="#product" className="text-[13px] text-[#6B6B6B] no-underline hover:underline" style={interSans}>
-                  Pathways
-                </a>
+                <Link to="/" className="text-[13px] text-[#6B6B6B] no-underline hover:underline" style={interSans}>
+                  Cariva Learn
+                </Link>
+                <span className="ml-2 text-[11px] text-[#9B9B9B]" style={interSans}>
+                  For students
+                </span>
               </li>
               <li>
-                <a href="#product" className="text-[13px] text-[#6B6B6B] no-underline hover:underline" style={interSans}>
-                  Market data
-                </a>
+                <Link to="/institutions" className="text-[13px] text-[#6B6B6B] no-underline hover:underline" style={interSans}>
+                  Cariva Institute
+                </Link>
+                <span className="ml-2 text-[11px] text-[#9B9B9B]" style={interSans}>
+                  For universities
+                </span>
               </li>
-              <li>
-                <a href="#how" className="text-[13px] text-[#6B6B6B] no-underline hover:underline" style={interSans}>
-                  How it works
-                </a>
+              <li className="flex items-center gap-2">
+                <span className="cursor-default text-[13px] text-gray-400" style={interSans}>
+                  Cariva Firm
+                </span>
+                <span
+                  className="rounded-full bg-[#F0F0F0] px-2 py-0.5 text-[10px] font-medium text-gray-400"
+                  style={interSans}
+                >
+                  Soon
+                </span>
               </li>
             </ul>
           </div>
@@ -471,11 +440,6 @@ export default function Landing() {
               Company
             </p>
             <ul className="mt-3 space-y-2">
-              <li>
-                <Link to="/auth" className="text-[13px] text-[#6B6B6B] no-underline hover:underline" style={interSans}>
-                  For universities
-                </Link>
-              </li>
               <li>
                 <span className="text-[13px] text-[#6B6B6B]" style={interSans}>
                   About

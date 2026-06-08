@@ -1,8 +1,9 @@
-import type { CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { BarChart2, BookOpen, Briefcase, ChevronLeft, ChevronRight, Hammer, MessageCircle, TrendingUp } from "lucide-react";
+import { BarChart2, BookOpen, Briefcase, ChevronLeft, ChevronRight, Hammer, LayoutDashboard, MessageCircle, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 type SidebarProps = {
   /** Desktop sidebar narrow (64px) vs full (220px). */
@@ -17,6 +18,8 @@ function isActivePath(pathname: string, path: string) {
   if (path === "/field") return pathname === "/field" || pathname === "/market";
   if (path === "/pipeline") return pathname === "/pipeline" || pathname === "/pmo";
   if (path === "/trends") return pathname === "/trends" || pathname.startsWith("/trends/");
+  // Exact match so the Dashboard ("/admin") item does not light up on "/admin/observatoire".
+  if (path === "/admin") return pathname === "/admin";
   return pathname === path || pathname.startsWith(`${path}/`);
 }
 
@@ -39,12 +42,34 @@ export function Sidebar({ isCollapsed, onToggleCollapsed }: SidebarProps) {
   const pathname = location.pathname;
   const isOnMentorPage = pathname === "/learn/path";
 
+  // Role is sourced the same way as elsewhere (AppLayout/Auth): query user_roles by user id.
+  const [isAdmin, setIsAdmin] = useState(false);
+  useEffect(() => {
+    let mounted = true;
+    void (async () => {
+      const { data: s } = await supabase.auth.getSession();
+      const uid = s.session?.user.id;
+      if (!uid) return;
+      const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", uid);
+      if (!mounted) return;
+      setIsAdmin((roles ?? []).some((r) => r.role === "admin"));
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   const items = [
     { to: "/learn", path: "/learn", icon: BookOpen, labelKey: "nav.learn" as const },
     { to: "/develop", path: "/develop", icon: Hammer, labelKey: "nav.forge" as const },
     { to: "/field", path: "/field", icon: BarChart2, labelKey: "nav.field" as const },
     { to: "/pipeline", path: "/pipeline", icon: Briefcase, labelKey: "nav.pipeline" as const },
     { to: "/trends", path: "/trends", icon: TrendingUp, labelKey: "nav.trends" as const },
+  ];
+
+  const adminItems = [
+    { to: "/admin/observatoire", path: "/admin/observatoire", icon: TrendingUp, label: "Observatoire" },
+    { to: "/admin", path: "/admin", icon: LayoutDashboard, label: "Dashboard" },
   ];
 
   const asideWidth = isCollapsed ? 64 : 220;
@@ -124,6 +149,68 @@ export function Sidebar({ isCollapsed, onToggleCollapsed }: SidebarProps) {
               </Link>
             );
           })}
+
+          {isAdmin && (
+            <>
+              <div
+                aria-hidden
+                style={{
+                  height: 1,
+                  background: "rgba(0,0,0,0.06)",
+                  margin: isCollapsed ? "16px 8px 8px" : "16px 16px 8px",
+                }}
+              />
+              <span
+                className={cn(
+                  "whitespace-nowrap transition-opacity duration-200 ease-in-out",
+                  isCollapsed ? "pointer-events-none h-0 max-h-0 overflow-hidden opacity-0" : "opacity-100",
+                )}
+                style={{
+                  display: "block",
+                  padding: "0 16px 6px",
+                  fontSize: 11,
+                  fontWeight: 600,
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                  color: "#9B9B9B",
+                }}
+              >
+                Institute
+              </span>
+              {adminItems.map(({ to, path, icon: Icon, label }) => {
+                const active = isActivePath(pathname, path);
+                return (
+                  <Link
+                    key={to}
+                    to={to}
+                    style={{
+                      ...navItemBase,
+                      justifyContent: isCollapsed ? "center" : "flex-start",
+                      margin: isCollapsed ? "2px 8px" : "2px 12px",
+                      padding: isCollapsed ? "10px" : "10px 16px",
+                      gap: isCollapsed ? 0 : 10,
+                    }}
+                    className={cn(
+                      active
+                        ? "bg-[#FFF0F0] text-[#C8102E] font-semibold"
+                        : "font-normal text-[#6B6B6B] hover:bg-[#F5F5F5] hover:text-[#0A0A0A]",
+                    )}
+                    aria-label={label}
+                  >
+                    <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={2} />
+                    <span
+                      className={cn(
+                        "min-w-0 truncate transition-opacity duration-200 ease-in-out",
+                        isCollapsed ? "pointer-events-none w-0 max-w-0 overflow-hidden opacity-0" : "opacity-100",
+                      )}
+                    >
+                      {label}
+                    </span>
+                  </Link>
+                );
+              })}
+            </>
+          )}
         </nav>
 
         <div className="mt-auto flex shrink-0 flex-col">
@@ -221,6 +308,21 @@ export function Sidebar({ isCollapsed, onToggleCollapsed }: SidebarProps) {
             </Link>
           );
         })}
+        {isAdmin &&
+          adminItems.map(({ to, path, icon: Icon, label }) => {
+            const active = isActivePath(pathname, path);
+            return (
+              <Link
+                key={to}
+                to={to}
+                className="flex h-full flex-1 items-center justify-center no-underline"
+                style={{ color: active ? "#C8102E" : "#6B6B6B" }}
+                aria-label={label}
+              >
+                <Icon className="h-6 w-6" strokeWidth={active ? 2.25 : 2} />
+              </Link>
+            );
+          })}
         {!isOnMentorPage && (
           <button
             type="button"

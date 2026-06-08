@@ -1,4 +1,4 @@
-export type Json =
+﻿export type Json =
   | string
   | number
   | boolean
@@ -16,23 +16,23 @@ export type Database = {
     Tables: {
       action_plan_items: {
         Row: {
-          action_text: string
-          completed: boolean
-          created_at: string
+          action_text: string | null
+          completed: boolean | null
+          created_at: string | null
           id: string
           user_id: string
         }
         Insert: {
-          action_text: string
-          completed?: boolean
-          created_at?: string
+          action_text?: string | null
+          completed?: boolean | null
+          created_at?: string | null
           id?: string
           user_id: string
         }
         Update: {
-          action_text?: string
-          completed?: boolean
-          created_at?: string
+          action_text?: string | null
+          completed?: boolean | null
+          created_at?: string | null
           id?: string
           user_id?: string
         }
@@ -40,10 +40,8 @@ export type Database = {
       }
       case_sessions: {
         Row: {
-          answer_text: string | null
-          case_json: Json
+          case_json: Json | null
           completed_at: string | null
-          created_at: string
           difficulty: string | null
           id: string
           score_json: Json | null
@@ -51,10 +49,8 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          answer_text?: string | null
-          case_json: Json
+          case_json?: Json | null
           completed_at?: string | null
-          created_at?: string
           difficulty?: string | null
           id?: string
           score_json?: Json | null
@@ -62,10 +58,8 @@ export type Database = {
           user_id: string
         }
         Update: {
-          answer_text?: string | null
-          case_json?: Json
+          case_json?: Json | null
           completed_at?: string | null
-          created_at?: string
           difficulty?: string | null
           id?: string
           score_json?: Json | null
@@ -76,31 +70,85 @@ export type Database = {
       }
       conversation_sessions: {
         Row: {
-          created_at: string
-          dimensions_covered: Json
+          created_at: string | null
+          dimensions_covered: Json | null
           id: string
-          messages: Json
-          status: string
-          updated_at: string
+          messages: Json | null
+          status: string | null
+          updated_at: string | null
           user_id: string | null
         }
         Insert: {
-          created_at?: string
-          dimensions_covered?: Json
+          created_at?: string | null
+          dimensions_covered?: Json | null
           id?: string
-          messages?: Json
-          status?: string
-          updated_at?: string
+          messages?: Json | null
+          status?: string | null
+          updated_at?: string | null
           user_id?: string | null
         }
         Update: {
-          created_at?: string
-          dimensions_covered?: Json
+          created_at?: string | null
+          dimensions_covered?: Json | null
           id?: string
-          messages?: Json
-          status?: string
-          updated_at?: string
+          messages?: Json | null
+          status?: string | null
+          updated_at?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      graduate_profiles: {
+        Row: {
+          created_at: string | null
+          current_company: string | null
+          current_salary_range: string | null
+          current_sector: string | null
+          current_status: string | null
+          field_of_study: string | null
+          graduation_year: number | null
+          id: string
+          job_role: string | null
+          last_updated: string | null
+          linkedin_url: string | null
+          location: string | null
+          student_name: string
+          time_to_first_job_months: number | null
+          university_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          current_company?: string | null
+          current_salary_range?: string | null
+          current_sector?: string | null
+          current_status?: string | null
+          field_of_study?: string | null
+          graduation_year?: number | null
+          id?: string
+          job_role?: string | null
+          last_updated?: string | null
+          linkedin_url?: string | null
+          location?: string | null
+          student_name: string
+          time_to_first_job_months?: number | null
+          university_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          current_company?: string | null
+          current_salary_range?: string | null
+          current_sector?: string | null
+          current_status?: string | null
+          field_of_study?: string | null
+          graduation_year?: number | null
+          id?: string
+          job_role?: string | null
+          last_updated?: string | null
+          linkedin_url?: string | null
+          location?: string | null
+          student_name?: string
+          time_to_first_job_months?: number | null
+          university_id?: string | null
         }
         Relationships: []
       }
@@ -188,37 +236,28 @@ export type Database = {
         Row: {
           answers_json: Json | null
           completed_at: string | null
-          created_at: string
           feedback_json: Json | null
           id: string
-          interview_type: string | null
-          language: string | null
-          questions_json: Json
-          role: string
+          job_role: string | null
+          questions_json: Json | null
           user_id: string
         }
         Insert: {
           answers_json?: Json | null
           completed_at?: string | null
-          created_at?: string
           feedback_json?: Json | null
           id?: string
-          interview_type?: string | null
-          language?: string | null
-          questions_json: Json
-          role: string
+          job_role?: string | null
+          questions_json?: Json | null
           user_id: string
         }
         Update: {
           answers_json?: Json | null
           completed_at?: string | null
-          created_at?: string
           feedback_json?: Json | null
           id?: string
-          interview_type?: string | null
-          language?: string | null
-          questions_json?: Json
-          role?: string
+          job_role?: string | null
+          questions_json?: Json | null
           user_id?: string
         }
         Relationships: []
@@ -292,61 +331,84 @@ export type Database = {
         }
         Relationships: []
       }
-      meet_connections: {
+      observatoire_surveys: {
         Row: {
-          alumni_id: string
-          created_at: string
+          advice_for_students: string | null
+          biggest_challenge: string | null
+          created_at: string | null
+          employed: boolean | null
+          graduate_id: string
           id: string
-          status: string
-          student_id: string
-          updated_at: string
+          key_skills_used: string[] | null
+          role_matches_degree: boolean | null
+          satisfaction_score: number | null
+          survey_date: string | null
+          would_recommend_university: boolean | null
         }
         Insert: {
-          alumni_id: string
-          created_at?: string
+          advice_for_students?: string | null
+          biggest_challenge?: string | null
+          created_at?: string | null
+          employed?: boolean | null
+          graduate_id: string
           id?: string
-          status?: string
-          student_id: string
-          updated_at?: string
+          key_skills_used?: string[] | null
+          role_matches_degree?: boolean | null
+          satisfaction_score?: number | null
+          survey_date?: string | null
+          would_recommend_university?: boolean | null
         }
         Update: {
-          alumni_id?: string
-          created_at?: string
+          advice_for_students?: string | null
+          biggest_challenge?: string | null
+          created_at?: string | null
+          employed?: boolean | null
+          graduate_id?: string
           id?: string
-          status?: string
-          student_id?: string
-          updated_at?: string
+          key_skills_used?: string[] | null
+          role_matches_degree?: boolean | null
+          satisfaction_score?: number | null
+          survey_date?: string | null
+          would_recommend_university?: boolean | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "observatoire_surveys_graduate_id_fkey"
+            columns: ["graduate_id"]
+            isOneToOne: false
+            referencedRelation: "graduate_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       onboarding_responses: {
         Row: {
           ambition_level: number | null
-          created_at: string
+          created_at: string | null
           geography: string | null
           id: string
-          personality_scores: Json
-          preferred_sectors: string[]
+          personality_scores: Json | null
+          preferred_sectors: string[] | null
           user_id: string
           work_environment: string | null
         }
         Insert: {
           ambition_level?: number | null
-          created_at?: string
+          created_at?: string | null
           geography?: string | null
           id?: string
-          personality_scores?: Json
-          preferred_sectors?: string[]
+          personality_scores?: Json | null
+          preferred_sectors?: string[] | null
           user_id: string
           work_environment?: string | null
         }
         Update: {
           ambition_level?: number | null
-          created_at?: string
+          created_at?: string | null
           geography?: string | null
           id?: string
-          personality_scores?: Json
-          preferred_sectors?: string[]
+          personality_scores?: Json | null
+          preferred_sectors?: string[] | null
           user_id?: string
           work_environment?: string | null
         }
@@ -356,34 +418,34 @@ export type Database = {
         Row: {
           all_careers: Json | null
           archetypes: Json | null
-          confidence_score: number
-          created_at: string
+          confidence_score: number | null
+          created_at: string | null
           id: string
           key_insights: Json | null
           recommended_track: string | null
-          result_json: Json
+          result_json: Json | null
           user_id: string
         }
         Insert: {
           all_careers?: Json | null
           archetypes?: Json | null
-          confidence_score?: number
-          created_at?: string
+          confidence_score?: number | null
+          created_at?: string | null
           id?: string
           key_insights?: Json | null
           recommended_track?: string | null
-          result_json: Json
+          result_json?: Json | null
           user_id: string
         }
         Update: {
           all_careers?: Json | null
           archetypes?: Json | null
-          confidence_score?: number
-          created_at?: string
+          confidence_score?: number | null
+          created_at?: string | null
           id?: string
           key_insights?: Json | null
           recommended_track?: string | null
-          result_json?: Json
+          result_json?: Json | null
           user_id?: string
         }
         Relationships: []
@@ -393,7 +455,7 @@ export type Database = {
           avatar_url: string | null
           bio: string | null
           city: string | null
-          created_at: string
+          created_at: string | null
           field_of_study: string | null
           full_name: string | null
           graduation_year: string | null
@@ -401,36 +463,37 @@ export type Database = {
           institution_name: string | null
           institution_type: string | null
           linkedin_url: string | null
-          onboarding_completed: boolean
+          onboarding_completed: boolean | null
+          role: string | null
           school: string | null
           study_level: string | null
           university_id: string | null
-          updated_at: string
-          user_id: string
+          updated_at: string | null
         }
         Insert: {
+          avatar_url?: string | null
           bio?: string | null
           city?: string | null
-          created_at?: string
+          created_at?: string | null
           field_of_study?: string | null
           full_name?: string | null
           graduation_year?: string | null
-          id?: string
+          id: string
           institution_name?: string | null
           institution_type?: string | null
           linkedin_url?: string | null
-          onboarding_completed?: boolean
+          onboarding_completed?: boolean | null
+          role?: string | null
           school?: string | null
           study_level?: string | null
           university_id?: string | null
-          updated_at?: string
-          user_id: string
+          updated_at?: string | null
         }
         Update: {
           avatar_url?: string | null
           bio?: string | null
           city?: string | null
-          created_at?: string
+          created_at?: string | null
           field_of_study?: string | null
           full_name?: string | null
           graduation_year?: string | null
@@ -438,84 +501,65 @@ export type Database = {
           institution_name?: string | null
           institution_type?: string | null
           linkedin_url?: string | null
-          onboarding_completed?: boolean
+          onboarding_completed?: boolean | null
+          role?: string | null
           school?: string | null
           study_level?: string | null
           university_id?: string | null
-          updated_at?: string
-          user_id?: string
+          updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "profiles_university_id_fkey"
-            columns: ["university_id"]
-            isOneToOne: false
-            referencedRelation: "universities"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       universities: {
         Row: {
-          access_code: string
+          access_code: string | null
           admin_email: string | null
-          created_at: string
+          created_at: string | null
           id: string
-          license_active: boolean
+          license_active: boolean | null
           name: string
-          student_count: number
+          student_count: number | null
         }
         Insert: {
-          access_code: string
+          access_code?: string | null
           admin_email?: string | null
-          created_at?: string
+          created_at?: string | null
           id?: string
-          license_active?: boolean
+          license_active?: boolean | null
           name: string
-          student_count?: number
+          student_count?: number | null
         }
         Update: {
-          access_code?: string
+          access_code?: string | null
           admin_email?: string | null
-          created_at?: string
+          created_at?: string | null
           id?: string
-          license_active?: boolean
+          license_active?: boolean | null
           name?: string
-          student_count?: number
+          student_count?: number | null
         }
         Relationships: []
       }
       user_roles: {
         Row: {
-          created_at: string
+          created_at: string | null
           id: string
-          role: Database["public"]["Enums"]["app_role"]
-          university_id: string | null
+          role: string
           user_id: string
         }
         Insert: {
-          created_at?: string
+          created_at?: string | null
           id?: string
-          role: Database["public"]["Enums"]["app_role"]
-          university_id?: string | null
+          role?: string
           user_id: string
         }
         Update: {
-          created_at?: string
+          created_at?: string | null
           id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          university_id?: string | null
+          role?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "user_roles_university_id_fkey"
-            columns: ["university_id"]
-            isOneToOne: false
-            referencedRelation: "universities"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       weekly_pulses: {
         Row: {
@@ -546,17 +590,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      get_user_university: { Args: { _user_id: string }; Returns: string }
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
+      [_ in never]: never
     }
     Enums: {
-      app_role: "student" | "admin"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -683,8 +720,6 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {
-      app_role: ["student", "admin"],
-    },
+    Enums: {},
   },
 } as const

@@ -46,7 +46,7 @@ function pageTitleForPath(pathname: string, t: (key: string) => string) {
  * 2. [] — auth + profile (single setAppState), onAuthStateChange
  * 3. [] — cariva:avatar-updated (single setAppState functional update)
  */
-export default function AppLayout({ requireRole = "student" }: { requireRole?: "student" }) {
+export default function AppLayout({ requireRole = "student" }: { requireRole?: "student" | "admin" }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
@@ -98,8 +98,12 @@ export default function AppLayout({ requireRole = "student" }: { requireRole?: "
         if (!mounted) return;
 
         const roleSet = new Set((roles ?? []).map((r) => r.role));
-        if (requireRoleRef.current === "student" && !roleSet.has("student")) {
-          navigateRef.current("/auth", { replace: true });
+        const required = requireRoleRef.current;
+        // No required role → no gate. Admins are allowed everywhere; otherwise the
+        // user must hold the role the route requires.
+        const hasAccess = !required || roleSet.has(required) || roleSet.has("admin");
+        if (!hasAccess) {
+          navigateRef.current(roleSet.has("student") ? "/pathways" : "/auth", { replace: true });
           return;
         }
 
