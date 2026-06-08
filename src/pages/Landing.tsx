@@ -217,7 +217,7 @@ export default function Landing() {
         </div>
       </section>
 
-      <AnimatedSection id="product" className="bg-[#FAF8F5] px-5 pt-20 pb-24 sm:px-8 sm:pt-28 sm:pb-32">
+      <AnimatedSection id="product" className="bg-[#F5F5F7] px-5 pt-20 pb-24 sm:px-8 sm:pt-28 sm:pb-32">
         <div className="mx-auto max-w-6xl">
           <motion.p
             initial={reduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 14 }}
