@@ -312,7 +312,7 @@ export default function LearnPathReport() {
                 type="button"
                 key={`${career.title}-${idx}`}
                 onClick={() => navigate(`/learn/path/career/${encodeURIComponent(career.title)}`)}
-                className="text-left"
+                className="min-w-0 text-left"
                 style={{
                   border: primary ? "2px solid #C8102E" : "1.5px solid #E5E5E5",
                   borderRadius: primary ? 20 : 16,
@@ -346,7 +346,7 @@ export default function LearnPathReport() {
                   #{idx + 1} Match
                 </span>
                 <h2
-                  className="mt-4"
+                  className="mt-4 break-words"
                   style={{
                     fontFamily: "Inter, system-ui, sans-serif",
                     fontSize: primary ? 28 : 20,

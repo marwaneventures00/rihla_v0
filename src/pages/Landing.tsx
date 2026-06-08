@@ -4,18 +4,9 @@ import { motion, useReducedMotion } from "framer-motion";
 import { Building2, Check, GraduationCap, Sparkles, TrendingUp, Users } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import HeroReportMock from "@/components/landing/HeroReportMock";
 
 const STATS = [
-  {
-    kicker: "National indicator",
-    stat: "38%",
-    description: "youth unemployment in Morocco",
-  },
-  {
-    kicker: "Graduate survey",
-    stat: "34%",
-    description: "cite education–job mismatch as their #1 barrier",
-  },
   {
     kicker: "Cariva platform",
     stat: "3",
@@ -112,9 +103,9 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-white text-zinc-950 antialiased">
-      {/* Floating frosted top bar — centered, clipped so controls stay inside the glass */}
+      {/* Floating frosted top bar — semi-transparent glass; no overflow-hidden so backdrop-blur renders */}
       <div className="sticky top-0 z-50 flex justify-center px-4 pt-3 sm:px-6 sm:pt-4">
-        <header className="app-topbar flex h-14 w-full max-w-6xl min-w-0 items-center justify-between gap-2 overflow-hidden rounded-2xl px-3 sm:px-6 md:grid md:grid-cols-[auto_minmax(0,1fr)_auto] md:items-center md:gap-4 md:px-6">
+        <header className="flex h-14 w-full max-w-6xl min-w-0 items-center justify-between gap-2 rounded-2xl border border-white/30 bg-white/60 px-3 shadow-lg shadow-gray-200/40 backdrop-blur-xl sm:px-6 md:grid md:grid-cols-[auto_minmax(0,1fr)_auto] md:items-center md:gap-4 md:px-6">
           <Link to="/" className="flex shrink-0 items-center gap-2 justify-self-start">
             <span className="h-2 w-2 shrink-0 rounded-full bg-[#C8102E]" aria-hidden />
             <span className="text-[17px] font-bold tracking-tight text-[#0A0A0A]" style={{ fontFamily: "Inter, sans-serif", fontWeight: 700 }}>
@@ -157,82 +148,61 @@ export default function Landing() {
         </header>
       </div>
 
-      {/* Hero — minimal centered stack (large headline, narrow sub, black pill CTA) */}
-      <section className="relative overflow-hidden bg-white px-5 pt-24 pb-24 text-center sm:px-8 sm:pt-28 sm:pb-28 md:pt-32 md:pb-32">
-        <div className="relative mx-auto w-full max-w-[920px] text-center">
-          <motion.h1
-            initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, ease: "easeOut" }}
-            className="text-balance font-black leading-[0.98] tracking-[-0.045em] text-[#0A0A0A]"
-            style={{
-              ...interSans,
-              fontSize: "clamp(42px, 7vw, 80px)",
-            }}
-          >
-            <span className="block sm:inline">Your career, </span>
-            <span className="block sm:inline">decoded.</span>
-          </motion.h1>
-          <motion.p
-            initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: reduceMotion ? 0 : 0.08 }}
-            className="mx-auto mt-8 max-w-[34rem] text-pretty text-[17px] font-normal leading-[1.55] text-[#404040] sm:mt-10 sm:text-[18px]"
-            style={interSans}
-          >
-            Cariva maps your skills, reads the job market, and builds your personal action plan in minutes.
-          </motion.p>
-          <motion.div
-            initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: reduceMotion ? 0 : 0.16 }}
-            className="mt-10 flex flex-col items-center gap-4 sm:mt-12"
-          >
-            <Link
-              to="/auth"
-              className="inline-flex w-full max-w-sm items-center justify-center rounded-full border-0 bg-[#C8102E] px-10 py-4 text-[15px] font-semibold text-white transition-colors duration-200 hover:bg-[#A50D26] sm:w-auto sm:max-w-none sm:px-12 sm:py-4"
+      {/* Hero — two-column on desktop (headline + CTA left, product mock right), stacked on mobile */}
+      <section className="relative overflow-hidden bg-white px-5 pt-24 pb-12 sm:px-8 sm:pt-28 sm:pb-14 md:pt-32 md:pb-16">
+        <div className="relative mx-auto grid w-full max-w-6xl grid-cols-1 items-center gap-12 lg:grid-cols-2">
+          <div className="text-center lg:text-left">
+            <motion.h1
+              initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.55, ease: "easeOut" }}
+              className="text-balance font-black leading-[0.98] tracking-[-0.045em] text-[#0A0A0A]"
+              style={{
+                ...interSans,
+                fontSize: "clamp(42px, 7vw, 80px)",
+              }}
+            >
+              <span className="block sm:inline">Your career, </span>
+              <span className="block sm:inline">decoded.</span>
+            </motion.h1>
+            <motion.p
+              initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: reduceMotion ? 0 : 0.08 }}
+              className="mx-auto mt-8 max-w-[34rem] text-pretty text-[17px] font-normal leading-[1.55] text-[#404040] sm:mt-10 sm:text-[18px] lg:mx-0"
               style={interSans}
             >
-              Get started free
-            </Link>
-            <Link
-              to="/auth"
-              className="text-[14px] font-medium text-[#525252] underline-offset-4 transition-colors hover:text-[#0A0A0A] hover:underline"
-              style={interSans}
+              Cariva maps your skills, reads the job market, and builds your personal action plan in minutes.
+            </motion.p>
+            <motion.div
+              initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: reduceMotion ? 0 : 0.16 }}
+              className="mt-10 flex flex-col items-center gap-4 sm:mt-12 lg:items-start"
             >
-              For universities
-            </Link>
-          </motion.div>
-        </div>
-      </section>
-
-      <section id="stats" className="bg-white px-5 sm:px-8" aria-label="Key statistics">
-        <div className="mx-auto max-w-7xl">
-          <div className="grid grid-cols-1 divide-y divide-y-[0.5px] divide-zinc-200/30 md:grid-cols-5 md:divide-x md:divide-x-[0.5px] md:divide-y-0">
-            {STATS.map((s, i) => (
-              <motion.div
-                key={s.kicker}
-                className="flex flex-col items-start gap-3 py-8 md:gap-4 md:py-11 md:pl-5 md:first:pl-0 lg:pl-6 lg:first:pl-0"
-                initial={reduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }}
-                whileInView={reduceMotion ? { opacity: 1, y: 0 } : { opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ duration: 0.45, delay: reduceMotion ? 0 : i * 0.06, ease: "easeOut" }}
+              <Link
+                to="/auth"
+                className="inline-flex w-full max-w-sm items-center justify-center rounded-full border-0 bg-[#C8102E] px-10 py-4 text-[15px] font-semibold text-white transition-colors duration-200 hover:bg-[#A50D26] sm:w-auto sm:max-w-none sm:px-12 sm:py-4"
                 style={interSans}
               >
-                <p className="text-[13px] font-normal leading-snug text-[#525252]">{s.kicker}</p>
-                <p className="text-[clamp(2rem,3.5vw,3.25rem)] font-bold leading-[1.05] tracking-[-0.03em] text-[#0A0A0A]">
-                  {s.stat}
-                </p>
-                <p className="max-w-[14rem] text-[13px] font-normal leading-snug text-[#0A0A0A] md:max-w-[11.5rem] lg:max-w-[13rem]">
-                  {s.description}
-                </p>
-              </motion.div>
-            ))}
+                Get started free
+              </Link>
+              <Link
+                to="/auth"
+                className="text-[14px] font-medium text-[#525252] underline-offset-4 transition-colors hover:text-[#0A0A0A] hover:underline"
+                style={interSans}
+              >
+                For universities
+              </Link>
+            </motion.div>
+          </div>
+          <div className="w-full min-w-0">
+            <HeroReportMock />
           </div>
         </div>
       </section>
 
-      <AnimatedSection id="product" className="bg-white px-5 py-20 sm:px-8 sm:py-28">
+      <AnimatedSection id="product" className="bg-white px-5 pt-10 pb-20 sm:px-8 sm:pt-14 sm:pb-28">
         <div className="mx-auto max-w-6xl">
           <motion.p
             initial={reduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 14 }}
@@ -264,6 +234,32 @@ export default function Landing() {
           </div>
         </div>
       </AnimatedSection>
+
+      <section id="stats" className="bg-white px-5 sm:px-8" aria-label="Key statistics">
+        <div className="mx-auto max-w-4xl">
+          <div className="grid grid-cols-1 gap-8 divide-y divide-y-[0.5px] divide-zinc-200/30 md:grid-cols-3 md:gap-12 md:divide-x md:divide-x-[0.5px] md:divide-y-0">
+            {STATS.map((s, i) => (
+              <motion.div
+                key={s.kicker}
+                className="flex flex-col items-center gap-3 py-8 text-center md:gap-4 md:py-11 md:pl-12 md:first:pl-0"
+                initial={reduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }}
+                whileInView={reduceMotion ? { opacity: 1, y: 0 } : { opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.45, delay: reduceMotion ? 0 : i * 0.06, ease: "easeOut" }}
+                style={interSans}
+              >
+                <p className="text-[13px] font-normal leading-snug text-[#525252]">{s.kicker}</p>
+                <p className="text-[clamp(2rem,3.5vw,3.25rem)] font-bold leading-[1.05] tracking-[-0.03em] text-[#0A0A0A]">
+                  {s.stat}
+                </p>
+                <p className="max-w-[14rem] text-[13px] font-normal leading-snug text-[#0A0A0A]">
+                  {s.description}
+                </p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       <section id="how" className="px-5 py-[80px] sm:px-8" aria-labelledby="how-heading">
         <div className="mx-auto max-w-6xl">
