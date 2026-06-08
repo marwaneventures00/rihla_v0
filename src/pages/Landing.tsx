@@ -1,10 +1,11 @@
 import { type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
-import { Building2, Check, GraduationCap, Sparkles, TrendingUp, Users } from "lucide-react";
+import { Check, GraduationCap, Sparkles, TrendingUp } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import HeroReportMock from "@/components/landing/HeroReportMock";
+import InstituteDashboardMock from "@/components/landing/InstituteDashboardMock";
 
 const STATS = [
   {
@@ -48,11 +49,6 @@ const STEPS = [
   { title: "Explore and develop", body: "Use market intelligence and practice modules to close your gaps." },
   { title: "Land your dream job", body: "Move from uncertainty to confidence with a clear plan." },
 ];
-
-const INSTITUTION_STATS = [
-  { value: "25", label: "Partner universities", Icon: Building2 },
-  { value: "8,000+", label: "Students on the platform", Icon: Users },
-] as const;
 
 const QUOTES = [
   {
@@ -202,7 +198,26 @@ export default function Landing() {
         </div>
       </section>
 
-      <AnimatedSection id="product" className="bg-white px-5 pt-10 pb-20 sm:px-8 sm:pt-14 sm:pb-28">
+      {/* Trust strip — understated social-proof wordmarks right under the hero */}
+      <section className="bg-white px-5 py-10 sm:px-8 sm:py-12" aria-label="Trusted by students from leading institutions">
+        <div className="mx-auto max-w-4xl">
+          <p className="text-center text-sm text-gray-500" style={interSans}>
+            Built with students from Morocco&apos;s top institutions
+          </p>
+          <div
+            className="mt-6 flex flex-wrap items-center justify-center gap-x-10 gap-y-4 sm:gap-x-12"
+            style={interSans}
+          >
+            {["ESCA", "UM6P", "Al Akhawayn University", "ENCG"].map((name) => (
+              <span key={name} className="text-base font-medium text-gray-400">
+                {name}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <AnimatedSection id="product" className="bg-[#FAF8F5] px-5 pt-20 pb-24 sm:px-8 sm:pt-28 sm:pb-32">
         <div className="mx-auto max-w-6xl">
           <motion.p
             initial={reduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 14 }}
@@ -220,7 +235,7 @@ export default function Landing() {
             {FEATURES.map((f) => (
               <article
                 key={f.title}
-                className="flex flex-col bg-white px-6 py-8 transition-[box-shadow,border-radius] duration-[250ms] ease-in-out hover:rounded-2xl hover:shadow-[0_8px_32px_rgba(0,0,0,0.06)]"
+                className="flex flex-col bg-transparent px-6 py-8 transition-[background-color,box-shadow,border-radius] duration-[250ms] ease-in-out hover:rounded-2xl hover:bg-white hover:shadow-[0_8px_32px_rgba(0,0,0,0.06)]"
               >
                 <f.icon className="h-6 w-6 shrink-0 text-[#C8102E]" strokeWidth={1.5} aria-hidden />
                 <h3 className="mt-4 text-[17px] font-semibold text-[#0A0A0A]" style={interSans}>
@@ -235,7 +250,7 @@ export default function Landing() {
         </div>
       </AnimatedSection>
 
-      <section id="stats" className="bg-white px-5 sm:px-8" aria-label="Key statistics">
+      <section id="stats" className="bg-white px-5 py-12 sm:px-8 sm:py-16" aria-label="Key statistics">
         <div className="mx-auto max-w-4xl">
           <div className="grid grid-cols-1 gap-8 divide-y divide-y-[0.5px] divide-zinc-200/30 md:grid-cols-3 md:gap-12 md:divide-x md:divide-x-[0.5px] md:divide-y-0">
             {STATS.map((s, i) => (
@@ -261,7 +276,7 @@ export default function Landing() {
         </div>
       </section>
 
-      <section id="how" className="px-5 py-[80px] sm:px-8" aria-labelledby="how-heading">
+      <section id="how" className="bg-red-50/40 px-5 py-24 sm:px-8 sm:py-32" aria-labelledby="how-heading">
         <div className="mx-auto max-w-6xl">
           <h2
             id="how-heading"
@@ -310,7 +325,7 @@ export default function Landing() {
         </div>
       </section>
 
-      <AnimatedSection id="stories" className="px-5 py-20 sm:px-8 sm:py-28">
+      <AnimatedSection id="stories" className="bg-white px-5 py-24 sm:px-8 sm:py-32">
         <div className="mx-auto max-w-6xl">
           <h2
             id="stories-heading"
@@ -351,60 +366,41 @@ export default function Landing() {
         </div>
       </AnimatedSection>
 
-      <AnimatedSection id="institutions" className="border-t border-zinc-200 px-5 py-20 sm:px-8 sm:py-28">
+      <AnimatedSection id="institutions" className="bg-[#0E0E10] px-5 py-28 sm:px-8 sm:py-36">
         <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-2">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">For institutions</p>
-            <h2 className="mt-3 text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#C8102E]">For institutions</p>
+            <h2 className="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">
               Give your students an unfair advantage
             </h2>
-            <p className="mt-5 text-sm leading-relaxed text-zinc-600 sm:text-base">
+            <p className="mt-5 text-sm leading-relaxed text-zinc-400 sm:text-base">
               Cariva gives your institution a full career intelligence dashboard — cohort readiness scores, skills gap
               analysis, sector demand trends. The data your accreditors want to see.
             </p>
             <Link
               to="/auth"
-              className="mt-8 inline-flex rounded-md bg-zinc-900 px-6 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90"
+              className="mt-8 inline-flex rounded-md bg-white px-6 py-2.5 text-sm font-medium text-[#0E0E10] transition-opacity hover:opacity-90"
             >
               Request a demo →
             </Link>
-            <ul className="mt-8 space-y-3 text-sm text-zinc-800">
+            <ul className="mt-8 space-y-3 text-sm text-zinc-200">
               {["University-level analytics dashboard", "Student career readiness scores", "Skills gap heatmap by department"].map(
                 (item) => (
                   <li key={item} className="flex items-start gap-3">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-zinc-900" strokeWidth={2} />
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#C8102E]" strokeWidth={2} />
                     {item}
                   </li>
                 ),
               )}
             </ul>
           </div>
-          <div className="relative mx-auto w-full max-w-lg lg:mx-0 lg:max-w-none">
+          <div className="relative mx-auto w-full max-w-lg px-2 lg:mx-0 lg:max-w-none">
             <div
               aria-hidden
-              className="pointer-events-none absolute -inset-px rounded-2xl bg-gradient-to-br from-[#C8102E]/[0.12] via-transparent to-zinc-200/40 opacity-90"
+              className="pointer-events-none absolute -inset-6 rounded-[2rem] bg-gradient-to-br from-[#C8102E]/20 via-transparent to-white/5 opacity-90 blur-2xl"
             />
-            <div className="relative overflow-hidden rounded-2xl bg-white p-8 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.12)] ring-1 ring-zinc-900/[0.06] sm:p-10">
-              <div className="flex flex-col divide-y divide-zinc-200/60">
-                {INSTITUTION_STATS.map((stat) => (
-                  <div key={stat.label} className="flex flex-row items-center gap-5 py-7 first:pt-2 last:pb-2 sm:gap-6 sm:py-8">
-                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-[#C8102E]/10 text-[#C8102E] sm:h-16 sm:w-16">
-                      <stat.Icon className="h-7 w-7 sm:h-8 sm:w-8" strokeWidth={1.75} aria-hidden />
-                    </div>
-                    <div className="min-w-0 flex-1 text-left">
-                      <p
-                        className="text-[clamp(2.5rem,6vw,3.5rem)] font-bold leading-none tracking-[-0.04em] text-zinc-900"
-                        style={interSans}
-                      >
-                        {stat.value}
-                      </p>
-                      <p className="mt-2 text-[15px] font-medium leading-snug text-zinc-600 sm:text-base" style={interSans}>
-                        {stat.label}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+            <div className="relative">
+              <InstituteDashboardMock />
             </div>
           </div>
         </div>
