@@ -70,8 +70,9 @@ export default function Compass() {
   }
 
   if (!result) return null;
-  const topPathways = result.pathways.slice(0, 3);
+  const topPathways = (result.pathways ?? []).slice(0, 3);
   const activePathway = topPathways[selectedPathway] ?? topPathways[0] ?? null;
+  const topTraits = result.topTraits ?? [];
 
   return (
     <div className="space-y-10 md:space-y-12 max-w-[1100px]">
@@ -86,7 +87,7 @@ export default function Compass() {
               {profile?.field_of_study} · {tr("Personalized for the Moroccan market", "Personnalise pour le marche marocain")}
             </p>
             <div className="flex flex-wrap gap-2">
-              {result.topTraits.map((t) => (
+              {topTraits.map((t) => (
                 <span
                   key={t}
                   className="text-xs px-3 py-1 rounded-full border border-primary/35 bg-transparent text-foreground font-medium"
@@ -141,7 +142,7 @@ export default function Compass() {
         </div>
         <p className="text-sm text-muted-foreground mb-8">{tr("Concrete steps to bridge your skills gap and start building momentum.", "Des actions concretes pour reduire vos ecarts de competences et prendre de l'elan.")}</p>
         <ol className="space-y-4">
-          {result.actionPlan.map((a, i) => (
+          {(result.actionPlan ?? []).map((a, i) => (
             <li key={i} className="flex gap-4 items-start">
               <div className="shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold mt-0.5">
                 {i + 1}

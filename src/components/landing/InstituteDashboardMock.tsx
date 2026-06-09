@@ -5,6 +5,7 @@ const interSans = { fontFamily: "Inter, system-ui, sans-serif" } as const;
 const METRICS = [
   { label: "Cohort readiness", value: "72%", accent: true },
   { label: "Active students", value: "1,240", accent: false },
+  { label: "Avg. time to job", value: "4.2 mo", accent: false },
 ] as const;
 
 const SKILL_GAPS = [
@@ -38,15 +39,20 @@ export default function InstituteDashboardMock() {
             <span className="h-2.5 w-2.5 rounded-full bg-gray-300" />
             <span className="h-2.5 w-2.5 rounded-full bg-gray-300" />
           </div>
-          <span className="flex items-center gap-1.5 text-[11px] font-semibold text-[#0A0A0A]">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#C8102E]" />
-            Cariva Institute — ESCA
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="flex items-center gap-1.5 text-[11px] font-semibold text-[#0A0A0A]">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#C8102E]" />
+              Cariva Institute — UM6P
+            </span>
+            <span className="rounded-full border border-[#C8102E]/25 bg-[#C8102E]/[0.08] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.08em] text-[#C8102E]">
+              Observatoire
+            </span>
+          </div>
         </div>
 
         <div className="p-5 sm:p-6">
           {/* Metric tiles */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-2">
             {METRICS.map((m, idx) => (
               <motion.div
                 key={m.label}
@@ -54,11 +60,11 @@ export default function InstituteDashboardMock() {
                 whileInView={visible}
                 viewport={{ once: true, amount: 0.3 }}
                 transition={{ duration: 0.45, ease: "easeOut", delay: d(0.2 + idx * 0.1) }}
-                className="rounded-lg border border-gray-100 bg-[#FAFAFA] p-3"
+                className="rounded-lg border border-gray-100 bg-[#FAFAFA] p-2.5"
               >
-                <p className="text-[11px] font-medium text-[#6B6B6B]">{m.label}</p>
+                <p className="text-[10px] font-medium leading-tight text-[#6B6B6B]">{m.label}</p>
                 <p
-                  className={`mt-1 text-2xl font-bold leading-none tracking-[-0.02em] ${
+                  className={`mt-1 text-lg font-bold leading-none tracking-[-0.02em] sm:text-xl ${
                     m.accent ? "text-[#C8102E]" : "text-[#0A0A0A]"
                   }`}
                 >
@@ -105,6 +111,41 @@ export default function InstituteDashboardMock() {
               ))}
             </div>
           </div>
+
+          {/* Employment trend */}
+          <motion.div
+            initial={hidden}
+            whileInView={visible}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.45, ease: "easeOut", delay: d(0.7) }}
+            className="mt-4 border-t border-gray-100 pt-4"
+          >
+            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+              Employment trend
+            </p>
+            <div className="mt-3 flex items-center justify-between gap-3">
+              <div className="flex items-baseline gap-2">
+                <span className="text-[12px] font-medium text-[#0A0A0A]">
+                  Graduate employment rate
+                </span>
+                <span className="text-base font-bold leading-none tracking-[-0.02em] text-[#C8102E]">
+                  78%
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="flex items-end gap-0.5" aria-hidden>
+                  {[6, 9, 12, 16].map((h) => (
+                    <span
+                      key={h}
+                      className="w-1 rounded-sm bg-[#16A34A]/70"
+                      style={{ height: `${h}px` }}
+                    />
+                  ))}
+                </div>
+                <span className="text-[11px] font-semibold text-[#16A34A]">▲ 6% vs last cohort</span>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </div>
     </motion.div>

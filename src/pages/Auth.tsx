@@ -48,15 +48,25 @@ export default function Auth() {
     async function routeAfterAuth(session: Session) {
       if (location.pathname !== "/auth") return;
 
+      // Roles may not be written yet immediately after signup, so retry a few times.
       for (let attempt = 0; attempt < 8; attempt++) {
         const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", session.user.id);
-        const hasStudent = (roles ?? []).some((r) => r.role === "student");
-        if (hasStudent) {
+        const roleList = (roles ?? []).map((r) => r.role);
+        // Prioritize admin/super_admin: either role goes to the Observatoire dashboard.
+        if (roleList.includes("admin") || roleList.includes("super_admin")) {
+          navigate("/admin/observatoire", { replace: true });
+          return;
+        }
+        if (roleList.includes("student")) {
           navigate("/learn", { replace: true });
           return;
         }
         await new Promise((r) => setTimeout(r, 100 * (attempt + 1)));
       }
+
+      // A successful login must never strand the user on /auth: fall back to the
+      // default student landing even if no role row was found.
+      navigate("/learn", { replace: true });
     }
 
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables, TablesInsert } from "@/integrations/supabase/types";
@@ -196,7 +196,12 @@ export default function AdminObservatoire() {
   const isMobile = useIsMobile();
 
   const [loading, setLoading] = useState(true);
+  const [role, setRole] = useState<"admin" | "super_admin" | null>(null);
   const [universityId, setUniversityId] = useState<string | null>(null);
+  // super_admin scope: "all" = every university (no filter), otherwise a university id.
+  const [scopeUni, setScopeUni] = useState<string>("all");
+  // Full universities list used to populate the super_admin selector dropdown.
+  const [scopeOptions, setScopeOptions] = useState<UniversityRow[]>([]);
   const [graduates, setGraduates] = useState<GraduateProfile[]>([]);
   const [surveys, setSurveys] = useState<ObservatoireSurvey[]>([]);
   const [surveyInvites, setSurveyInvites] = useState<Record<string, string>>({});
@@ -238,6 +243,61 @@ export default function AdminObservatoire() {
   const [sortKey, setSortKey] = useState<keyof GraduateProfile | "none">("last_updated");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
+  // Loads graduates, their university names, and survey responses for a given scope.
+  // filterUni === null means "no university filter" (super_admin "Toutes" mode).
+  const fetchScopeData = useCallback(async (filterUni: string | null) => {
+    let gradQuery = supabase
+      .from("graduate_profiles")
+      .select("*")
+      .order("last_updated", { ascending: false });
+    if (filterUni) gradQuery = gradQuery.eq("university_id", filterUni);
+
+    const { data: grads, error: gErr } = await gradQuery;
+    if (gErr) {
+      toast.error(`Could not load Observatoire data: ${gErr.message}`);
+      setGraduates([]);
+      setUniversities([]);
+      setSurveys([]);
+      return;
+    }
+
+    const gradRows = (grads ?? []) as GraduateProfile[];
+    setGraduates(gradRows);
+
+    // Resolve university names for whatever institutions appear in the result set so the
+    // name lookup keeps working in "Toutes" mode (multiple universities) too.
+    const uniIds = Array.from(new Set(gradRows.map((g) => g.university_id)));
+    if (uniIds.length) {
+      const { data: uniRows } = await supabase
+        .from("universities")
+        .select("id, name")
+        .in("id", uniIds)
+        .order("name", { ascending: true });
+      setUniversities((uniRows ?? []) as UniversityRow[]);
+    } else {
+      setUniversities([]);
+    }
+
+    const ids = gradRows.map((g) => g.id);
+    if (!ids.length) {
+      setSurveys([]);
+      return;
+    }
+
+    const { data: surv, error: sErr } = await supabase
+      .from("observatoire_surveys")
+      .select("*")
+      .in("graduate_id", ids)
+      .order("survey_date", { ascending: false });
+
+    if (sErr) {
+      toast.error(`Could not load survey responses: ${sErr.message}`);
+      setSurveys([]);
+    } else {
+      setSurveys((surv ?? []) as ObservatoireSurvey[]);
+    }
+  }, []);
+
   useEffect(() => {
     (async () => {
       setLoading(true);
@@ -248,14 +308,37 @@ export default function AdminObservatoire() {
       }
       const uid = s.session.user.id;
 
-      const { data: roles } = await supabase.from("user_roles").select("role, university_id").eq("user_id", uid);
-      const isAdmin = roles?.some((r) => r.role === "admin");
-      if (!isAdmin) {
+      const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", uid);
+      const isSuperAdmin = roles?.some((r) => r.role === "super_admin") ?? false;
+      const isAdmin = roles?.some((r) => r.role === "admin") ?? false;
+      // Both "admin" and "super_admin" pass the gate; everyone else is redirected.
+      if (!isAdmin && !isSuperAdmin) {
         navigate("/pathways", { replace: true });
         return;
       }
+      const resolvedRole: "admin" | "super_admin" = isSuperAdmin ? "super_admin" : "admin";
+      setRole(resolvedRole);
       setSurveyInvites(loadSurveyInvites());
-      const uni = roles?.find((r) => r.role === "admin" && r.university_id)?.university_id ?? null;
+
+      if (resolvedRole === "super_admin") {
+        // Super admins see every university. Populate the selector and default to "Toutes".
+        const { data: uniRows } = await supabase
+          .from("universities")
+          .select("id, name")
+          .order("name", { ascending: true });
+        setScopeOptions((uniRows ?? []) as UniversityRow[]);
+        await fetchScopeData(null);
+        setLoading(false);
+        return;
+      }
+
+      // Regular admin: locked to their own university (profiles.id is the FK to auth.users).
+      const { data: prof } = await supabase
+        .from("profiles")
+        .select("university_id")
+        .eq("id", uid)
+        .maybeSingle();
+      const uni: string | null = prof?.university_id ?? null;
       setUniversityId(uni);
 
       if (!uni) {
@@ -265,55 +348,22 @@ export default function AdminObservatoire() {
         return;
       }
 
-      const { data: grads, error: gErr } = await supabase
-        .from("graduate_profiles")
-        .select("*")
-        .order("last_updated", { ascending: false });
-
-      if (gErr) {
-        toast.error(`Could not load Observatoire data: ${gErr.message}`);
-        setGraduates([]);
-        setSurveys([]);
-        setLoading(false);
-        return;
-      }
-
-      const gradRows = (grads ?? []) as GraduateProfile[];
-      setGraduates(gradRows);
-      const uniIds = Array.from(new Set(gradRows.map((g) => g.university_id)));
-      if (uniIds.length) {
-        const { data: uniRows } = await supabase
-          .from("universities")
-          .select("id, name")
-          .in("id", uniIds)
-          .order("name", { ascending: true });
-        setUniversities((uniRows ?? []) as UniversityRow[]);
-      } else {
-        setUniversities([]);
-      }
-
-      const ids = gradRows.map((g) => g.id);
-      if (!ids.length) {
-        setSurveys([]);
-        setLoading(false);
-        return;
-      }
-
-      const { data: surv, error: sErr } = await supabase
-        .from("observatoire_surveys")
-        .select("*")
-        .in("graduate_id", ids)
-        .order("survey_date", { ascending: false });
-
-      if (sErr) {
-        toast.error(`Could not load survey responses: ${sErr.message}`);
-        setSurveys([]);
-      } else {
-        setSurveys((surv ?? []) as ObservatoireSurvey[]);
-      }
+      await fetchScopeData(uni);
       setLoading(false);
     })();
-  }, [navigate]);
+  }, [navigate, fetchScopeData]);
+
+  // Re-fetch when a super_admin changes the university scope selector.
+  const didInitScope = useRef(false);
+  useEffect(() => {
+    if (role !== "super_admin") return;
+    if (!didInitScope.current) {
+      // Skip the first run: initial load already happened in the gate effect.
+      didInitScope.current = true;
+      return;
+    }
+    void fetchScopeData(scopeUni === "all" ? null : scopeUni);
+  }, [role, scopeUni, fetchScopeData]);
 
   const fields = useMemo(() => {
     const set = new Set<string>();
@@ -572,46 +622,30 @@ export default function AdminObservatoire() {
     downloadTextFile(`observatoire_export_${new Date().toISOString().slice(0, 10)}.csv`, lines.join("\n"));
   }
 
+  // University to use when inserting new graduates (manual add / CSV import).
+  // Regular admin → their own university. Super_admin → the selected university,
+  // or null in "Toutes" mode (no single target, so inserts are blocked).
+  const insertUniversityId = role === "super_admin" ? (scopeUni === "all" ? null : scopeUni) : universityId;
+
   async function refresh() {
-    if (!universityId) return;
-    const { data: grads } = await supabase
-      .from("graduate_profiles")
-      .select("*")
-      .order("last_updated", { ascending: false });
-    const gradRows = (grads ?? []) as GraduateProfile[];
-    setGraduates(gradRows);
-    const uniIds = Array.from(new Set(gradRows.map((g) => g.university_id)));
-    if (uniIds.length) {
-      const { data: uniRows } = await supabase
-        .from("universities")
-        .select("id, name")
-        .in("id", uniIds)
-        .order("name", { ascending: true });
-      setUniversities((uniRows ?? []) as UniversityRow[]);
-    } else {
-      setUniversities([]);
-    }
-    const ids = gradRows.map((g) => g.id);
-    if (!ids.length) {
-      setSurveys([]);
-      return;
-    }
-    const { data: surv } = await supabase
-      .from("observatoire_surveys")
-      .select("*")
-      .in("graduate_id", ids)
-      .order("survey_date", { ascending: false });
-    setSurveys((surv ?? []) as ObservatoireSurvey[]);
+    const filterUni = role === "super_admin" ? (scopeUni === "all" ? null : scopeUni) : universityId;
+    if (role === "admin" && !filterUni) return;
+    await fetchScopeData(filterUni);
   }
 
   async function addGraduate() {
-    if (!universityId) return toast.error("No university context for this admin account");
+    if (!insertUniversityId)
+      return toast.error(
+        role === "super_admin"
+          ? "Select a specific university (not “Toutes”) before adding a graduate"
+          : "No university context for this admin account",
+      );
     if (!manual.student_name.trim() || !manual.field_of_study.trim()) return toast.error("Name and field are required");
     const year = Number(manual.graduation_year);
     if (!Number.isFinite(year)) return toast.error("Invalid graduation year");
 
     const payload = {
-      university_id: universityId,
+      university_id: insertUniversityId,
       student_name: manual.student_name.trim(),
       graduation_year: year,
       field_of_study: manual.field_of_study.trim(),
@@ -681,7 +715,12 @@ export default function AdminObservatoire() {
   }
 
   async function importCsv() {
-    if (!universityId) return toast.error("No university context for this admin account");
+    if (!insertUniversityId)
+      return toast.error(
+        role === "super_admin"
+          ? "Select a specific university (not “Toutes”) before importing"
+          : "No university context for this admin account",
+      );
     if (!csvHeaders.length) return toast.error("Upload a CSV first");
 
     const required = ["student_name", "graduation_year", "field_of_study", "current_status"];
@@ -696,7 +735,7 @@ export default function AdminObservatoire() {
     try {
       const inserts: TablesInsert<"graduate_profiles">[] = [];
       for (const row of csvRows) {
-        const obj: TablesInsert<"graduate_profiles"> = { university_id: universityId, last_updated: new Date().toISOString() };
+        const obj: TablesInsert<"graduate_profiles"> = { university_id: insertUniversityId, last_updated: new Date().toISOString() };
         csvHeaders.forEach((h, idx) => {
           const target = mapping[h];
           if (!target || target === CSV_MAP_IGNORE) return;
@@ -724,8 +763,14 @@ export default function AdminObservatoire() {
   async function generateInsights() {
     setAiLoading(true);
     try {
+      const scopeLabel =
+        role === "super_admin"
+          ? scopeUni === "all"
+            ? "Toutes les universités"
+            : scopeOptions.find((u) => u.id === scopeUni)?.name ?? scopeUni
+          : universities.find((u) => u.id === universityId)?.name ?? "own university";
       const payload = {
-        filters: { university: universityFilter, year: yearFilter, field: fieldFilter, search },
+        filters: { scope: scopeLabel, university: universityFilter, year: yearFilter, field: fieldFilter, search },
         metrics: {
           graduates_tracked: metrics.total,
           employment_rate_pct: metrics.employmentRate,
@@ -791,7 +836,7 @@ export default function AdminObservatoire() {
     );
   }
 
-  if (!universityId) {
+  if (role === "admin" && !universityId) {
     return (
       <div className="max-w-2xl space-y-3">
         <h1 className="text-2xl font-bold">Observatoire</h1>
@@ -805,6 +850,9 @@ export default function AdminObservatoire() {
 
   const bestField = fieldBars[0]?.field;
   const worstField = fieldBars[fieldBars.length - 1]?.field;
+  // In "Toutes" mode a super_admin sees graduates from multiple universities, so surface
+  // which institution each graduate belongs to.
+  const showUniColumn = role === "super_admin" && scopeUni === "all";
 
   return (
     <div className="space-y-6">
@@ -822,6 +870,29 @@ export default function AdminObservatoire() {
           <p className="text-sm text-muted-foreground max-w-2xl">
             Track graduate outcomes. Prove your institution&apos;s impact.
           </p>
+          {role === "super_admin" && (
+            <div className="flex flex-col gap-1 pt-1 sm:flex-row sm:items-center sm:gap-3">
+              <Label className="text-xs text-muted-foreground" style={{ fontFamily: "Inter, sans-serif" }}>
+                Scope
+              </Label>
+              <Select value={scopeUni} onValueChange={setScopeUni}>
+                <SelectTrigger
+                  className="w-full sm:w-[280px]"
+                  style={{ fontFamily: "Inter, sans-serif", borderColor: "rgba(200, 16, 46, 0.35)" }}
+                >
+                  <SelectValue placeholder="Toutes les universités" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Toutes les universités</SelectItem>
+                  {scopeOptions.map((u) => (
+                    <SelectItem key={u.id} value={u.id}>
+                      {u.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
         <div className="flex flex-col gap-2 md:items-end">
           <Button
@@ -1156,6 +1227,11 @@ export default function AdminObservatoire() {
                     <TableHead className="cursor-pointer" onClick={() => toggleSort("student_name")}>
                       Graduate ID
                     </TableHead>
+                    {showUniColumn && (
+                      <TableHead className="cursor-pointer" onClick={() => toggleSort("university_id")}>
+                        University
+                      </TableHead>
+                    )}
                     <TableHead className="hidden md:table-cell cursor-pointer" onClick={() => toggleSort("graduation_year")}>
                       Year
                     </TableHead>
@@ -1187,6 +1263,11 @@ export default function AdminObservatoire() {
                       }}
                     >
                       <TableCell className="font-medium">{anonymizedGraduateLabel(g)}</TableCell>
+                      {showUniColumn && (
+                        <TableCell className="text-muted-foreground">
+                          {uniNameById.get(g.university_id) ?? "Unknown institution"}
+                        </TableCell>
+                      )}
                       <TableCell className="hidden md:table-cell text-muted-foreground">{g.graduation_year}</TableCell>
                       <TableCell className="hidden lg:table-cell text-muted-foreground">{g.field_of_study}</TableCell>
                       <TableCell className="text-xs">{STATUS_LABEL[g.current_status as StatusKey]}</TableCell>

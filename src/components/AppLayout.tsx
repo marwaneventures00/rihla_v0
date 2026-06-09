@@ -99,9 +99,9 @@ export default function AppLayout({ requireRole = "student" }: { requireRole?: "
 
         const roleSet = new Set((roles ?? []).map((r) => r.role));
         const required = requireRoleRef.current;
-        // No required role → no gate. Admins are allowed everywhere; otherwise the
-        // user must hold the role the route requires.
-        const hasAccess = !required || roleSet.has(required) || roleSet.has("admin");
+        // No required role → no gate. Admins and super_admins are allowed everywhere;
+        // otherwise the user must hold the role the route requires.
+        const hasAccess = !required || roleSet.has(required) || roleSet.has("admin") || roleSet.has("super_admin");
         if (!hasAccess) {
           navigateRef.current(roleSet.has("student") ? "/pathways" : "/auth", { replace: true });
           return;

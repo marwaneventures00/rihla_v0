@@ -155,25 +155,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Trust strip — understated social-proof wordmarks right under the hero */}
-      <section className="bg-white px-5 py-10 sm:px-8 sm:py-12" aria-label="Trusted by students from leading institutions">
-        <div className="mx-auto max-w-4xl">
-          <p className="text-center text-sm text-gray-500" style={interSans}>
-            Built with students from Morocco&apos;s top institutions
-          </p>
-          <div
-            className="mt-6 flex flex-wrap items-center justify-center gap-x-10 gap-y-4 sm:gap-x-12"
-            style={interSans}
-          >
-            {["ESCA", "UM6P", "Al Akhawayn University", "ENCG"].map((name) => (
-              <span key={name} className="text-base font-medium text-gray-400">
-                {name}
-              </span>
-            ))}
-          </div>
-        </div>
-      </section>
-
       <AnimatedSection id="product" className="bg-[#F5F5F7] px-5 pt-20 pb-24 sm:px-8 sm:pt-28 sm:pb-32">
         <div className="mx-auto max-w-6xl">
           <motion.p
@@ -221,7 +202,7 @@ export default function Landing() {
                 style={interSans}
               >
                 <p className="text-[13px] font-normal leading-snug text-[#525252]">{s.kicker}</p>
-                <p className="text-[clamp(2rem,3.5vw,3.25rem)] font-bold leading-[1.05] tracking-[-0.03em] text-[#0A0A0A]">
+                <p className="text-[clamp(3.5rem,8vw,5.5rem)] font-black leading-[0.95] tracking-[-0.04em] text-[#C8102E]">
                   {s.stat}
                 </p>
                 <p className="max-w-[14rem] text-[13px] font-normal leading-snug text-[#0A0A0A]">
